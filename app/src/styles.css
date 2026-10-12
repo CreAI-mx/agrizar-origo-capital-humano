@@ -63,3 +63,322 @@ body {
 .muted {
   opacity: 0.65;
 }
+
+/* ── Surfaces: the "vidrio" look of the Agrizar design system ───────────────────────── */
+body {
+  background:
+    radial-gradient(900px 520px at 8% -12%, var(--halo-1), transparent 62%),
+    radial-gradient(760px 460px at 100% -6%, var(--halo-2), transparent 60%),
+    var(--bg);
+  background-attachment: fixed;
+}
+.ant-layout {
+  background: transparent;
+}
+.app-header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: var(--flotante) !important;
+  backdrop-filter: var(--blur);
+}
+.eyebrow {
+  display: block;
+  font: 600 0.68rem var(--f-num);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.ant-card {
+  background: var(--glass);
+  border-color: var(--linea);
+  box-shadow: var(--sombra);
+  backdrop-filter: var(--blur);
+}
+.ant-table,
+.ant-table-wrapper .ant-table-thead > tr > th {
+  background: transparent;
+}
+.ant-table-wrapper {
+  padding: 4px 12px 0;
+  background: var(--glass);
+  border: 1px solid var(--linea);
+  border-radius: var(--r);
+  backdrop-filter: var(--blur);
+}
+/* Tabs as pills: the active one is filled, not underlined. */
+.ant-tabs-top > .ant-tabs-nav::before,
+.ant-tabs .ant-tabs-ink-bar {
+  display: none;
+}
+.ant-tabs .ant-tabs-tab {
+  padding: 7px 16px;
+  margin: 0 6px 0 0 !important;
+  border: 1px solid transparent;
+  border-radius: var(--r-pill);
+  transition: background var(--d1) var(--ease), border-color var(--d1) var(--ease);
+}
+.ant-tabs .ant-tabs-tab:hover {
+  background: var(--glass-2);
+}
+.ant-tabs .ant-tabs-tab.ant-tabs-tab-active {
+  background: var(--accent-suave);
+  border-color: var(--accent-borde);
+}
+
+/* ── Org chart ──────────────────────────────────────────────────────────────────── */
+.chart-stage {
+  position: relative;
+  height: calc(100vh - 236px);
+  min-height: 520px;
+  overflow: hidden;
+  border: 1px solid var(--linea);
+  border-radius: var(--r);
+  background: var(--glass-3);
+  box-shadow: var(--sombra);
+}
+.chart-stage .react-flow {
+  --xy-background-color: transparent;
+  --xy-background-pattern-color: var(--rejilla);
+  --xy-edge-stroke: var(--guia);
+  --xy-edge-stroke-width: 1.5;
+  --xy-controls-button-background-color: var(--glass-2-solido);
+  --xy-controls-button-background-color-hover: var(--glass-solido);
+  --xy-controls-button-color: var(--txt);
+  --xy-controls-button-border-color: var(--linea);
+  --xy-minimap-background-color: var(--glass-solido);
+  --xy-minimap-mask-background-color: var(--velo-modal);
+  --xy-minimap-node-background-color: var(--accent-borde);
+  --xy-node-boxshadow-selected: none;
+}
+.chart-stage .react-flow__controls,
+.chart-stage .react-flow__minimap {
+  overflow: hidden;
+  border: 1px solid var(--linea);
+  border-radius: var(--r-sm);
+  box-shadow: var(--sombra);
+}
+.chart-stage .react-flow__handle {
+  width: 1px;
+  height: 1px;
+  min-width: 0;
+  min-height: 0;
+  border: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+.chart-stage .react-flow__node:focus-visible .org-node {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+.org-node {
+  position: relative;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  width: 236px;
+  height: 122px;
+  padding: 12px 14px;
+  color: var(--txt);
+  cursor: pointer;
+  background: linear-gradient(160deg, var(--glass-2-solido), var(--glass-solido));
+  border: 1px solid var(--linea-alta);
+  border-radius: 16px;
+  box-shadow: var(--sombra);
+  transition: transform var(--d1) var(--ease), border-color var(--d1) var(--ease), opacity var(--d2) var(--ease);
+}
+.org-node:hover {
+  border-color: var(--accent-borde);
+  transform: translateY(-2px);
+}
+.org-node.is-selected {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-suave), var(--sombra-alta);
+}
+.org-node.is-dim {
+  opacity: 0.28;
+}
+.org-node.is-inactive {
+  border-style: dashed;
+  opacity: 0.6;
+}
+.org-node.tone-root {
+  background: linear-gradient(160deg, var(--brand), var(--glass-solido) 130%);
+  border-color: var(--accent-borde);
+  color: #fff;
+}
+.org-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.org-kind {
+  font: 600 0.62rem var(--f-num);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.tone-root .org-kind {
+  color: var(--lima);
+}
+.tone-normal .org-kind,
+.tone-person .org-kind,
+.tone-group .org-kind {
+  color: var(--txt-2);
+}
+.org-people {
+  min-width: 26px;
+  padding: 1px 8px;
+  font: 600 0.72rem var(--f-num);
+  text-align: center;
+  color: var(--txt);
+  background: var(--glass-2);
+  border: 1px solid var(--linea);
+  border-radius: var(--r-pill);
+}
+.tone-root .org-people {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.28);
+}
+.org-name {
+  display: -webkit-box;
+  overflow: hidden;
+  font: 500 1rem/1.25 var(--f-display);
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+.org-lead,
+.org-meta {
+  overflow: hidden;
+  font-size: 0.76rem;
+  line-height: 1.25;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.org-lead {
+  margin-top: auto;
+}
+.org-meta {
+  color: var(--txt-2);
+}
+.tone-root .org-meta {
+  color: rgba(255, 255, 255, 0.72);
+}
+.org-toggle {
+  position: absolute;
+  left: 6px;
+  bottom: -12px;
+  min-width: 26px;
+  height: 24px;
+  padding: 0 7px;
+  font: 600 0.72rem var(--f-num);
+  color: var(--txt);
+  cursor: pointer;
+  background: var(--glass-2-solido);
+  border: 1px solid var(--linea-alta);
+  border-radius: var(--r-pill);
+}
+.org-toggle:hover,
+.org-toggle:focus-visible {
+  color: var(--txt-invertido);
+  background: var(--accent);
+  border-color: var(--accent);
+  outline: none;
+}
+.org-empty {
+  padding: 6px 14px;
+  background: var(--flotante);
+  border: 1px solid var(--flotante-borde);
+  border-radius: var(--r-pill);
+}
+.chart-detail {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  bottom: 12px;
+  z-index: 6;
+  width: min(400px, calc(100% - 24px));
+  overflow: auto;
+  background: var(--flotante);
+  border-color: var(--flotante-borde);
+  box-shadow: var(--sombra-alta);
+}
+@media (prefers-reduced-motion: reduce) {
+  .org-node,
+  .ant-tabs .ant-tabs-tab {
+    transition: none;
+  }
+  .org-node:hover {
+    transform: none;
+  }
+}
+
+/* Card variants shared by every diagram */
+.org-top-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+.org-tag {
+  max-width: 120px;
+  overflow: hidden;
+  padding: 1px 8px;
+  font: 600 0.64rem var(--f-num);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--txt-invertido);
+  background: var(--accent);
+  border-radius: var(--r-pill);
+}
+.org-node.is-static {
+  cursor: default;
+}
+.org-node.is-static:hover {
+  border-color: var(--linea-alta);
+  transform: none;
+}
+.org-node.is-lit {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-suave), var(--sombra);
+}
+.org-node.tone-group {
+  background: var(--glass-3-solido);
+  border-style: dashed;
+}
+.org-node.tone-team {
+  background: linear-gradient(160deg, var(--accent-suave), var(--glass-solido) 70%), var(--glass-solido);
+  border-color: var(--accent-borde);
+}
+.org-node.tone-person {
+  background: var(--glass-3-solido);
+  border-color: var(--linea);
+  box-shadow: none;
+}
+.chart-detail.is-left {
+  right: auto;
+  left: 12px;
+  top: 52px;
+  width: min(340px, calc(100% - 24px));
+}
+.chart-hint {
+  padding: 6px 14px;
+  background: var(--flotante);
+  border: 1px solid var(--flotante-borde);
+  border-radius: var(--r-pill);
+}
+.chart-hint-center {
+  position: absolute;
+  top: 14px;
+  left: 50%;
+  z-index: 6;
+  max-width: calc(100% - 320px);
+  text-align: center;
+  transform: translateX(-50%);
+}
+.chart-detail.is-left {
+  bottom: auto;
+  max-height: calc(100% - 64px);
+}

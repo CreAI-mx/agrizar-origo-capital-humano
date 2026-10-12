@@ -11,9 +11,9 @@ import { ViewAsTab } from './components/ViewAsTab';
 import type { TabProps } from './types';
 
 /** MD-2 Árbol de organización (GRZR-31): maintenance, bulk load and "Ver como". */
-export function OrganizationPage({ org, canEdit }: { org: OrganizationView; canEdit: boolean }) {
+export function OrganizationPage({ org, canEdit, mode }: { org: OrganizationView; canEdit: boolean; mode: 'dark' | 'light' }) {
   const [history, setHistory] = useState<{ entityId: string; title: string } | null>(null);
-  const props: TabProps = { org, canEdit, onHistory: (entityId, title) => setHistory({ entityId, title }) };
+  const props: TabProps = { org, canEdit, mode, onHistory: (entityId, title) => setHistory({ entityId, title }) };
   const active = <T extends { status: string }>(items: T[]) => items.filter((item) => item.status === 'active').length;
 
   return (

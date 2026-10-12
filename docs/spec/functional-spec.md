@@ -75,10 +75,10 @@ Back Office: maintenance (AC2)
 
 | ID | Requirement |
 |---|---|
-| M2-10 | Tree screen: expand and collapse, search by name or code (accents ignored), counts of equipos and people per área |
+| M2-10 | The organization is shown as an interactive diagram: connected área cards that can be panned and zoomed, branches that collapse, search by name or code (accents ignored) that frames the matches, and per área its head, equipos and people under it. A list view is available as an alternative |
 | M2-11 | Create, rename, move and deactivate an área from the tree |
-| M2-12 | Roles screen: list, create, edit, deactivate |
-| M2-13 | Equipos: list per área, create, edit, set lead, add and remove integrantes |
+| M2-12 | Roles screen: a diagram with the ladder drawn left to right from director down, wrapping into rows, and the roles outside it in their own row; a list as alternative; create, edit, deactivate; where each role is used |
+| M2-13 | Equipos: a diagram of áreas that open into their equipos, and equipos into their integrantes, with a list as alternative; create, edit, set lead, add and remove integrantes |
 | M2-14 | Personas: list, create, edit, assign and revoke roles per área |
 | M2-15 | Every screen shows when the data was last changed and by whom; each record has a history panel (what changed, who, when) |
 | M2-16 | Only the role "Administrador de Origo" can change the organization; everyone else reads |
@@ -97,7 +97,7 @@ Demo readiness (AC3)
 |---|---|
 | M2-20 | An invented dataset ships with the repo (`seed/organization.test.json`) and is what the tests use. For the local demo, `scripts/extract_organigrama.py` converts REF-ORG into the load format under `data/local/`, which is git-ignored because it holds real names. The header labels the environment as local DEV |
 | M2-21 | One command starts the app locally with the test dataset loaded |
-| M2-22 | "Ver como": the administrator picks a person and sees the áreas and equipos that person's roles cover |
+| M2-22 | "Ver como": the administrator picks a person and the organization diagram lights the áreas that person's roles cover, names the role on the área where it was given, and lists roles and equipos |
 | M2-23 | UI copy in Spanish; works on a laptop screen; keyboard reachable |
 
 ### 1.4 Out of scope for GRZR-31

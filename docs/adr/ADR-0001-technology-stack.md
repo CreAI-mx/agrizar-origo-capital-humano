@@ -60,7 +60,7 @@ Agrizar components where the hub needs them.**
 | UI components | **Ant Design 5**, themed from `design/tokens.css` (dark and light) | It is what Silia's Back Office uses, and it ships Tree, Table, Form, Upload and Modal on day one |
 | Hub surfaces | Own components on the same tokens: glass card, hero, clouds canvas, command palette | The reference's look, without a second component kit or a CSS reset that could collide inside Silia |
 | Hub interaction (later) | Motion, cmdk, dnd-kit | Added with the hub, not before |
-| People org chart (later) | `@xyflow/react` + `d3-hierarchy` | Added with that view; MD-2 maintenance uses Ant Design's Tree |
+| Organization diagram | `@xyflow/react` for the canvas (pan, zoom, keyboard focus) with our own compact layout as a pure function (`chartLayout.ts`) | The tree is shown as a node-link diagram; a plain list view stays as the alternative |
 | Client state | TanStack Query for server state. Zustand and React Router are added with the hub, when there is UI state and more than one page | creai frontend standard (`creai-tokio-pld-frontend`) |
 | Tests | Vitest. The demo script runs end to end through the HTTP API; browser tests (Testing Library, Playwright) are still to be added | creai frontend standard; Jest-compatible API for the move to Silia |
 | Quality / CI | ESLint, Prettier, GitHub Actions (lint, typecheck, test, build) | creai standard |

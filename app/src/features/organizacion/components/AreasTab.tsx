@@ -1,14 +1,19 @@
 import type { OrgUnit } from '@origo/capital-humano';
 import { ORG_UNIT_KINDS } from '@origo/capital-humano';
-import { Button, Card, Descriptions, Empty, Form, Input, List, Modal, Popconfirm, Select, Space, Switch, Tag, Tooltip, Tree, TreeSelect } from 'antd';
+import { Button, Card, Descriptions, Empty, Form, Input, List, Modal, Popconfirm, Segmented, Select, Space, Switch, Tag, Tooltip, Tree, TreeSelect } from 'antd';
 import { useMemo, useState, type Key } from 'react';
 import { useSave } from '../hooks';
 import { KIND_LABEL, count, normalize, unitPath, unitTree } from '../lib';
 import { READ_ONLY_HINT, type TabProps } from '../types';
+import { areaItems } from '../chartItems';
+import { TreeChart } from './TreeChart';
 
 type Draft = Partial<OrgUnit>;
 
-export function AreasTab({ org, canEdit, onHistory }: TabProps) {
+type View = 'diagram' | 'list';
+
+export function AreasTab({ org, canEdit, onHistory, mode }: TabProps) {
+  const [view, setView] = useState<View>('diagram');
   const [search, setSearch] = useState('');
   const [showInactive, setShowInactive] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -58,16 +63,29 @@ export function AreasTab({ org, canEdit, onHistory }: TabProps) {
   const setStatus = (unit: OrgUnit, status: OrgUnit['status']) =>
     save.mutate({ changes: [{ kind: 'orgUnit', data: { ...unit, status } }], done: status === 'active' ? 'Área reactivada' : 'Área desactivada' });
 
+  const detailTitle = selected ? selected.name : 'Detalle del área';
+  const chartItems = useMemo(() => areaItems(org, units), [org, units]);
+  const matchIds = useMemo(() => (query ? units.filter((u) => normalize(`${u.name} ${u.code}`).includes(query)).map((u) => u.id) : undefined), [units, query]);
   return (
-    <div className="split">
+    <div>
+      <div className="toolbar">
+        <Input.Search className="grow" allowClear placeholder="Buscar área por nombre o código" value={search} onChange={(e) => setSearch(e.target.value)} />
+        <Segmented<View> value={view} onChange={setView} options={[{ value: 'diagram', label: 'Diagrama' }, { value: 'list', label: 'Lista' }]} />
+        <Space>
+          <Switch size="small" checked={showInactive} onChange={setShowInactive} id="show-inactive" />
+          <label htmlFor="show-inactive">Ver inactivas</label>
+        </Space>
+        {!org.orgUnits.length && (
+          <Button type="primary" disabled={!canEdit} onClick={() => open({ kind: 'empresa', parentId: null })}>
+            Crear la empresa
+          </Button>
+        )}
+      </div>
+    <div className={view === 'diagram' ? 'chart-stage' : 'split'}>
+      {view === 'diagram' ? (
+        <TreeChart items={chartItems} matchIds={matchIds} selectedId={selectedId} onSelect={setSelectedId} mode={mode} emptyText={query ? 'Ningún área coincide con la búsqueda' : 'Aún no hay áreas. Usa la pestaña Carga o crea la primera.'} />
+      ) : (
       <Card size="small">
-        <div className="toolbar">
-          <Input.Search className="grow" allowClear placeholder="Buscar área por nombre o código" value={search} onChange={(e) => setSearch(e.target.value)} />
-          <Space>
-            <Switch size="small" checked={showInactive} onChange={setShowInactive} id="show-inactive" />
-            <label htmlFor="show-inactive">Ver inactivas</label>
-          </Space>
-        </div>
         <div className="tree-scroll">
           {treeData.length ? (
             <Tree
@@ -82,14 +100,16 @@ export function AreasTab({ org, canEdit, onHistory }: TabProps) {
             <Empty description={query ? 'Ningún área coincide con la búsqueda' : 'Aún no hay áreas. Usa la pestaña Carga o crea la primera.'} />
           )}
         </div>
-        {!org.orgUnits.length && (
-          <Button type="primary" disabled={!canEdit} onClick={() => open({ kind: 'empresa', parentId: null })}>
-            Crear la empresa
-          </Button>
-        )}
       </Card>
+      )}
 
-      <Card size="small" title={selected ? selected.name : 'Detalle del área'}>
+      {(view === 'list' || selected) && (
+      <Card
+        size="small"
+        className={view === 'diagram' ? 'chart-detail' : undefined}
+        title={detailTitle}
+        extra={view === 'diagram' ? <Button type="text" size="small" aria-label="Cerrar detalle" onClick={() => setSelectedId(null)}>✕</Button> : undefined}
+      >
         {!selected ? (
           <Empty description="Elige un área del árbol para ver su detalle" />
         ) : (
@@ -151,6 +171,8 @@ export function AreasTab({ org, canEdit, onHistory }: TabProps) {
           </Space>
         )}
       </Card>
+      )}
+    </div>
 
       <Modal
         open={draft !== null}

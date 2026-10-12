@@ -5,6 +5,7 @@ export interface TabProps {
   /** True when the person in session is an Administrador de Origo (spec M2-16). */
   canEdit: boolean;
   onHistory: (entityId: string, title: string) => void;
+  mode: 'dark' | 'light';
 }
 
 export const READ_ONLY_HINT = 'Solo un Administrador de Origo puede cambiar la organización';

@@ -60,6 +60,7 @@ function Shell({ mode, onMode }: { mode: Mode; onMode: (mode: Mode) => void }) {
     <Layout style={{ minHeight: '100%' }}>
       <Layout.Header className="app-header" style={{ background: 'transparent' }}>
         <div>
+          <span className="eyebrow">Origo · Capital Humano</span>
           <h1>Árbol de organización</h1>
           <span className="fresh">
             {org.dataAsOf ? `Dato de: ${formatDateTime(org.dataAsOf)} · ${org.lastChangedBy === 'seed' ? 'carga inicial' : org.lastChangedBy}` : 'Sin datos todavía'}
@@ -84,7 +85,7 @@ function Shell({ mode, onMode }: { mode: Mode; onMode: (mode: Mode) => void }) {
         <Segmented<Mode> value={mode} onChange={onMode} options={[{ value: 'dark', label: 'Oscuro' }, { value: 'light', label: 'Claro' }]} />
       </Layout.Header>
       <Layout.Content className="app-content">
-        <OrganizationPage org={org} canEdit={Boolean(access.data?.isAdmin)} />
+        <OrganizationPage org={org} canEdit={Boolean(access.data?.isAdmin)} mode={mode} />
       </Layout.Content>
     </Layout>
   );
