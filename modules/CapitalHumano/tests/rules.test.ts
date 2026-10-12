@@ -43,6 +43,22 @@ describe('organization tree (GRZR-31 AC1)', () => {
     expect(next.orgUnits).toHaveLength(state.orgUnits.length);
   });
 
+  it('never deactivates the root, even with nothing under it (R-01)', () => {
+    const root = { ...unit(state, 'AGZ'), id: 'solo', code: 'SOLO' };
+    const alone = { ...state, orgUnits: [root], teams: [], roleAssignments: [] };
+    expect(code(() => applyChange(alone, 'orgUnit', { ...root, status: 'inactive' }))).toBe('ROOT_REQUIRED');
+  });
+
+  it('keeps the tree a tree when inactive áreas are moved (R-03)', () => {
+    const off = (codeOf: string) => ({ ...unit(state, codeOf), status: 'inactive' as const });
+    let next = applyChange({ ...state, teams: [], roleAssignments: [] }, 'orgUnit', off('OPS-MTTO-AGZ2'));
+    next = applyChange(next, 'orgUnit', off('OPS-MTTO'));
+    const under = { ...unit(next, 'OPS-MTTO'), parentId: unit(next, 'OPS-MTTO-AGZ2').id };
+    expect(code(() => applyChange(next, 'orgUnit', under))).toBe('CYCLE');
+    expect(code(() => applyChange(next, 'orgUnit', { ...unit(next, 'OPS-MTTO'), parentId: 'no-existe' }))).toBe('PARENT_NOT_FOUND');
+    expect(code(() => applyChange(next, 'orgUnit', { ...unit(next, 'OPS-MTTO'), parentId: unit(next, 'DIR-CH').id }))).toBe('no error');
+  });
+
   it('compares codes ignoring case and accents (R-04)', () => {
     const twin = { ...unit(state, 'CH-REC'), id: 'x', code: 'ch-rec' };
     expect(code(() => applyChange(state, 'orgUnit', twin))).toBe('DUPLICATE_CODE');
@@ -70,6 +86,12 @@ describe('deactivation guards (M2-08)', () => {
     expect(code(() => applyChange(state, 'role', { ...role(state, 'administrador_origo'), status: 'inactive' }))).toBe('SYSTEM_ROLE');
   });
 
+  it('keeps the code of a system role byte for byte, so administrators stay administrators', () => {
+    const admin = role(state, 'administrador_origo');
+    expect(code(() => applyChange(state, 'role', { ...admin, code: 'ADMINISTRADOR_ORIGO' }))).toBe('SYSTEM_ROLE');
+    expect(code(() => applyChange(state, 'role', { ...admin, name: 'Administrador' }))).toBe('no error');
+  });
+
   it('blocks an equipo with members (R-07)', () => {
     expect(code(() => applyChange(state, 'team', { ...state.teams[0]!, status: 'inactive' }))).toBe('IN_USE');
   });
@@ -77,6 +99,10 @@ describe('deactivation guards (M2-08)', () => {
   it('never leaves the organization without an administrator', () => {
     const admin = state.roleAssignments.find((a) => a.roleId === role(state, 'administrador_origo').id)!;
     expect(code(() => applyChange(state, 'roleAssignment', { ...admin, status: 'revoked' }))).toBe('LAST_ADMIN');
+    // Editing the same assignment into another role removes the administrator just the same.
+    expect(code(() => applyChange(state, 'roleAssignment', { ...admin, roleId: role(state, 'gerente').id }))).toBe('LAST_ADMIN');
+    const second = applyChange(state, 'roleAssignment', { ...admin, id: 'otro-admin', personId: person(state, 'P-0002').id });
+    expect(code(() => applyChange(second, 'roleAssignment', { ...admin, roleId: role(second, 'gerente').id }))).toBe('no error');
   });
 });
 

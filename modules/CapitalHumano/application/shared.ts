@@ -10,7 +10,7 @@ export function assertAdmin(state: OrganizationState, actor: Actor): void {
 }
 
 // FNV-1a: a short, stable key for "this exact content of this entity".
-function contentHash(text: string): string {
+export function contentHash(text: string): string {
   let hash = 0x811c9dc5;
   for (let i = 0; i < text.length; i += 1) {
     hash ^= text.charCodeAt(i);

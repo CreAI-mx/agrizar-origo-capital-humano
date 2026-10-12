@@ -7,6 +7,8 @@ export interface LoadedOrganization {
   /** `recordedAt` of the latest organization change, or null when the store is empty. */
   dataAsOf: string | null;
   lastActorId: string | null;
+  /** True when every applied load declared its content invented; null when nothing was loaded. */
+  isTestData: boolean | null;
 }
 
 export interface OrganizationRepository {

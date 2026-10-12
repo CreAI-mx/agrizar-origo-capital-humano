@@ -1,5 +1,5 @@
 import type { Person } from '@origo/capital-humano';
-import { Button, Form, Input, Modal, Popconfirm, Select, Space, Table, Tag, Tooltip, TreeSelect } from 'antd';
+import { Button, Form, Input, Modal, Popconfirm, Select, Space, Switch, Table, Tag, Tooltip, TreeSelect } from 'antd';
 import { useMemo, useState } from 'react';
 import type { Change } from '../api';
 import { useSave } from '../hooks';
@@ -22,6 +22,7 @@ interface Draft {
 
 export function PeopleTab({ org, canEdit, onHistory }: TabProps) {
   const [search, setSearch] = useState('');
+  const [showInactive, setShowInactive] = useState(false);
   const [draft, setDraft] = useState<Draft | null>(null);
   const [form] = Form.useForm<Draft>();
   const save = useSave();
@@ -34,7 +35,7 @@ export function PeopleTab({ org, canEdit, onHistory }: TabProps) {
 
   const query = normalize(search);
   const people = org.people
-    .filter((p) => p.status === 'active')
+    .filter((p) => showInactive || p.status === 'active')
     .filter((p) => !query || normalize(`${p.displayName} ${p.account ?? ''} ${p.employeeNumber ?? ''}`).includes(query))
     .sort((a, b) => a.displayName.localeCompare(b.displayName, 'es'));
 
@@ -61,20 +62,27 @@ export function PeopleTab({ org, canEdit, onHistory }: TabProps) {
     ];
     save.mutate({ changes, done: 'Persona guardada' }, { onSuccess: () => setDraft(null) });
   };
+  // Equipos they lead are left without a lead first: a lead has to be a member (R-08).
   const deactivate = (person: Person) =>
     save.mutate({
       changes: [
+        ...org.teams.filter((t) => t.status === 'active' && t.leadPersonId === person.id).map((t): Change => ({ kind: 'team', data: { ...t, leadPersonId: null } })),
         ...assignmentsOf(person.id).map((a): Change => ({ kind: 'roleAssignment', data: { ...a, status: 'revoked' } })),
         ...membershipsOf(person.id).map((m): Change => ({ kind: 'teamMembership', data: { ...m, status: 'removed' } })),
         { kind: 'person', data: { ...person, status: 'inactive' } },
       ],
       done: 'Persona desactivada',
     });
+  const reactivate = (person: Person) => save.mutate({ changes: [{ kind: 'person', data: { ...person, status: 'active' } }], done: 'Persona reactivada' });
 
   return (
     <>
       <div className="toolbar">
         <Input.Search className="grow" allowClear placeholder="Buscar por nombre, cuenta o número de empleado" value={search} onChange={(e) => setSearch(e.target.value)} />
+        <Space>
+          <Switch size="small" checked={showInactive} onChange={setShowInactive} id="show-inactive-people" />
+          <label htmlFor="show-inactive-people">Ver inactivas</label>
+        </Space>
         <Tooltip title={canEdit ? undefined : READ_ONLY_HINT}>
           <Button type="primary" disabled={!canEdit} onClick={() => open()}>
             Nueva persona
@@ -88,7 +96,15 @@ export function PeopleTab({ org, canEdit, onHistory }: TabProps) {
         pagination={{ pageSize: 12, showSizeChanger: false, showTotal: (total) => `${total} personas` }}
         locale={{ emptyText: query ? 'Nadie coincide con la búsqueda' : 'Aún no hay personas' }}
         columns={[
-          { title: 'Nombre', dataIndex: 'displayName' },
+          {
+            title: 'Nombre',
+            render: (_, p) => (
+              <Space>
+                {p.displayName}
+                {p.status === 'inactive' && <Tag>Inactiva</Tag>}
+              </Space>
+            ),
+          },
           { title: 'Identificador', render: (_, p) => p.account ?? p.employeeNumber ?? <span className="muted">Sin identificador</span> },
           {
             title: 'Roles',
@@ -111,14 +127,22 @@ export function PeopleTab({ org, canEdit, onHistory }: TabProps) {
             align: 'right',
             render: (_, p) => (
               <Space>
-                <Button size="small" disabled={!canEdit} onClick={() => open(p)}>
-                  Editar
-                </Button>
-                <Popconfirm title={`¿Desactivar a «${p.displayName}»?`} description="Se revocan sus roles y sale de sus equipos." okText="Desactivar" cancelText="Cancelar" onConfirm={() => deactivate(p)} disabled={!canEdit}>
-                  <Button size="small" danger disabled={!canEdit}>
-                    Desactivar
+                {p.status === 'active' ? (
+                  <>
+                    <Button size="small" disabled={!canEdit} onClick={() => open(p)}>
+                      Editar
+                    </Button>
+                    <Popconfirm title={`¿Desactivar a «${p.displayName}»?`} description="Se revocan sus roles, sale de sus equipos y los que lidera quedan sin líder." okText="Desactivar" cancelText="Cancelar" onConfirm={() => deactivate(p)} disabled={!canEdit}>
+                      <Button size="small" danger disabled={!canEdit}>
+                        Desactivar
+                      </Button>
+                    </Popconfirm>
+                  </>
+                ) : (
+                  <Button size="small" disabled={!canEdit} onClick={() => reactivate(p)}>
+                    Reactivar
                   </Button>
-                </Popconfirm>
+                )}
                 <Button size="small" type="link" onClick={() => onHistory(p.id, p.displayName)}>
                   Historial
                 </Button>

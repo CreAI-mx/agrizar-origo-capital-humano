@@ -27,6 +27,12 @@ export async function seededDeps(repo?: OrganizationRepository): Promise<Deps> {
   return deps;
 }
 
+/** A load as the Back Office does it: preview first, then confirm that preview (M2-18). */
+export async function load(files: { name: string; text: string }[], actor: Actor, deps: Deps) {
+  const preview = await importOrganization({ mode: 'preview', files }, actor, deps);
+  return importOrganization({ mode: 'apply', files, previewId: preview.importRunId }, actor, deps);
+}
+
 export const unit = (state: OrganizationState, code: string) => state.orgUnits.find((u) => u.code === code)!;
 export const person = (state: OrganizationState, employeeNumber: string) =>
   state.people.find((p) => p.employeeNumber === employeeNumber)!;

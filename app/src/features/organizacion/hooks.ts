@@ -45,7 +45,7 @@ export function useImport() {
   const client = useQueryClient();
   const notifyError = useErrorNotice();
   return useMutation({
-    mutationFn: ({ mode, files }: { mode: 'preview' | 'apply'; files: ImportFile[] }) => api.importFiles(mode, files),
+    mutationFn: ({ mode, files, previewId }: { mode: 'preview' | 'apply'; files: ImportFile[]; previewId?: string }) => api.importFiles(mode, files, previewId),
     onSuccess: (result) => {
       if (result.mode === 'apply') void client.invalidateQueries();
     },

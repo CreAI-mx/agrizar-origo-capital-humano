@@ -17,8 +17,13 @@ export class MemoryOrganizationRepository implements OrganizationRepository {
   async load(): Promise<LoadedOrganization> {
     const latest = new Map<string, VersionRow>();
     let last: VersionRow | null = null;
+    let isTestData: boolean | null = null;
     for (const row of this.rows) {
-      if (row.kind === 'importRun') continue;
+      if (row.kind === 'importRun') {
+        const run = row.data as { mode?: string; isTestData?: boolean | null };
+        if (run.mode === 'apply') isTestData = isTestData !== false && run.isTestData === true;
+        continue;
+      }
       latest.set(`${row.kind}:${row.entityId}`, row);
       last = row;
     }
@@ -28,7 +33,7 @@ export class MemoryOrganizationRepository implements OrganizationRepository {
       (state[COLLECTION[row.kind as EntityKind]] as AnyEntity[]).push(row.data as AnyEntity);
       currentRowIds[key] = row.rowId;
     }
-    return { state, currentRowIds, dataAsOf: last?.recordedAt ?? null, lastActorId: last?.actorId ?? null };
+    return { state, currentRowIds, dataAsOf: last?.recordedAt ?? null, lastActorId: last?.actorId ?? null, isTestData };
   }
 
   async append(rows: VersionRow[]): Promise<void> {

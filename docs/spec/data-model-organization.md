@@ -127,18 +127,20 @@ Every API response carries `dataAsOf`: the latest `recorded_at` it read.
 
 | ID | Rule | Spec |
 |---|---|---|
-| R-01 | Exactly one current root; its kind is `empresa` | M2-01 |
+| R-01 | Exactly one current root; its kind is `empresa`. The root cannot be deactivated | M2-01 |
 | R-02 | A child's kind is never higher than its parent's: empresa > direccion > area > subarea. A subárea may hang from a subárea | M2-01. ASSUMPTION: four kinds are enough |
-| R-03 | A move is rejected if the new parent is the área itself or one of its descendants | M2-02 |
+| R-03 | A move is rejected if the new parent is the área itself or one of its descendants. This holds for inactive áreas too: they keep their place in the tree and can still be moved | M2-02 |
 | R-04 | Codes are compared trimmed, case-insensitive and accent-insensitive | M2-01, M2-03 |
 | R-05 | Deactivating an área requires no active children, equipos or assignments | M2-08 |
-| R-06 | Deactivating a role requires no active assignments; system roles cannot be deactivated | M2-08 |
+| R-06 | Deactivating a role requires no active assignments; system roles cannot be deactivated, and their code never changes, not even in case or accents | M2-08, M2-16 |
 | R-07 | Deactivating an equipo requires no active members | M2-08 |
-| R-08 | A lead must be an active member of the equipo | M2-04 |
+| R-08 | A lead must be an active member of the equipo. A load that names a lead who is not one reports the row and leaves the equipo's lead as it was | M2-04, M2-18 |
 | R-09 | An assignment on an área covers that área and every current descendant, at the time of the question | M2-09 |
 | R-10 | A change never edits a row: it inserts a new one whose `supersedes_id` is the current row. If that row is no longer current, the write is rejected as a conflict | M2-07 |
-| R-11 | An import row whose content equals the current version produces no row | M2-19 |
-| R-12 | Only a person with an active assignment to the system role `administrador_origo` may write | M2-16 |
+| R-11 | A record saved or loaded with content equal to its current version produces no row | M2-15, M2-19 |
+| R-12 | Only a person with an active assignment to the system role `administrador_origo` may write. The last such assignment cannot be revoked nor changed to another role | M2-16 |
+| R-13 | A load is applied only by confirming its preview: same files, same person, organization unchanged since the preview. The seed is the only direct load | M2-18 |
+| R-14 | A code repeated inside one load file is an error on the later row; the first row loads | M2-18 |
 
 ## 4. Diagram
 

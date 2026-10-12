@@ -62,7 +62,7 @@ Structure (AC1)
 | M2-04 | An equipo belongs to exactly one área, has a unique code inside it, a name and an optional lead |
 | M2-05 | A person can hold several role assignments. Each assignment names the role and the área it applies to |
 | M2-06 | A person can belong to several equipos |
-| M2-07 | Nothing is deleted. Áreas, roles, equipos, assignments and memberships are deactivated; history stays readable (Origo: append-only, superseding rows) |
+| M2-07 | Nothing is deleted. Áreas, roles, equipos, people, assignments and memberships are deactivated; history stays readable (Origo: append-only, superseding rows). Every screen can show its inactive records, with their history and a way to reactivate them |
 | M2-08 | An área with active children, equipos or assignments cannot be deactivated; the message lists what is in the way. Same for a role with active assignments and an equipo with members |
 
 Access (the "gobierna quién ve qué" part)
@@ -80,7 +80,7 @@ Back Office: maintenance (AC2)
 | M2-12 | Roles screen: a diagram with the ladder drawn left to right from director down, wrapping into rows, and the roles outside it in their own row; a list as alternative; create, edit, deactivate; where each role is used |
 | M2-13 | Equipos: a diagram of áreas that open into their equipos, and equipos into their integrantes, with a list as alternative; create, edit, set lead, add and remove integrantes |
 | M2-14 | Personas: list, create, edit, assign and revoke roles per área |
-| M2-15 | Every screen shows when the data was last changed and by whom; each record has a history panel (what changed, who, when) |
+| M2-15 | Every screen shows when the data was last changed and by whom; each record has a history panel (what changed, who, when). A person's history includes the roles given and revoked and the equipos joined and left; an equipo's includes who joined and left. The header says whether the loaded data was declared invented or may include real people |
 | M2-16 | Only the role "Administrador de Origo" can change the organization; everyone else reads |
 
 Back Office: loading (AC2)
@@ -88,7 +88,7 @@ Back Office: loading (AC2)
 | ID | Requirement |
 |---|---|
 | M2-17 | Bulk load from CSV files (áreas, roles, equipos, personas with their assignments) or one JSON file. Excel files are not read yet. ASSUMPTION: the format is ours until Eduardo's input arrives; a different layout is a change in one parser |
-| M2-18 | A load is always previewed first: rows to create, to change, unchanged, and rows with errors (unknown parent, duplicate code, cycle, unknown role). Nothing is written until the administrator confirms |
+| M2-18 | A load is always previewed first: rows to create, to change, unchanged, and rows with errors (unknown parent, duplicate code, cycle, unknown role, lead who is not a member). Nothing is written until the administrator confirms, and the API enforces it: confirming names the preview, which must be of the same files, by the same person, with the organization unchanged since |
 | M2-19 | Loading the same file twice changes nothing the second time. Each load is logged: file, who, when, counts, errors |
 
 Demo readiness (AC3)

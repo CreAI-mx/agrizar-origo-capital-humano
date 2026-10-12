@@ -36,7 +36,8 @@ describe('GRZR-31 demo script (AC3)', () => {
     expect(preview.summary).toEqual({ create: 1, change: 1, unchanged: 0, error: 1 });
     expect((await org()).orgUnits).toHaveLength(11);
 
-    expect((await post('/api/organization/imports', { mode: 'apply', files: [FILE] })).statusCode).toBe(200);
+    expect((await post('/api/organization/imports', { mode: 'apply', files: [FILE] })).statusCode).toBe(422);
+    expect((await post('/api/organization/imports', { mode: 'apply', files: [FILE], previewId: preview.importRunId })).statusCode).toBe(200);
     const view = await org();
     expect(view.orgUnits.map((u) => u.code)).toContain('HID-PROP');
     expect(view.orgUnits.find((u) => u.code === 'CH-REC')!.name).toBe('Atracción de Talento');
@@ -96,6 +97,19 @@ describe('GRZR-31 demo script (AC3)', () => {
     expect(history.map((h) => h.data.name)).toEqual(['Atracción de Talento', 'Reclutamiento']);
     expect(history[0]).toMatchObject({ actorName: 'Administrador Demo' });
     expect(history[0]!.source).toMatch(/^import:/);
+  });
+
+  it('8b · a person\'s history includes their roles and equipos, and saving without changes adds nothing (M2-15)', async () => {
+    const view = await org();
+    const someone = view.people.find((p) => p.employeeNumber === 'P-0007')!;
+    const kinds = async () => (await get<{ kind: string }[]>(`/api/organization/history/${someone.id}`)).map((h) => h.kind).sort();
+    expect(await kinds()).toEqual(['person', 'roleAssignment', 'teamMembership']);
+
+    expect((await save([{ kind: 'person', data: { ...someone } }])).statusCode).toBe(200);
+    expect(await kinds()).toEqual(['person', 'roleAssignment', 'teamMembership']);
+
+    const team = await get<{ kind: string }[]>('/api/organization/history/team-prop');
+    expect(team.filter((h) => h.kind === 'teamMembership')).toHaveLength(2);
   });
 
   it('only an Administrador de Origo can change the organization (M2-16)', async () => {

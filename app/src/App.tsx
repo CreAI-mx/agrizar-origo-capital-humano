@@ -68,7 +68,13 @@ function Shell({ mode, onMode }: { mode: Mode; onMode: (mode: Mode) => void }) {
             {org.dataAsOf ? `Dato de: ${formatDateTime(org.dataAsOf)} · ${org.lastChangedBy === 'seed' ? 'carga inicial' : org.lastChangedBy}` : 'Sin datos todavía'}
           </span>
         </div>
-        <Tag color="gold">{IS_DEMO ? 'Demo · datos inventados · nada se guarda' : 'DEV local · datos de demostración'}</Tag>
+        {IS_DEMO ? (
+          <Tag color="gold">Demo · datos inventados · nada se guarda</Tag>
+        ) : org.isTestData === false ? (
+          <Tag color="volcano">DEV local · puede incluir personas reales</Tag>
+        ) : (
+          <Tag color="gold">{org.isTestData ? 'DEV local · datos inventados' : 'DEV local'}</Tag>
+        )}
         <span className="spacer" />
         <label htmlFor="session-user">Sesión como</label>
         <Select

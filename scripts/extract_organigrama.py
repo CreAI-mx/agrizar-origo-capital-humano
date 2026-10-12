@@ -8,6 +8,10 @@ What is derived, and how (ASSUMPTION until Eduardo's input arrives):
   - Rol    = the level found in the job title (director, gerente, ... ; "otro" when none).
   - Equipo = each person with direct reports inside a page leads a team of those reports.
   - People have no identifier in the source: they get a temporary number (TMP-0001...).
+    A name is not an identity, so two boxes are taken as one person only when the chart
+    itself links them: the head of a page and that same name on other pages. The same
+    name on two pages with no such link is loaded as two people, and every case the
+    script could not settle is listed at the end for review.
 Vacant boxes and dotted (functional) lines are not loaded: MD-2 has no positions.
 """
 import json
@@ -113,11 +117,22 @@ def main():
         return next((lv for lv in LEVELS if lv in words), "otro")
 
     is_person = lambda b: not b["vacant"] and plain(b["nombre"]) not in ("", "vacante")
-    heads = {plain(b["nombre"]): p["id"] for p in pages.values() for b in p["boxes"] if b["head"] and is_person(b)}
+    heads, head_pages = {}, {}
+    for p in pages.values():
+        for b in p["boxes"]:
+            if b["head"] and is_person(b):
+                heads[plain(b["nombre"])] = p["id"]
+                head_pages.setdefault(plain(b["nombre"]), set()).add(p["id"])
     people, teams, stats = {}, [], {"vacantes": 0, "cajas": 0}
+    seen_on, boxes_on = {}, {}     # per name: pages it appears on; per (name, page): boxes there
 
-    def person_of(box):
-        key = plain(box["nombre"])
+    def person_of(box, page):
+        name = plain(box["nombre"])
+        # Heads are reconciled across pages by name; everyone else is one person per page.
+        key = name if name in heads else (name, page["id"])
+        if not any(box is known for known in boxes_on.setdefault((name, page["id"]), [])):
+            boxes_on[(name, page["id"])].append(box)
+        seen_on.setdefault(name, set()).add(page["id"])
         if key not in people:
             people[key] = {"displayName": " ".join(box["nombre"].split()), "employeeNumber": f"TMP-{len(people) + 1:04d}",
                            "assignments": [], "teams": []}
@@ -132,7 +147,7 @@ def main():
             if not is_person(box):
                 stats["vacantes"] += 1
                 continue
-            person = person_of(box)
+            person = person_of(box, page)
             owns_page = heads.get(plain(box["nombre"]))
             if box["head"] or owns_page in (None, page["id"]):
                 assignment = {"roleCode": role_of(box["puesto"]), "orgUnitCode": unit, "jobTitle": " ".join(box["puesto"].split())}
@@ -147,10 +162,10 @@ def main():
                     group[1].append(box)
         for index, (boss, reports) in enumerate(groups, start=1):
             team_code = f"EQ-{index:02d}"
-            lead = person_of(boss)
+            lead = person_of(boss, page)
             teams.append({"orgUnitCode": unit, "code": team_code, "name": f"Equipo de {' '.join(boss['puesto'].split())}",
                           "leadKey": lead["employeeNumber"]})
-            for member in [lead] + [person_of(b) for b in reports]:
+            for member in [lead] + [person_of(b, page) for b in reports]:
                 ref = {"orgUnitCode": unit, "teamCode": team_code}
                 if ref not in member["teams"]:
                     member["teams"].append(ref)
@@ -165,6 +180,19 @@ def main():
           f"({stats['cajas']} cajas leídas, {stats['vacantes']} vacantes omitidas)")
     by_kind = {k: sum(1 for u in org_units if u['kind'] == k) for k in KINDS}
     print("áreas por tipo:", by_kind)
+
+    # Cases a name alone cannot settle. Printed, never written to the output.
+    split = sorted(n for n, where in seen_on.items() if n not in heads and len(where) > 1)
+    twice = sorted({n for (n, _page), boxes in boxes_on.items() if len(boxes) > 1 and n not in heads})
+    two_heads = sorted(n for n, where in head_pages.items() if len(where) > 1)
+    if split or twice or two_heads:
+        print("Por revisar (un nombre no identifica a una persona):")
+        for name in split:
+            print(f"  - {name}: aparece en {len(seen_on[name])} páginas sin encabezar ninguna; se cargó como personas distintas")
+        for name in twice:
+            print(f"  - {name}: aparece más de una vez en la misma página; se cargó como una sola persona")
+        for name in two_heads:
+            print(f"  - {name}: encabeza {len(head_pages[name])} páginas; se cargó como una sola persona")
 
 
 if __name__ == "__main__":

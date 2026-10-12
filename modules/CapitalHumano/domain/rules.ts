@@ -56,6 +56,11 @@ function checkOrgUnit(state: OrganizationState, unit: OrgUnit): void {
   if (twin) throw new DomainError('DUPLICATE_CODE', `El código ${unit.code} ya lo usa el área «${twin.name}».`);
 
   if (unit.status === 'inactive') {
+    // R-01: the organization always has its root.
+    const previous = state.orgUnits.find((u) => u.id === unit.id);
+    if (previous?.status === 'active' && previous.parentId === null) {
+      throw new DomainError('ROOT_REQUIRED', `«${unit.name}» es la raíz de la organización: no se puede desactivar.`);
+    }
     // R-05
     const blockers = [
       ...active(others)
@@ -71,31 +76,37 @@ function checkOrgUnit(state: OrganizationState, unit: OrgUnit): void {
     if (blockers.length) {
       throw new DomainError('IN_USE', `No se puede desactivar «${unit.name}» mientras tenga elementos activos.`, blockers);
     }
-    return;
   }
 
+  // The shape of the tree holds for inactive áreas too: they are still drawn and can be moved.
   if (unit.parentId === null) {
     // R-01
     if (unit.kind !== 'empresa') {
       throw new DomainError('PARENT_REQUIRED', `«${unit.name}» necesita un área superior: solo la empresa va sin ella.`);
     }
     const root = active(others).find((u) => u.parentId === null);
-    if (root) throw new DomainError('SINGLE_ROOT', `Ya existe una raíz («${root.name}»). Solo puede haber una.`);
+    if (root && unit.status === 'active') throw new DomainError('SINGLE_ROOT', `Ya existe una raíz («${root.name}»). Solo puede haber una.`);
   } else {
+    if (unit.parentId === unit.id) throw new DomainError('CYCLE', `«${unit.name}» no puede ser su propia área superior.`);
     const parent = others.find((u) => u.id === unit.parentId);
     if (!parent) throw new DomainError('PARENT_NOT_FOUND', `El área superior de «${unit.name}» no existe.`);
-    if (parent.status !== 'active') {
+    // An inactive área may stay under an inactive one; an active área needs an active parent.
+    if (unit.status === 'active' && parent.status !== 'active') {
       throw new DomainError('PARENT_INACTIVE', `El área superior «${parent.name}» está inactiva.`);
     }
-    // R-03: `unit.id` is still under its old parent in `state`, so its descendants are known.
-    if (unit.parentId === unit.id || descendantIds(state, unit.id).includes(parent.id)) {
-      throw new DomainError('CYCLE', `«${unit.name}» no puede quedar debajo de «${parent.name}»: es una de sus propias áreas.`);
+    // R-03: walk up from the new parent, through active and inactive áreas alike.
+    const seen = new Set<string>();
+    for (let above: OrgUnit | undefined = parent; above && !seen.has(above.id); above = others.find((u) => u.id === above!.parentId)) {
+      seen.add(above.id);
+      if (above.parentId === unit.id) {
+        throw new DomainError('CYCLE', `«${unit.name}» no puede quedar debajo de «${parent.name}»: es una de sus propias áreas.`);
+      }
     }
     if (!kindFits(unit.kind, parent.kind)) {
       throw new DomainError('KIND_ORDER', `Un área de tipo ${unit.kind} no puede colgar de una de tipo ${parent.kind}.`);
     }
   }
-  const misfit = active(others).find((u) => u.parentId === unit.id && !kindFits(u.kind, unit.kind));
+  const misfit = others.find((u) => u.parentId === unit.id && !kindFits(u.kind, unit.kind));
   if (misfit) {
     throw new DomainError('KIND_ORDER', `«${misfit.name}» (${misfit.kind}) no puede colgar de un área de tipo ${unit.kind}.`);
   }
@@ -106,7 +117,8 @@ function checkRole(state: OrganizationState, role: Role): void {
   const twin = others.find((r) => sameCode(r.code, role.code));
   if (twin) throw new DomainError('DUPLICATE_CODE', `El código ${role.code} ya lo usa el rol «${twin.name}».`);
   const previous = state.roles.find((r) => r.id === role.id);
-  if (previous?.isSystem && (role.status !== 'active' || !sameCode(role.code, previous.code))) {
+  // The code is compared exactly: ADMIN_ROLE_CODE is matched as written when access is resolved.
+  if (previous?.isSystem && (role.status !== 'active' || role.code !== previous.code)) {
     throw new DomainError('SYSTEM_ROLE', `«${previous.name}» es un rol del sistema: no se desactiva ni cambia de código.`);
   }
   if (role.status === 'inactive') {
@@ -162,16 +174,16 @@ function checkPerson(state: OrganizationState, person: Person): void {
 
 function checkAssignment(state: OrganizationState, assignment: RoleAssignment): void {
   const role = state.roles.find((r) => r.id === assignment.roleId);
-  if (assignment.status !== 'active') {
-    // Never leave the organization without someone able to change it.
-    const admins = active(state.roleAssignments).filter(
-      (a) => a.id !== assignment.id && state.roles.find((r) => r.id === a.roleId)?.code === ADMIN_ROLE_CODE,
-    );
-    if (role?.code === ADMIN_ROLE_CODE && admins.length === 0) {
-      throw new DomainError('LAST_ADMIN', 'Debe quedar al menos un Administrador de Origo.');
-    }
-    return;
+  // Never leave the organization without someone able to change it. An assignment stops being
+  // an administrator's when it is revoked, and also when it is edited into another role.
+  const isAdminRole = (roleId: string) => state.roles.find((r) => r.id === roleId)?.code === ADMIN_ROLE_CODE;
+  const previous = state.roleAssignments.find((a) => a.id === assignment.id);
+  const wasAdmin = previous?.status === 'active' && isAdminRole(previous.roleId);
+  const staysAdmin = assignment.status === 'active' && isAdminRole(assignment.roleId);
+  if (wasAdmin && !staysAdmin && !active(state.roleAssignments).some((a) => a.id !== assignment.id && isAdminRole(a.roleId))) {
+    throw new DomainError('LAST_ADMIN', 'Debe quedar al menos un Administrador de Origo.');
   }
+  if (assignment.status !== 'active') return;
   const person = state.people.find((p) => p.id === assignment.personId);
   const unit = state.orgUnits.find((u) => u.id === assignment.orgUnitId);
   if (!person || person.status !== 'active') throw new DomainError('PERSON_NOT_FOUND', 'La persona no existe o está inactiva.');

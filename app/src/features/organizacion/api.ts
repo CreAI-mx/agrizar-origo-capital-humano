@@ -44,8 +44,8 @@ export interface ImportFile {
 
 export const api = {
   organization: () => request<OrganizationView>('/organization'),
-  save: (changes: Change[]) => request<{ dataAsOf: string }>('/organization/entities', { changes }),
-  importFiles: (mode: 'preview' | 'apply', files: ImportFile[]) => request<ImportResult>('/organization/imports', { mode, files }),
+  save: (changes: Change[]) => request<{ dataAsOf: string | null }>('/organization/entities', { changes }),
+  importFiles: (mode: 'preview' | 'apply', files: ImportFile[], previewId?: string) => request<ImportResult>('/organization/imports', { mode, files, previewId }),
   access: (personId: string) => request<AccessContext>(`/organization/access/${personId}`),
   history: (entityId: string) => request<HistoryEntry[]>(`/organization/history/${entityId}`),
 };

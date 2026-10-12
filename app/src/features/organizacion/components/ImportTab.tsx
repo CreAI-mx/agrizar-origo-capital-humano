@@ -18,7 +18,8 @@ export function ImportTab({ canEdit }: TabProps) {
   const [result, setResult] = useState<ImportResult | null>(null);
   const load = useImport();
 
-  const run = (mode: 'preview' | 'apply') => load.mutate({ mode, files }, { onSuccess: setResult });
+  // Confirming sends back the id of the preview on screen: the API applies nothing else (M2-18).
+  const run = (mode: 'preview' | 'apply') => load.mutate({ mode, files, previewId: mode === 'apply' ? result?.importRunId : undefined }, { onSuccess: setResult });
   const reset = () => {
     setFiles([]);
     setResult(null);

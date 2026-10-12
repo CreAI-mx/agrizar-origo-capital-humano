@@ -2,16 +2,23 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://creai.mx/schemas/agrizar/capital-humano/organization.schema.json",
   "title": "Organization",
-  "description": "Current state of the MD-2 organization tree (GRZR-31): áreas, roles, equipos, people, role assignments and team memberships. Used as the API read model, the seed format and the bulk-load format.",
+  "description": "Current state of the MD-2 organization tree (GRZR-31) as `GET /api/organization` returns it: áreas, roles, equipos, people, role assignments and team memberships, with when the data is from. Seed and bulk-load files use organization-import.schema.json instead.",
   "type": "object",
-  "required": ["orgUnits", "roles", "teams", "people", "roleAssignments", "teamMemberships"],
+  "required": ["dataAsOf", "lastChangedBy", "isTestData", "orgUnits", "roles", "teams", "people", "roleAssignments", "teamMemberships"],
   "additionalProperties": false,
   "properties": {
     "$schema": { "type": "string" },
-    "dataAsOf": { "type": "string", "format": "date-time" },
+    "dataAsOf": {
+      "oneOf": [{ "type": "string", "format": "date-time" }, { "type": "null" }],
+      "description": "When the organization last changed. Null while nothing has been loaded."
+    },
+    "lastChangedBy": {
+      "oneOf": [{ "type": "string" }, { "type": "null" }],
+      "description": "Display name of who made that last change, or the actor id when it is not a person (the seed)."
+    },
     "isTestData": {
-      "type": "boolean",
-      "description": "True when the dataset is invented. The UI shows a test-data notice."
+      "oneOf": [{ "type": "boolean" }, { "type": "null" }],
+      "description": "True when every load applied so far declared its content invented; false when at least one did not, so real people may be present; null before any load. The Back Office header says which."
     },
     "orgUnits": { "type": "array", "items": { "$ref": "#/$defs/orgUnit" } },
     "roles": { "type": "array", "items": { "$ref": "#/$defs/role" } },

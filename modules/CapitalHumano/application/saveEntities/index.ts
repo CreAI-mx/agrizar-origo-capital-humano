@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { entitySchemas, type AnyEntity, type EntityKind } from '../../domain/models';
+import { COLLECTION, entitySchemas, type AnyEntity, type EntityKind } from '../../domain/models';
 import { applyChange, checkTeamLeads } from '../../domain/rules';
 import type { Actor, Deps } from '../ports';
 import { assertAdmin, toVersionRows } from '../shared';
@@ -25,9 +25,9 @@ export async function saveEntities(
   input: SaveEntitiesInput,
   actor: Actor,
   deps: Deps,
-): Promise<{ entities: AnyEntity[]; dataAsOf: string }> {
+): Promise<{ entities: AnyEntity[]; dataAsOf: string | null }> {
   const { changes } = saveEntitiesInput.parse(input);
-  const { state: current, currentRowIds } = await deps.repo.load();
+  const { state: current, currentRowIds, dataAsOf } = await deps.repo.load();
   assertAdmin(current, actor);
 
   let state = current;
@@ -39,6 +39,9 @@ export async function saveEntities(
       const previous = current.roles.find((r) => r.id === entity.id);
       (entity as { isSystem: boolean }).isSystem = previous?.isSystem ?? false;
     }
+    // A record saved exactly as it is leaves no version behind: history shows real changes only.
+    const before = (current[COLLECTION[kind]] as AnyEntity[]).find((x) => x.id === entity.id);
+    if (before && JSON.stringify(before) === JSON.stringify(entity)) continue;
     state = applyChange(state, kind, entity as never);
     saved.push({ kind, entity });
   }
@@ -46,5 +49,5 @@ export async function saveEntities(
 
   const rows = toVersionRows(saved, currentRowIds, actor, 'web', deps);
   await deps.repo.append(rows);
-  return { entities: saved.map((s) => s.entity), dataAsOf: rows[0]!.recordedAt };
+  return { entities: saved.map((s) => s.entity), dataAsOf: rows[0]?.recordedAt ?? dataAsOf };
 }

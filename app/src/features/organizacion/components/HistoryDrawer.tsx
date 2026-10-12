@@ -41,6 +41,31 @@ export function HistoryDrawer({ org, target, onClose }: Props) {
     entry.actorName === 'seed' ? 'Carga inicial' : entry.source.startsWith('import:') ? 'Carga de archivo' : 'Back Office';
 
   const entries = history.data ?? [];
+  const roleName = (id: unknown) => org.roles.find((r) => r.id === id)?.name ?? String(id);
+  const unitName = (id: unknown) => org.orgUnits.find((u) => u.id === id)?.name ?? String(id);
+  const personName = (id: unknown) => org.people.find((p) => p.id === id)?.displayName ?? String(id);
+  const teamName = (id: unknown) => org.teams.find((t) => t.id === id)?.name ?? String(id);
+
+  /** What one version says, compared with the previous version of the same record. */
+  const describe = (entry: (typeof entries)[number], index: number): string[] => {
+    const now = entry.data as Record<string, unknown>;
+    const before = entries.slice(index + 1).find((older) => older.entityId === entry.entityId)?.data as Record<string, unknown> | undefined;
+    if (entry.kind === 'roleAssignment') {
+      const what = `${roleName(now.roleId)} en ${unitName(now.orgUnitId)}`;
+      if (now.status !== 'active') return [`Rol revocado: ${what}`];
+      if (!before || before.status !== 'active') return [`Rol asignado: ${what}${now.jobTitle ? ` · ${String(now.jobTitle)}` : ''}`];
+      return [`Rol cambiado: ${roleName(before.roleId)} en ${unitName(before.orgUnitId)} → ${what}`, ...(before.jobTitle !== now.jobTitle ? [`Puesto: ${show('jobTitle', before.jobTitle)} → ${show('jobTitle', now.jobTitle)}`] : [])];
+    }
+    if (entry.kind === 'teamMembership') {
+      // Seen from a person it names the equipo; seen from an equipo it names the person.
+      const joined = now.status === 'active';
+      if (now.personId === target?.entityId) return [`${joined ? 'Entró al' : 'Salió del'} equipo «${teamName(now.teamId)}»`];
+      return [`${joined ? 'Entró' : 'Salió'}: ${personName(now.personId)}`];
+    }
+    const changed = Object.keys(FIELD).filter((field) => field in now && (!before || now[field] !== before[field]));
+    if (before) return changed.map((field) => `${FIELD[field]}: ${show(field, before[field])} → ${show(field, now[field])}`);
+    return [`Se creó: ${changed.filter((f) => now[f] !== null && now[f] !== '').map((f) => `${FIELD[f]} ${show(f, now[f])}`).join(' · ')}`];
+  };
   return (
     <Drawer open={target !== null} onClose={onClose} width={460} title={target ? `Historial de ${target.title}` : ''}>
       {history.isLoading ? (
@@ -49,30 +74,19 @@ export function HistoryDrawer({ org, target, onClose }: Props) {
         <Empty description="Sin cambios registrados" />
       ) : (
         <Timeline
-          items={entries.map((entry, index) => {
-            const now = entry.data as Record<string, unknown>;
-            const before = entries[index + 1]?.data as Record<string, unknown> | undefined;
-            const changed = Object.keys(FIELD).filter((field) => field in now && (!before || now[field] !== before[field]));
-            return {
-              children: (
-                <>
-                  <strong>{formatDateTime(entry.recordedAt)}</strong>
-                  <div className="muted">
-                    {entry.actorName === 'seed' ? 'Sistema' : entry.actorName} · {source(entry)}
-                  </div>
-                  {before ? (
-                    changed.map((field) => (
-                      <div key={field}>
-                        {FIELD[field]}: {show(field, before[field])} → {show(field, now[field])}
-                      </div>
-                    ))
-                  ) : (
-                    <div>Se creó: {changed.filter((f) => now[f] !== null && now[f] !== '').map((f) => `${FIELD[f]} ${show(f, now[f])}`).join(' · ')}</div>
-                  )}
-                </>
-              ),
-            };
-          })}
+          items={entries.map((entry, index) => ({
+            children: (
+              <>
+                <strong>{formatDateTime(entry.recordedAt)}</strong>
+                <div className="muted">
+                  {entry.actorName === 'seed' ? 'Sistema' : entry.actorName} · {source(entry)}
+                </div>
+                {describe(entry, index).map((line) => (
+                  <div key={line}>{line}</div>
+                ))}
+              </>
+            ),
+          }))}
         />
       )}
     </Drawer>

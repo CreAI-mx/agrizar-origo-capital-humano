@@ -10,7 +10,7 @@ import {
   type OrganizationState,
   type Team,
 } from './models';
-import { applyChange, checkTeamLeads, normalize } from './rules';
+import { applyChange, normalize } from './rules';
 
 // Bulk load (spec M2-17 to M2-19). Rows are matched to existing records by business key,
 // never by internal id: área and rol by code, equipo by área + code, persona by account
@@ -24,6 +24,11 @@ const optionalText = z
   .transform((value) => value || null);
 
 export const importPayloadSchema = z.object({
+  /** True when the file declares its content invented; CSV files cannot say so. */
+  isTestData: z
+    .boolean()
+    .nullish()
+    .transform((value) => value ?? null),
   orgUnits: z
     .array(z.object({ code: text, name: text, kind: z.enum(ORG_UNIT_KINDS), parentCode: optionalText }))
     .default([]),
@@ -114,10 +119,14 @@ export function planImport(current: OrganizationState, payload: ImportPayload, n
     items.push({ sheet, row, key, action: 'error', message });
   const unitByCode = (code: string) => state.orgUnits.find((u) => normalize(u.code) === normalize(code));
 
+  const seenRoles = new Set<string>();
   payload.roles.forEach((row, index) => {
+    if (seenRoles.has(normalize(row.code))) return reject('roles', index + 1, row.code, `El código ${row.code} está repetido en el archivo.`);
+    seenRoles.add(normalize(row.code));
     const existing = state.roles.find((r) => normalize(r.code) === normalize(row.code));
     upsert('roles', index + 1, row.code, 'role', existing, {
-      code: row.code,
+      // A system role keeps its code exactly as stored (see checkRole).
+      code: existing?.isSystem ? existing.code : row.code,
       name: row.name,
       level: row.level,
       description: row.description ?? '',
@@ -168,11 +177,15 @@ export function planImport(current: OrganizationState, payload: ImportPayload, n
     pending = waiting;
   }
 
-  const teamKeys = new Map<string, { team: Team; line: number; leadKey: string | null }>();
+  const seenTeams = new Set<string>();
+  const teamRows: { team: Team; line: number; key: string; leadKey: string | null }[] = [];
   payload.teams.forEach((row, index) => {
     const unit = unitByCode(row.orgUnitCode);
     const key = `${row.orgUnitCode}/${row.code}`;
     if (!unit) return reject('equipos', index + 1, key, `No existe el área ${row.orgUnitCode}.`);
+    const rowKey = `${unit.id}/${normalize(row.code)}`;
+    if (seenTeams.has(rowKey)) return reject('equipos', index + 1, key, `El equipo ${key} está repetido en el archivo.`);
+    seenTeams.add(rowKey);
     const existing = state.teams.find((t) => t.orgUnitId === unit.id && normalize(t.code) === normalize(row.code));
     const team = upsert('equipos', index + 1, key, 'team', existing, {
       orgUnitId: unit.id,
@@ -180,7 +193,7 @@ export function planImport(current: OrganizationState, payload: ImportPayload, n
       name: row.name,
       status: 'active',
     });
-    if (team) teamKeys.set(normalize(key), { team, line: index + 1, leadKey: row.leadKey });
+    if (team) teamRows.push({ team, line: index + 1, key, leadKey: row.leadKey });
   });
 
   const personIdByKey = new Map<string, string>();
@@ -234,41 +247,35 @@ export function planImport(current: OrganizationState, payload: ImportPayload, n
   });
 
   // Leads are set last: a lead has to be a member, and members are loaded with the people.
-  for (const [key, { team, line, leadKey }] of teamKeys) {
+  // A lead that cannot be set is reported and the equipo keeps the lead it had (R-08).
+  for (const { team, line, key, leadKey } of teamRows) {
     if (!leadKey) continue;
     const leadPersonId =
       personIdByKey.get(normalize(leadKey)) ??
       state.people.find((p) => (p.account && normalize(p.account) === normalize(leadKey)) || p.employeeNumber === leadKey)?.id;
     const current = state.teams.find((t) => t.id === team.id)!;
-    if (!leadPersonId) reject('equipos', line, key, `No existe la persona líder ${leadKey}.`);
-    else if (current.leadPersonId !== leadPersonId) {
-      const pendingChange = changes.find((c) => c.kind === 'team' && c.entity.id === team.id);
-      const withLead = { ...current, leadPersonId };
-      try {
-        state = applyChange(state, 'team', withLead);
-        if (pendingChange) pendingChange.entity = withLead;
-        else {
-          changes.push({ kind: 'team', entity: withLead, sourceRef: `equipos:${line}` });
-          const item = items.find((i) => i.sheet === 'equipos' && i.row === line);
-          if (item) item.action = 'change';
-        }
-      } catch (error) {
-        reject('equipos', line, key, error instanceof Error ? error.message : String(error));
-      }
+    if (!leadPersonId) {
+      reject('equipos', line, key, `No existe la persona líder ${leadKey}.`);
+      continue;
     }
-  }
-  try {
-    checkTeamLeads(state);
-  } catch (error) {
-    // Drop the lead rather than load a team that breaks R-08.
-    for (const change of changes) {
-      if (change.kind !== 'team') continue;
-      const team = change.entity as Team;
-      const isMember = state.teamMemberships.some((m) => m.status === 'active' && m.teamId === team.id && m.personId === team.leadPersonId);
-      if (team.leadPersonId && !isMember) {
-        change.entity = { ...team, leadPersonId: null };
-        reject('equipos', Number(change.sourceRef.split(':')[1]), team.code, error instanceof Error ? error.message : String(error));
+    if (current.leadPersonId === leadPersonId) continue;
+    const isMember = state.teamMemberships.some((m) => m.status === 'active' && m.teamId === team.id && m.personId === leadPersonId);
+    if (!isMember) {
+      reject('equipos', line, key, `La persona líder ${leadKey} no es integrante del equipo.`);
+      continue;
+    }
+    const pendingChange = changes.find((c) => c.kind === 'team' && c.entity.id === team.id);
+    const withLead = { ...current, leadPersonId };
+    try {
+      state = applyChange(state, 'team', withLead);
+      if (pendingChange) pendingChange.entity = withLead;
+      else {
+        changes.push({ kind: 'team', entity: withLead, sourceRef: `equipos:${line}` });
+        const item = items.find((i) => i.sheet === 'equipos' && i.row === line);
+        if (item) item.action = 'change';
       }
+    } catch (error) {
+      reject('equipos', line, key, error instanceof Error ? error.message : String(error));
     }
   }
 
