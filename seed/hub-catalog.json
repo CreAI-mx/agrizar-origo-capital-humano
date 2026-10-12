@@ -1,0 +1,224 @@
+{
+  "$schema": "../contracts/hub-catalog.schema.json",
+  "dataAsOf": "2026-10-03",
+  "areas": [
+    {
+      "id": "milo",
+      "title": "Milo",
+      "tagline": "Lo que te piden hoy, lo que tienes abierto y lo que Milo movió"
+    },
+    {
+      "id": "gente",
+      "title": "Head Count",
+      "tagline": "Plantilla, cobertura y movimiento de personal"
+    },
+    {
+      "id": "empaque",
+      "title": "Empaque",
+      "tagline": "Plantilla, cobertura, rotación y ausentismo de las plantas de Empaque"
+    },
+    {
+      "id": "costo",
+      "title": "Nóminas",
+      "tagline": "Nómina, carga social y presupuesto de mano de obra"
+    },
+    {
+      "id": "finanzas",
+      "title": "Finanzas",
+      "tagline": "Cierre proyectado del año y presupuesto de cultivo"
+    },
+    {
+      "id": "operacion",
+      "title": "Transporte de personal",
+      "tagline": "Incidencias, costo y aforo del transporte"
+    }
+  ],
+  "dashboards": [
+    {
+      "id": "pendientes-milo",
+      "areaId": "milo",
+      "title": "Bandeja de Milo",
+      "description": "Lo que te piden hoy, lo que Milo actualizó y todos tus pendientes vivos, incluidos los de las seis minutas.",
+      "status": "active",
+      "cadence": "Dos veces al día",
+      "source": "Correo, calendario y minutas",
+      "layout": "band"
+    },
+    {
+      "id": "headcount-hidroponia",
+      "areaId": "gente",
+      "title": "Headcount Hidroponía",
+      "description": "Plantilla activa contra presupuesto por invernadero, cultivo y área, en Agrizar 1 y 2.",
+      "status": "active",
+      "cadence": "Semanal",
+      "source": "RESUMEN HC del Excel semanal"
+    },
+    {
+      "id": "hc-general",
+      "areaId": "gente",
+      "title": "HC General",
+      "description": "Plantilla activa contra presupuesto de todas las direcciones de la empresa, en Agrizar 1 y 2.",
+      "status": "active",
+      "cadence": "Semanal",
+      "source": "head count general.xlsx"
+    },
+    {
+      "id": "headcount-empaque",
+      "areaId": "empaque",
+      "title": "Headcount Empaque",
+      "description": "Plantilla real contra autorizado de Empaque por bloque, con bajas potenciales, semana a semana.",
+      "status": "active",
+      "cadence": "Semanal",
+      "source": "Fotos semanales del reporte de Empaque"
+    },
+    {
+      "id": "headcount-empaque-2",
+      "areaId": "empaque",
+      "title": "Empaque 2",
+      "description": "Plantilla autorizada contra real de las plantas AGZ y AGN, con cobertura, bajas potenciales y desglose local/foráneo.",
+      "status": "active",
+      "cadence": "Diario",
+      "source": "Prenómina semanal AGZ y AGN · tablero de otra área, link compartido"
+    },
+    {
+      "id": "kpis-empaque-agz",
+      "areaId": "empaque",
+      "title": "KPI's Empaque · AGZ",
+      "description": "Rotación total, rotación voluntaria y ausentismo de Empaque en Agrizar, mes a mes con detalle semanal y contra 2025.",
+      "status": "active",
+      "cadence": "Mensual",
+      "source": "Score Card CH Empaque · tablero de Martín Sánchez, link compartido"
+    },
+    {
+      "id": "kpis-empaque-agn",
+      "areaId": "empaque",
+      "title": "KPI's Empaque · AGN",
+      "description": "Rotación total, rotación voluntaria y ausentismo de Empaque en AGN, mes a mes con detalle semanal y contra 2025.",
+      "status": "active",
+      "cadence": "Mensual",
+      "source": "Score Card CH Empaque · tablero de Martín Sánchez, link compartido"
+    },
+    {
+      "id": "asistencia-direccion",
+      "areaId": "gente",
+      "title": "Asistencia Dirección",
+      "description": "Estatus diario de asistencia de la Dirección, semana por semana y sin acumulados.",
+      "status": "active",
+      "cadence": "Semanal",
+      "source": "Control de Asistencia Dirección (editable).xlsx"
+    },
+    {
+      "id": "rotacion",
+      "areaId": "gente",
+      "title": "Rotación",
+      "description": "Rotación atribuible por dirección y causa de salida, con la antigüedad a la que se van y corte local o foráneo.",
+      "status": "active",
+      "cadence": "Semanal",
+      "source": "1.-CONCENTRADO DE BAJAS.xlsx y 3.-CONCENTRADO DE PRORRATEO.xlsx"
+    },
+    {
+      "id": "costo-nomina",
+      "areaId": "costo",
+      "title": "Costo de Nómina",
+      "description": "Costo por persona-semana, en qué se va la nómina, carga social por razón social y avance contra el presupuesto anual.",
+      "status": "active",
+      "cadence": "Mensual",
+      "source": "07. Costo de Nómina 2026.xlsx"
+    },
+    {
+      "id": "incidencias-agz1",
+      "areaId": "operacion",
+      "title": "Incidencias de transporte · AGZ1",
+      "description": "Todo Agrizar 1: seis áreas, seis proveedores, entradas y salidas, con la afectación medida sobre la base de rutas de cada día.",
+      "status": "active",
+      "cadence": "Semanal",
+      "source": "Maestro Incidencias AGZ1.xlsx"
+    },
+    {
+      "id": "transporte-incidencias",
+      "areaId": "operacion",
+      "title": "Incidencias de transporte · Hidroponía",
+      "description": "Llegada de la mañana de las 35 rutas de Hidroponía: servicios, incidencias y llegadas tardías, día por día.",
+      "status": "active",
+      "cadence": "Semanal",
+      "source": "Reporte_Transporte_Capital_Humano.xlsx"
+    },
+    {
+      "id": "panel-despacho",
+      "areaId": "operacion",
+      "title": "Costos y aforos de transporte",
+      "description": "Costo, aforo y ocupación de las rutas de transporte por área y proveedor.",
+      "status": "active",
+      "cadence": "Semanal",
+      "source": "TRANSPORTE 2026 (2).xlsx"
+    },
+    {
+      "id": "reclutamiento",
+      "areaId": "gente",
+      "title": "Reclutamiento",
+      "description": "Curva de contratación contra requerimiento y tiempo de cobertura de vacantes.",
+      "status": "upcoming"
+    },
+    {
+      "id": "headcount-berries",
+      "areaId": "gente",
+      "title": "Headcount Berries",
+      "description": "Plantilla activa contra presupuesto en arándano y frambuesa, por rancho y área, con los supervisores aparte y la curva de la temporada.",
+      "status": "active",
+      "cadence": "Semanal",
+      "source": "Maestro Head Count Berries.xlsx"
+    },
+    {
+      "id": "organigrama",
+      "areaId": "gente",
+      "title": "Organigrama",
+      "description": "Las trece direcciones de la empresa, posición por posición, con buscador de personas.",
+      "status": "active",
+      "cadence": "Cuando cambia la estructura",
+      "source": "Organigramas AGZ 2026.pdf"
+    },
+    {
+      "id": "jornales",
+      "areaId": "gente",
+      "title": "Jornales Hidroponía",
+      "description": "Jornales reales de Hidroponía contra el presupuesto de Finanzas, por sitio, área, cultivo e invernadero.",
+      "status": "active",
+      "cadence": "Semanal",
+      "source": "Base de jornales y Power BI de Alfredo Pérez"
+    },
+    {
+      "id": "cuenta-inversa",
+      "areaId": "finanzas",
+      "title": "Cuenta Inversa",
+      "description": "Cuánto presupuesto de cultivo le queda a Hidroponía, a qué ritmo puede gastarlo y a dónde cierra el año.",
+      "status": "active",
+      "cadence": "Semanal",
+      "source": "AAMMDD Cuenta Inversa S##.xlsx, hoja Inversa"
+    },
+    {
+      "id": "ffo-cierre-2026",
+      "areaId": "finanzas",
+      "title": "FFO · Cierre 2026",
+      "description": "Cómo cierra el año la empresa contra presupuesto, con la proyección de los meses que faltan.",
+      "status": "active",
+      "cadence": "Eventual",
+      "source": "FFO"
+    },
+    {
+      "id": "costo-mano-obra",
+      "areaId": "costo",
+      "title": "Costo de Mano de Obra",
+      "description": "Gasto de mano de obra y headcount de toda la empresa, mes a mes o semana a semana, con corte por ubicación, área y puesto.",
+      "status": "active",
+      "cadence": "Semanal",
+      "source": "Costo Semanal MO + Pago Quincenal 2026.xlsx"
+    },
+    {
+      "id": "presupuesto-mano-obra",
+      "areaId": "costo",
+      "title": "Presupuesto de mano de obra",
+      "description": "Presupuesto por área contra el ejercido, con proyección de cierre.",
+      "status": "upcoming"
+    }
+  ]
+}

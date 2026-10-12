@@ -1,0 +1,153 @@
+/* Agrizar design tokens — ported verbatim from the reference design system
+   ("agrizar-ds.css v2 vidrio", embedded in the Centro de mando artifact).
+   Dark is the primary identity; light exists for daylight, projection and print.
+   Brand colors: MANUAL DE IDENTIDAD AGRIZAR p.10 (as cited by the reference).
+   Components must paint with these tokens only, never with literal colors. */
+
+:root {
+  color-scheme: dark;
+  /* --- Marca oficial (manual p.10). Igual en los dos modos. --- */
+  --brand:       #006E43;
+  --brand-2:     #00953B;
+  --brand-3:     #3DAE2B;
+  --lima:        #93D500;
+  --brand-crema: #F7F4F0;
+  /* ═══ MODO OSCURO ═══ */
+  --bg:        #0A0D0B;
+  --bg-2:      #0E1310;
+  --glass:      rgba(255, 255, 255, .055);
+  --glass-2:    rgba(255, 255, 255, .085);
+  --glass-3:    rgba(255, 255, 255, .035);
+  --linea:      rgba(255, 255, 255, .10);
+  --linea-alta: rgba(255, 255, 255, .17);
+  --glass-solido:   #161B14;
+  --glass-2-solido: #1D2419;
+  --glass-3-solido: #12160F;
+  --txt:   rgba(255, 255, 255, .94);
+  --txt-2: rgba(255, 255, 255, .62);
+  --txt-3: rgba(255, 255, 255, .40);
+  --txt-invertido: #0A0D0B;
+  /* El acento del modo oscuro es el lima oficial. */
+  --accent:       #93D500;
+  --accent-suave: rgba(147, 213, 0, .16);
+  --accent-borde: rgba(147, 213, 0, .45);
+  --bueno:  #93D500;  --bueno-suave: rgba(147, 213, 0, .14);
+  --alerta: #F7B32B;  --alerta-suave: rgba(247, 179, 43, .14);
+  --malo:   #FF7A82;  --malo-suave: rgba(255, 122, 130, .14);
+  --serie-1: #93D500;  --serie-2: #5AB0C4;  --serie-3: #F7B32B;
+  --serie-4: #FF7A82;  --serie-5: #7FE3A9;  --serie-6: #B39DDB;
+  /* Superficies flotantes y detalles que cambian por completo entre modos */
+  --flotante:        rgba(18, 24, 16, .94);
+  --flotante-borde:  rgba(255, 255, 255, .17);
+  --velo-modal:      rgba(4, 7, 5, .70);
+  --sheen:           rgba(255, 255, 255, .10);   /* filo de luz del panel */
+  --brillo:          rgba(255, 255, 255, .10);   /* barrido del skeleton */
+  --rejilla:         rgba(255, 255, 255, .07);
+  --guia:            rgba(255, 255, 255, .22);
+  --icono-filtro:    brightness(0) invert(1);
+  --halo-1:          rgba(0, 149, 59, .30);
+  --halo-2:          rgba(147, 213, 0, .13);
+  --foto-op:         .5;
+  --sombra:      0 12px 40px rgba(0, 0, 0, .45);
+  --sombra-alta: 0 24px 70px rgba(0, 0, 0, .60);
+  --blur: blur(24px) saturate(140%);
+  /* --- Tipografía --- */
+  --f-display: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif;
+  --f-ui:      -apple-system, system-ui, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+  --f-num:     "SF Mono", ui-monospace, "Cascadia Mono", "Roboto Mono", Menlo, monospace;
+  /* Las dos de abajo van incrustadas arriba, así que se ven igual en cualquier
+  máquina — al revés que las tres de arriba, que son pilas del sistema y en
+  Windows caen a otra letra. Los respaldos son por si el CSS llega recortado.
+  --f-script es DECORATIVA y tiene su propia regla: nunca toca un dato.
+  Ver la regla 11 de docs/REGLAS.md antes de usarla. */
+  --f-script:      "Pinyon Script", "Snell Roundhand", "Apple Chancery", cursive;
+  --f-display-alt: "Cormorant Garamond", "Iowan Old Style", Georgia, serif;
+  /* --- Forma y ritmo --- */
+  --r: 18px;  --r-sm: 12px;  --r-xs: 8px;  --r-pill: 999px;
+  --sp-1: 4px;  --sp-2: 8px;  --sp-3: 12px; --sp-4: 16px;
+  --sp-5: 24px; --sp-6: 32px; --sp-7: 48px;
+  --ease: cubic-bezier(.22, .8, .28, 1);
+  --d1: 160ms; --d2: 280ms; --d3: 620ms;
+}
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    color-scheme: light;
+    --bg:        #EDE7DA;
+    --bg-2:      #F5F1E8;
+    --glass:      rgba(255, 255, 255, .66);
+    --glass-2:    rgba(255, 255, 255, .88);
+    --glass-3:    rgba(38, 43, 28, .055);
+    --linea:      rgba(38, 43, 28, .13);
+    --linea-alta: rgba(38, 43, 28, .24);
+    --glass-solido:   #FBF8F1;
+    --glass-2-solido: #FFFFFF;
+    --glass-3-solido: #E7E1D3;
+    --txt:   #1A1F18;
+    --txt-2: #565C50;
+    --txt-3: #7C8375;
+    --txt-invertido: #FFFFFF;
+    --accent:       #006E43;
+    --accent-suave: rgba(0, 110, 67, .12);
+    --accent-borde: rgba(0, 110, 67, .38);
+    --bueno:  #2F7D3F;  --bueno-suave: rgba(47, 125, 63, .13);
+    --alerta: #8A6519;  --alerta-suave: rgba(138, 101, 25, .14);
+    --malo:   #9C4632;  --malo-suave: rgba(156, 70, 50, .12);
+    --serie-1: #006E43;  --serie-2: #2E7D9A;  --serie-3: #8A6519;
+    --serie-4: #9C4632;  --serie-5: #3E8F63;  --serie-6: #6A5A9E;
+    --flotante:       rgba(255, 255, 255, .96);
+    --flotante-borde: rgba(38, 43, 28, .18);
+    --velo-modal:     rgba(38, 43, 28, .40);
+    --sheen:          rgba(255, 255, 255, .55);
+    --brillo:         rgba(38, 43, 28, .07);
+    --rejilla:        rgba(38, 43, 28, .09);
+    --guia:           rgba(38, 43, 28, .28);
+    --icono-filtro:   brightness(0) saturate(100%) invert(21%) sepia(63%) saturate(1600%) hue-rotate(133deg) brightness(94%) contrast(101%);
+    --halo-1:         rgba(0, 149, 59, .12);
+    --halo-2:         rgba(147, 213, 0, .10);
+    --foto-op:        .16;
+    --sombra:      0 8px 28px rgba(38, 43, 28, .10);
+    --sombra-alta: 0 18px 50px rgba(38, 43, 28, .18);
+    --blur: blur(20px) saturate(120%);
+  }
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+  --bg:        #EDE7DA;
+  --bg-2:      #F5F1E8;
+  --glass:      rgba(255, 255, 255, .66);
+  --glass-2:    rgba(255, 255, 255, .88);
+  --glass-3:    rgba(38, 43, 28, .055);
+  --linea:      rgba(38, 43, 28, .13);
+  --linea-alta: rgba(38, 43, 28, .24);
+  --glass-solido:   #FBF8F1;
+  --glass-2-solido: #FFFFFF;
+  --glass-3-solido: #E7E1D3;
+  --txt:   #1A1F18;
+  --txt-2: #565C50;
+  --txt-3: #7C8375;
+  --txt-invertido: #FFFFFF;
+  --accent:       #006E43;
+  --accent-suave: rgba(0, 110, 67, .12);
+  --accent-borde: rgba(0, 110, 67, .38);
+  --bueno:  #2F7D3F;  --bueno-suave: rgba(47, 125, 63, .13);
+  --alerta: #8A6519;  --alerta-suave: rgba(138, 101, 25, .14);
+  --malo:   #9C4632;  --malo-suave: rgba(156, 70, 50, .12);
+  --serie-1: #006E43;  --serie-2: #2E7D9A;  --serie-3: #8A6519;
+  --serie-4: #9C4632;  --serie-5: #3E8F63;  --serie-6: #6A5A9E;
+  --flotante:       rgba(255, 255, 255, .96);
+  --flotante-borde: rgba(38, 43, 28, .18);
+  --velo-modal:     rgba(38, 43, 28, .40);
+  --sheen:          rgba(255, 255, 255, .55);
+  --brillo:         rgba(38, 43, 28, .07);
+  --rejilla:        rgba(38, 43, 28, .09);
+  --guia:           rgba(38, 43, 28, .28);
+  --icono-filtro:   brightness(0) saturate(100%) invert(21%) sepia(63%) saturate(1600%) hue-rotate(133deg) brightness(94%) contrast(101%);
+  --halo-1:         rgba(0, 149, 59, .12);
+  --halo-2:         rgba(147, 213, 0, .10);
+  --foto-op:        .16;
+  --sombra:      0 8px 28px rgba(38, 43, 28, .10);
+  --sombra-alta: 0 18px 50px rgba(38, 43, 28, .18);
+  --blur: blur(20px) saturate(120%);
+}

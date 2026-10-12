@@ -1,0 +1,125 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://creai.mx/schemas/agrizar/capital-humano/org-chart.schema.json",
+  "title": "Org chart",
+  "description": "Current-state view of the organization as served to the Organigrama feature. It is derived from append-only position events; this document is never edited in place.",
+  "type": "object",
+  "required": ["dataAsOf", "orgUnits", "positions"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "dataAsOf": {
+      "type": "string",
+      "format": "date",
+      "description": "Date of the latest event included in this view."
+    },
+    "orgUnits": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/orgUnit" }
+    },
+    "positions": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/position" }
+    },
+    "changeNotes": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/changeNote" }
+    }
+  },
+  "$defs": {
+    "id": { "type": "string", "minLength": 1 },
+    "orgUnit": {
+      "type": "object",
+      "required": ["id", "kind", "name"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "parentId": { "$ref": "#/$defs/id" },
+        "kind": { "enum": ["direccion", "area", "subarea"] },
+        "name": { "type": "string", "minLength": 1 }
+      }
+    },
+    "level": {
+      "description": "Level ladder, highest to lowest. 'otro' covers roles outside the ladder (e.g. Grower, Abogado).",
+      "enum": [
+        "director",
+        "gerente",
+        "jefe",
+        "coordinador",
+        "lider",
+        "supervisor",
+        "especialista",
+        "analista",
+        "auxiliar",
+        "practicante",
+        "otro"
+      ]
+    },
+    "provenance": {
+      "type": "object",
+      "required": ["declaredBy", "declaredOn"],
+      "additionalProperties": false,
+      "properties": {
+        "declaredBy": {
+          "type": "string",
+          "description": "Who stated this fact (an area, a role, or a source document)."
+        },
+        "declaredOn": { "type": "string", "format": "date" },
+        "sourceDocument": { "type": "string" }
+      }
+    },
+    "position": {
+      "type": "object",
+      "required": ["id", "roleTitle", "level", "orgUnitId", "status", "provenance"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "code": {
+          "type": "string",
+          "description": "Business code of the position, e.g. CH-007."
+        },
+        "roleTitle": { "type": "string", "minLength": 1 },
+        "level": { "$ref": "#/$defs/level" },
+        "orgUnitId": { "$ref": "#/$defs/id" },
+        "reportsToPositionId": { "$ref": "#/$defs/id" },
+        "lineType": {
+          "enum": ["solid", "dotted"],
+          "default": "solid",
+          "description": "solid = direct reporting, dotted = functional reporting."
+        },
+        "holder": {
+          "description": "null means the position is vacant. A source that wrote 'Vacante' as a name is normalized to null at import.",
+          "oneOf": [
+            { "type": "null" },
+            {
+              "type": "object",
+              "required": ["personId", "displayName"],
+              "additionalProperties": false,
+              "properties": {
+                "personId": { "$ref": "#/$defs/id" },
+                "displayName": { "type": "string", "minLength": 1 }
+              }
+            }
+          ]
+        },
+        "status": { "enum": ["vigente", "por_confirmar", "cerrada"] },
+        "flags": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "enum": ["alta", "baja", "posible_duplicado"] }
+        },
+        "provenance": { "$ref": "#/$defs/provenance" }
+      }
+    },
+    "changeNote": {
+      "type": "object",
+      "required": ["orgUnitId", "notedOn", "text"],
+      "additionalProperties": false,
+      "properties": {
+        "orgUnitId": { "$ref": "#/$defs/id" },
+        "notedOn": { "type": "string", "format": "date" },
+        "text": { "type": "string", "minLength": 1 }
+      }
+    }
+  }
+}

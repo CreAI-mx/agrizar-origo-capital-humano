@@ -1,0 +1,105 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://creai.mx/schemas/agrizar/capital-humano/hub-catalog.schema.json",
+  "title": "Hub catalog",
+  "description": "Areas and dashboards shown in the Centro de mando. The catalog holds no figures: it only describes and links dashboards.",
+  "type": "object",
+  "required": ["dataAsOf", "areas", "dashboards"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "dataAsOf": {
+      "type": "string",
+      "format": "date",
+      "description": "Date the catalog was last changed; rendered as 'Actualizado'."
+    },
+    "areas": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/area" }
+    },
+    "dashboards": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/dashboard" }
+    }
+  },
+  "$defs": {
+    "slug": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+    },
+    "area": {
+      "type": "object",
+      "required": ["id", "title", "tagline"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "$ref": "#/$defs/slug" },
+        "title": { "type": "string", "minLength": 1 },
+        "tagline": { "type": "string" }
+      }
+    },
+    "target": {
+      "description": "Where a dashboard opens. External links are resolved by the API for authorized users and are never stored in the client bundle.",
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["kind", "url"],
+          "additionalProperties": false,
+          "properties": {
+            "kind": { "const": "external" },
+            "url": { "type": "string", "format": "uri" }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["kind", "route"],
+          "additionalProperties": false,
+          "properties": {
+            "kind": { "const": "internal" },
+            "route": { "type": "string", "pattern": "^/" }
+          }
+        }
+      ]
+    },
+    "dashboard": {
+      "type": "object",
+      "required": ["id", "areaId", "title", "description", "status"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "$ref": "#/$defs/slug" },
+        "areaId": { "$ref": "#/$defs/slug" },
+        "title": { "type": "string", "minLength": 1 },
+        "description": { "type": "string" },
+        "status": { "enum": ["active", "upcoming"] },
+        "cadence": {
+          "type": "string",
+          "description": "How often the dashboard is refreshed, in the business's words (e.g. 'Semanal')."
+        },
+        "source": {
+          "type": "string",
+          "description": "Where the dashboard's data comes from."
+        },
+        "layout": {
+          "enum": ["standard", "band"],
+          "default": "standard",
+          "description": "Declared, never inferred from how many dashboards an area has."
+        },
+        "target": { "$ref": "#/$defs/target" },
+        "thumbnail": {
+          "type": "string",
+          "description": "Asset key of the card image."
+        },
+        "dataAsOf": {
+          "type": "string",
+          "format": "date",
+          "description": "Date the dashboard's data is from."
+        }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "status": { "const": "active" } } },
+          "then": { "required": ["cadence", "source"] }
+        }
+      ]
+    }
+  }
+}
