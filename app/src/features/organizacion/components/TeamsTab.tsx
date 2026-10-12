@@ -19,7 +19,7 @@ interface Draft {
 
 type View = 'diagram' | 'list';
 
-export function TeamsTab({ org, canEdit, onHistory, mode }: TabProps) {
+export function TeamsTab({ org, canEdit, onHistory, mode, scope }: TabProps) {
   const [view, setView] = useState<View>('diagram');
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [search, setSearch] = useState('');
@@ -33,7 +33,7 @@ export function TeamsTab({ org, canEdit, onHistory, mode }: TabProps) {
   const nameOf = (personId: string | null) => org.people.find((p) => p.id === personId)?.displayName;
   const membersOf = (teamId: string) => org.teamMemberships.filter((m) => m.teamId === teamId && m.status === 'active');
   const query = normalize(search);
-  const allTeams = useMemo(() => org.teams.filter((t) => showInactive || t.status === 'active'), [org.teams, showInactive]);
+  const allTeams = useMemo(() => org.teams.filter((t) => (showInactive || t.status === 'active') && (!scope || scope.has(t.orgUnitId))), [org.teams, showInactive, scope]);
   const teams = allTeams
     .filter((t) => !query || normalize(`${t.name} ${t.code} ${unitPath(org.orgUnits, t.orgUnitId)}`).includes(query));
 
@@ -63,7 +63,7 @@ export function TeamsTab({ org, canEdit, onHistory, mode }: TabProps) {
 
   // Only the áreas that lead to an equipo are drawn; each equipo opens to show its integrantes.
   const { items, closed } = useMemo(() => {
-    const units = org.orgUnits.filter((u) => u.status === 'active');
+    const units = org.orgUnits.filter((u) => u.status === 'active' && (!scope || scope.has(u.id)));
     const needed = new Set<string>();
     for (const team of allTeams) {
       for (let unit = units.find((u) => u.id === team.orgUnitId); unit && !needed.has(unit.id); unit = units.find((u) => u.id === unit!.parentId)) needed.add(unit.id);
@@ -83,7 +83,7 @@ export function TeamsTab({ org, canEdit, onHistory, mode }: TabProps) {
       }
     }
     return { items: cards, closed: [...new Set(allTeams.map((t) => t.orgUnitId)), ...allTeams.map((t) => t.id)] };
-  }, [org, allTeams]);
+  }, [org, allTeams, scope]);
   const matchIds = query ? teams.map((t) => t.id) : undefined;
   const selected = allTeams.find((t) => t.id === selectedId) ?? null;
 

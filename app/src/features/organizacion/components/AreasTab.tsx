@@ -12,7 +12,7 @@ type Draft = Partial<OrgUnit>;
 
 type View = 'diagram' | 'list';
 
-export function AreasTab({ org, canEdit, onHistory, mode }: TabProps) {
+export function AreasTab({ org, canEdit, onHistory, mode, scope, onScope }: TabProps) {
   const [view, setView] = useState<View>('diagram');
   const [search, setSearch] = useState('');
   const [showInactive, setShowInactive] = useState(false);
@@ -22,7 +22,7 @@ export function AreasTab({ org, canEdit, onHistory, mode }: TabProps) {
   const [form] = Form.useForm<Draft>();
   const save = useSave();
 
-  const units = useMemo(() => org.orgUnits.filter((u) => showInactive || u.status === 'active'), [org.orgUnits, showInactive]);
+  const units = useMemo(() => org.orgUnits.filter((u) => (showInactive || u.status === 'active') && (!scope || scope.has(u.id))), [org.orgUnits, showInactive, scope]);
   const teamsIn = (id: string) => org.teams.filter((t) => t.orgUnitId === id && t.status === 'active');
   const assignmentsIn = (id: string) => org.roleAssignments.filter((a) => a.orgUnitId === id && a.status === 'active');
 
@@ -46,7 +46,9 @@ export function AreasTab({ org, canEdit, onHistory, mode }: TabProps) {
       {unit.status === 'inactive' && <Tag style={{ marginLeft: 8 }}>Inactiva</Tag>}
     </span>
   ));
-  const topLevels = units.filter((u) => u.parentId === null || units.find((p) => p.id === u.parentId)?.parentId === null).map((u) => u.id);
+  // The first two levels shown start open; with a filter, the top is the filtered área.
+  const isTop = (u: OrgUnit) => !units.some((p) => p.id === u.parentId);
+  const topLevels = units.filter((u) => isTop(u) || units.some((p) => p.id === u.parentId && isTop(p))).map((u) => u.id);
   const expandedKeys = query ? visible.map((u) => u.id) : (expanded ?? topLevels);
   const selected = org.orgUnits.find((u) => u.id === selectedId) ?? null;
 
@@ -144,6 +146,17 @@ export function AreasTab({ org, canEdit, onHistory, mode }: TabProps) {
                 </Button>
               </Space>
             </Tooltip>
+            {scope && !scope.has(selected.parentId ?? '') ? (
+              <Button block onClick={() => onScope(null)}>
+                Ver toda la organización
+              </Button>
+            ) : (
+              selected.parentId !== null && (
+                <Button block onClick={() => onScope(selected.id)}>
+                  Ver solo esta área
+                </Button>
+              )
+            )}
             <List
               size="small"
               header={<strong>Equipos ({teamsIn(selected.id).length})</strong>}

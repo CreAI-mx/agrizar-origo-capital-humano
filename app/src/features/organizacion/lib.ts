@@ -1,4 +1,4 @@
-import type { OrgUnit } from '@origo/capital-humano';
+import type { OrgUnit, OrganizationView } from '@origo/capital-humano';
 import type { ReactNode } from 'react';
 
 export const KIND_LABEL: Record<OrgUnit['kind'], string> = {
@@ -21,6 +21,28 @@ export const count = (n: number, one: string, many: string) => `${n} ${n === 1 ?
 
 const dateTime = new Intl.DateTimeFormat('es-MX', { dateStyle: 'medium', timeStyle: 'short' });
 export const formatDateTime = (iso: string) => dateTime.format(new Date(iso));
+
+/** The área and everything under it, active or not. */
+export function scopeOf(units: OrgUnit[], orgUnitId: string): Set<string> {
+  const found = new Set<string>();
+  const pending = [orgUnitId];
+  while (pending.length) {
+    const id = pending.pop()!;
+    if (found.has(id)) continue;
+    found.add(id);
+    for (const unit of units) if (unit.parentId === id) pending.push(unit.id);
+  }
+  return found;
+}
+
+/** People who belong to the filtered áreas: by a role given there or by an equipo of theirs. */
+export function peopleInScope(org: OrganizationView, scope: ReadonlySet<string>): Set<string> {
+  const teams = new Set(org.teams.filter((t) => scope.has(t.orgUnitId)).map((t) => t.id));
+  return new Set([
+    ...org.roleAssignments.filter((a) => scope.has(a.orgUnitId)).map((a) => a.personId),
+    ...org.teamMemberships.filter((m) => teams.has(m.teamId)).map((m) => m.personId),
+  ]);
+}
 
 export interface UnitNode {
   key: string;

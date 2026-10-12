@@ -129,7 +129,7 @@ body {
 /* ── Org chart ──────────────────────────────────────────────────────────────────── */
 .chart-stage {
   position: relative;
-  height: calc(100vh - 236px);
+  height: calc(100vh - 276px);
   min-height: 520px;
   overflow: hidden;
   border: 1px solid var(--linea);
@@ -381,4 +381,19 @@ body {
 .chart-detail.is-left {
   bottom: auto;
   max-height: calc(100% - 64px);
+}
+
+/* ── Área filter above the tabs ─────────────────────────────────────────────────────── */
+.scope-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  margin-bottom: 8px;
+}
+.scope-bar label {
+  font-weight: 600;
+}
+.scope-select {
+  width: min(360px, 100%);
 }

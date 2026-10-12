@@ -12,13 +12,15 @@ const levelLabel = (level: string) => level.charAt(0).toUpperCase() + level.slic
 
 type View = 'diagram' | 'list';
 
-export function RolesTab({ org, canEdit, onHistory, mode }: TabProps) {
+export function RolesTab({ org, canEdit, onHistory, mode, scope }: TabProps) {
   const [view, setView] = useState<View>('diagram');
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [draft, setDraft] = useState<Draft | null>(null);
   const [form] = Form.useForm<Draft>();
   const save = useSave();
-  const holders = (roleId: string) => org.roleAssignments.filter((a) => a.roleId === roleId && a.status === 'active').length;
+  // With an área filter, a role counts only the people who hold it there.
+  const held = org.roleAssignments.filter((a) => a.status === 'active' && (!scope || scope.has(a.orgUnitId)));
+  const holders = (roleId: string) => held.filter((a) => a.roleId === roleId).length;
 
   const open = (value: Draft) => {
     setDraft(value);
@@ -54,11 +56,11 @@ export function RolesTab({ org, canEdit, onHistory, mode }: TabProps) {
       ...others.map((role) => card(role, 'others')),
     ];
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [org.roles, org.roleAssignments]);
+  }, [org.roles, org.roleAssignments, scope]);
 
   const selected = org.roles.find((r) => r.id === selectedId) ?? null;
   const usedIn = selected
-    ? [...org.roleAssignments.filter((a) => a.roleId === selected.id && a.status === 'active').reduce((map, a) => map.set(a.orgUnitId, (map.get(a.orgUnitId) ?? 0) + 1), new Map<string, number>())]
+    ? [...held.filter((a) => a.roleId === selected.id).reduce((map, a) => map.set(a.orgUnitId, (map.get(a.orgUnitId) ?? 0) + 1), new Map<string, number>())]
         .map(([orgUnitId, people]) => ({ name: org.orgUnits.find((u) => u.id === orgUnitId)?.name ?? '', people }))
         .sort((a, b) => b.people - a.people)
     : [];
