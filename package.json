@@ -11,6 +11,7 @@
     "test": "npm test --workspaces --if-present",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "build": "npm run build -w app",
+    "build:demo": "npm run build:demo -w app",
     "seed:artifact": "python3 -I scripts/extract_organigrama.py"
   }
 }

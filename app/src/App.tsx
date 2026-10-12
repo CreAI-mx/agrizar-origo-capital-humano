@@ -9,6 +9,8 @@ import { formatDateTime } from './features/organizacion/lib';
 import { agrizarDark, agrizarLight } from './theme';
 
 type Mode = 'dark' | 'light';
+// The shareable demo (vite.demo.config.ts) runs without a server on invented data.
+const IS_DEMO = import.meta.env.MODE === 'demo';
 const stored = (key: string) => {
   try {
     return localStorage.getItem(key);
@@ -66,7 +68,7 @@ function Shell({ mode, onMode }: { mode: Mode; onMode: (mode: Mode) => void }) {
             {org.dataAsOf ? `Dato de: ${formatDateTime(org.dataAsOf)} · ${org.lastChangedBy === 'seed' ? 'carga inicial' : org.lastChangedBy}` : 'Sin datos todavía'}
           </span>
         </div>
-        <Tag color="gold">DEV local · datos de demostración</Tag>
+        <Tag color="gold">{IS_DEMO ? 'Demo · datos inventados · nada se guarda' : 'DEV local · datos de demostración'}</Tag>
         <span className="spacer" />
         <label htmlFor="session-user">Sesión como</label>
         <Select

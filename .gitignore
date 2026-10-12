@@ -18,6 +18,7 @@ data/raw/
 # Dependencies and build output
 node_modules/
 dist/
+dist-demo/
 build/
 coverage/
 .turbo/

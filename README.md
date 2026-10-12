@@ -38,6 +38,16 @@ python3 -I scripts/extract_organigrama.py <organigrama.html>   # writes data/loc
 rm -f data/local/organization.events.jsonl && npm run dev
 ```
 
+To share a demo without running anything (for example as a Claude artifact):
+
+```bash
+npm run build:demo   # writes app/dist-demo/origo-organizacion.html and demo.js
+```
+
+That build is the same Back Office with no server: the use cases run in the page on the
+in-memory store, seeded with `seed/organization.demo.json`, an organization invented by
+`scripts/make_demo_seed.py`. Changes last until the page is reloaded.
+
 There is no sign-in locally. The header has a "Sesión como" selector; only a
 person with the role Administrador de Origo can change the organization.
 
@@ -52,8 +62,8 @@ person with the role Administrador de Origo can change the organization.
 | `app/src/features/organizacion/` | Back Office feature: React + Ant Design with the Agrizar theme |
 | `contracts/` | JSON Schemas: organization, hub catalog, org chart |
 | `design/tokens.css` | Agrizar design tokens, ported from the reference design system |
-| `seed/` | Invented organization for tests; hub catalog without links |
-| `scripts/` | Dev launcher; converter from the published org chart to the load format |
+| `seed/` | Invented organizations for tests and for the shareable demo; hub catalog without links |
+| `scripts/` | Dev launcher; converter from the published org chart to the load format; generator of the demo organization |
 | `docs/` | Spec, data model, ADR, architecture diagrams, Silia migration map |
 
 ## What is deliberately not in git
