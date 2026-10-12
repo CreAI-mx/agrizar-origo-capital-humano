@@ -16,21 +16,24 @@ palette, drag-to-reorder, and an interactive org chart.
 | creai familiarity | **High** (PLD, Orbit, Silia) | High (React), new DS to maintain | Medium | Low | High for the hub author |
 | Main risk | Fighting AntD styles to reach the look | Tailwind reset vs AntD inside Silia's shell | SSR adds nothing behind a login | No path into Silia | No auth, data model or tests |
 
-## Recommendation: B, with A as the fallback
+## Recommendation: A for the Back Office, with own components for the hub
 
-React 19 + Vite + TypeScript with a small, own design system:
+Revised after reading GRZR-31. The Back Office is the frontend that will live
+in Silia, which is built on Ant Design, and MD-2 must demo by 23 Oct 2026. So:
 
-- **Tokens**: `design/tokens.css`, ported verbatim from the reference.
-- **Primitives**: Radix UI (dialog, popover, tabs, tooltip) for accessibility.
-- **Styling**: Tailwind CSS v4 reading the tokens; reset scoped to the feature root.
-- **Motion**: Motion for entrance cascades, shared-layout transitions and tilt.
-- **Command palette**: cmdk. **Reorder**: dnd-kit.
-- **Org chart**: `@xyflow/react` + `d3-hierarchy`.
-- **Ambient**: the reference's WebGL shader as one `<CloudsCanvas>` component.
+- **Back Office (MD-2 first)**: React 19 + Vite + TypeScript on **Ant Design 5**,
+  themed from `design/tokens.css` in dark and light. Tree, Table, Form, Upload
+  and Modal come ready.
+- **Hub (second)**: own components on the same tokens for the surfaces no kit
+  has: glass card, hero, WebGL clouds, command palette (cmdk), reorder
+  (dnd-kit), entrance and tilt (Motion).
+- **No Tailwind, no second kit.** One token file feeds both Ant Design's theme
+  and the own components, so nothing collides inside Silia's shell.
 
-Choose A instead if the Silia team requires every feature to use Ant Design.
-The domain, services, hooks and contracts are identical in both; only the
-component layer changes.
+Option B (own design system for everything) remains the choice if the look of
+the Back Office screens themselves must match the reference and the schedule
+allows it. Domain, services, hooks and contracts are identical in both; only
+the component layer changes.
 
 ## Org chart rendering options
 

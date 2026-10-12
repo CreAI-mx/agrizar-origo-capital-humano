@@ -1,21 +1,148 @@
 # Functional specification
 
-Derived from two references, not yet from the Jira ticket.
+Scope, in priority order (confirmed by the story owner on 2026-10-12):
 
+1. **MD-2 Árbol de organización** — Jira GRZR-31. This is what gets built first.
+2. **Centro de mando** (dashboard hub) — in scope, after MD-2.
+3. **Organigrama** as a people chart — a later view over the MD-2 data.
+
+Where it runs: the Back Office is the frontend that will live in Silia. There
+is no approval to deploy in Silia yet, so it is built in this repo and run
+locally, laid out for a later move (`docs/architecture/silia-migration.md`).
+
+Sources:
+- **GRZR-31**, with its epic GRZR-17 and neighbours GRZR-30 (AG-1), GRZR-41
+  (MD-2 validation), GRZR-42 (MD-5). Read on 2026-10-12.
 - **REF-HUB**: `Centro de mando — Capital Humano Agrizar.html` (line numbers
-  below refer to that file).
+  refer to that file).
 - **REF-ORG**: the published "Organigrama Agrizar 2026" artifact.
-- **GRZR-31**: could not be read when this was written (Jira requires a
-  signed-in browser session). Everything here must be reconciled with the
-  ticket's acceptance criteria before estimation.
 
-Traceability to Origo objectives. ASSUMPTION: this app serves Objetivo 2
-(weekly P&L per INV) indirectly, as the navigation and organization backbone of
-Module 4 Capital Humano: the org structure gives the Asignación de Personal
-agent its areas, reporting lines and approvers, and the hub is where labor-cost
-views are reached. To be confirmed with the ticket and the module owners.
+Traceability to Origo objectives: MD-2 is governance master data. It serves
+both root objectives indirectly: it decides who may see and write the forecast
+and P&L views (epic GRZR-17: "cada rol ve solo lo que le toca").
 
-## 1. Centro de mando (hub)
+## 1. MD-2 Árbol de organización (GRZR-31)
+
+> Como administrador de Origo en Agrizar quiero cargar en Origo las áreas,
+> roles y equipos reales de Agrizar, para que la estructura real de áreas y
+> roles gobierne quién ve qué.
+
+Window: built in DEV during S2–S3 (12 to 23 Oct 2026). Validation with users
+(STAGE, 26–30 Oct) and PROD are a separate story, GRZR-41.
+
+### 1.1 Acceptance criteria and how they are met
+
+| Jira acceptance criterion | Met by |
+|---|---|
+| AC1 · Áreas, roles y equipos reales (S2) | M2-01 to M2-08, M2-20 |
+| AC2 · Carga y mantenimiento en Back Office (S2–S3) | M2-10 to M2-19 |
+| AC3 · Demo interna en DEV con datos de prueba, de punta a punta, lista para STAGE en S4 | M2-20 to M2-23, §1.5 demo script |
+| DoD · Tests automatizados que cubren los ACs | §1.6 |
+
+### 1.2 Vocabulary
+
+| Term (UI, Spanish) | Code | Meaning |
+|---|---|---|
+| Área | `OrgUnit` | A node of the organization tree: empresa, dirección, área or subárea |
+| Rol | `Role` | What a person does in the organization, used to decide access. ASSUMPTION: one catalog serves both the organizational role and the access role; a job title is free text on the assignment |
+| Equipo | `Team` | A named group of people inside one área, with an optional lead |
+| Persona | `Person` | Someone who can be assigned; identified by their corporate account |
+| Asignación | `RoleAssignment` | Person + role + área. The área is the scope: it covers that área and everything under it |
+| Integrante | `TeamMembership` | Person + equipo |
+
+### 1.3 Requirements
+
+Structure (AC1)
+
+| ID | Requirement |
+|---|---|
+| M2-01 | The organization is one tree with a single root. Each área has a kind (`empresa`, `direccion`, `area`, `subarea`), a unique code, a name and a parent |
+| M2-02 | An área can be moved under another parent. A move that would create a cycle or break the kind order is rejected with a message that names both áreas |
+| M2-03 | Roles are a catalog: unique code, name, description and optional level on the ladder (director, gerente, jefe, coordinador, líder, supervisor, especialista, analista, auxiliar, practicante) |
+| M2-04 | An equipo belongs to exactly one área, has a unique code inside it, a name and an optional lead |
+| M2-05 | A person can hold several role assignments. Each assignment names the role and the área it applies to |
+| M2-06 | A person can belong to several equipos |
+| M2-07 | Nothing is deleted. Áreas, roles, equipos, assignments and memberships are deactivated; history stays readable (Origo: append-only, superseding rows) |
+| M2-08 | An área with active children, equipos or assignments cannot be deactivated; the message lists what is in the way. Same for a role with active assignments and an equipo with members |
+
+Access (the "gobierna quién ve qué" part)
+
+| ID | Requirement |
+|---|---|
+| M2-09 | The system answers, for any person: their roles, the áreas they cover (assigned áreas plus all descendants) and their equipos. This is the single interface AG-1 (GRZR-30) and MD-5 (GRZR-42) build on. The role × view × action matrix itself is MD-5, not this story |
+
+Back Office: maintenance (AC2)
+
+| ID | Requirement |
+|---|---|
+| M2-10 | Tree screen: expand and collapse, search by name or code (accents ignored), counts of equipos and people per área |
+| M2-11 | Create, rename, move and deactivate an área from the tree |
+| M2-12 | Roles screen: list, create, edit, deactivate |
+| M2-13 | Equipos: list per área, create, edit, set lead, add and remove integrantes |
+| M2-14 | Personas: list, create, edit, assign and revoke roles per área |
+| M2-15 | Every screen shows when the data was last changed and by whom; each record has a history panel (what changed, who, when) |
+| M2-16 | Only the role "Administrador de Origo" can change the organization; everyone else reads |
+
+Back Office: loading (AC2)
+
+| ID | Requirement |
+|---|---|
+| M2-17 | Bulk load from CSV files (áreas, roles, equipos, personas with their assignments) or one JSON file. Excel files are not read yet. ASSUMPTION: the format is ours until Eduardo's input arrives; a different layout is a change in one parser |
+| M2-18 | A load is always previewed first: rows to create, to change, unchanged, and rows with errors (unknown parent, duplicate code, cycle, unknown role). Nothing is written until the administrator confirms |
+| M2-19 | Loading the same file twice changes nothing the second time. Each load is logged: file, who, when, counts, errors |
+
+Demo readiness (AC3)
+
+| ID | Requirement |
+|---|---|
+| M2-20 | An invented dataset ships with the repo (`seed/organization.test.json`) and is what the tests use. For the local demo, `scripts/extract_organigrama.py` converts REF-ORG into the load format under `data/local/`, which is git-ignored because it holds real names. The header labels the environment as local DEV |
+| M2-21 | One command starts the app locally with the test dataset loaded |
+| M2-22 | "Ver como": the administrator picks a person and sees the áreas and equipos that person's roles cover |
+| M2-23 | UI copy in Spanish; works on a laptop screen; keyboard reachable |
+
+### 1.4 Out of scope for GRZR-31
+
+- Validation with users and going to PROD (GRZR-41).
+- The role × view × action matrix, column hiding and row-level data views (MD-5, GRZR-42).
+- The write/approve matrix per field data item and the approval inbox (AG-1, GRZR-30).
+- Sync with Entra ID groups, Fortia or BioSync. People are loaded, not synced.
+- Deployment to Silia or to a cloud DEV environment (pending approval).
+
+### 1.5 Demo script (AC3)
+
+1. Start the app locally; the tree shows the test organization.
+2. Load a file that adds one área, renames another and contains one bad row.
+   The preview shows 1 to create, 1 to change, 1 error; confirm; the tree updates.
+3. Load the same file again: the preview shows nothing to change.
+4. Create an equipo in the new área, add two people, set a lead.
+5. Assign a person the role Supervisor on a dirección.
+6. "Ver como" that person: every área under that dirección is covered.
+7. Try to deactivate the dirección: rejected, with the list of what is in the way.
+8. Open the history of the renamed área: both versions, who and when.
+
+### 1.6 Tests required by the Definition of Done
+
+| Level | Covers |
+|---|---|
+| Unit (domain) | Cycle and kind-order rejection, code uniqueness, deactivation guards, access resolution over descendants, supersession |
+| Unit (application) | Each use case against the in-memory repositories; import preview and idempotent re-run |
+| Contract | Every repository adapter passes the same test suite |
+| API | Each endpoint: happy path, validation error, forbidden for non-administrators |
+| End to end | The eight demo steps of §1.5, automated through the HTTP API (`tests/demo.http.test.ts`). The same steps were run once in a headless browser by hand-written script; a committed browser suite is pending |
+
+### 1.7 Dependencies and open questions
+
+| # | Item | Owner |
+|---|---|---|
+| D-1 | Eduardo's input with real áreas, roles and equipos. Until it arrives the app runs on test data | Eduardo |
+| D-2 | "P-3 instancia en DEV": a shared DEV environment. Until then, local only | Platform |
+| Q-1 | Is "rol" the access role, the job title, or both? (see ASSUMPTION in §1.2) | Eduardo / PM |
+| Q-2 | What is an "equipo" at Agrizar: a crew, a shift, a supervisor's group? Can a person be in equipos of different áreas? | Eduardo |
+| Q-3 | Does the tree cross razones sociales and sites, or is there one tree per entity? | Eduardo / Adrián |
+| Q-4 | How are people identified: corporate e-mail, employee number, or both? Many field workers have no account | Eduardo / Capital Humano |
+| Q-5 | Which roles does the AG-1 pilot need (capturista, supervisor, aprobador)? | AG-1 story |
+
+## 2. Centro de mando (hub) — after MD-2
 
 | ID | Requirement | Source |
 |---|---|---|
@@ -43,44 +170,25 @@ Changes from the reference, proposed for the real app:
 
 | ID | Change | Why |
 |---|---|---|
-| H-20 | Preferences and usage are stored per signed-in user on the server, with the browser as cache | The reference keeps them "only in this browser"; they are lost across devices |
+| H-20 | Preferences and usage are stored per signed-in user, with the browser as cache | The reference keeps them "only in this browser" |
 | H-21 | Dashboard links are served by the API to authorized users; they are not bundled in the client | Some links are share links that carry an access key |
-| H-22 | The catalog is edited in an administration screen instead of a JSON file and a build script | Removes the "edit JSON, rebuild, republish" loop (REF-HUB:2752) |
+| H-22 | The catalog is edited in the Back Office instead of a JSON file and a build script | Removes the "edit JSON, rebuild, republish" loop (REF-HUB:2752) |
 | H-23 | Each dashboard shows the date its data is from, not only its cadence | Origo rule: every number shows when the data is from |
-| H-24 | A dashboard target can be an internal route | Visualization moves into Silia later |
+| H-24 | A dashboard can be limited to áreas of the MD-2 tree; a person sees the dashboards their áreas cover | Epic GRZR-17: the organization governs access to all views. ASSUMPTION: confirm with MD-5 |
 
-## 2. Organigrama
+## 3. Organigrama (people chart) — later view over MD-2
 
 | ID | Requirement | Source |
 |---|---|---|
-| O-01 | One page per direction or area, with title, position count, team size, change notes and the chart | REF-ORG |
-| O-02 | Tab bar of sections grouped by direction; breadcrumb with a link back to the parent | REF-ORG |
-| O-03 | Position box shows role, holder name or "Vacante", area label, and the count of positions under it | REF-ORG |
-| O-04 | Clicking a director's or manager's box drills into that team | REF-ORG |
-| O-05 | Solid lines for direct reporting, dotted lines for functional reporting | REF-ORG |
-| O-06 | Person search by name jumps to that person's area and highlights the box | REF-ORG |
-| O-07 | Flags on boxes: alta, baja, por confirmar, possible duplicate | REF-ORG |
-| O-08 | Export / print of the current page | REF-ORG |
-| O-09 | Every page shows the data version date and, per position, who declared it and when | REF-ORG |
+| O-01 | One page per dirección or área, with title, counts, change notes and the chart | REF-ORG |
+| O-02 | Position box shows role, holder name or "Vacante", área, and the count of people under it | REF-ORG |
+| O-03 | Clicking a director's or manager's box drills into that team; breadcrumb back | REF-ORG |
+| O-04 | Solid lines for direct reporting, dotted lines for functional reporting | REF-ORG |
+| O-05 | Person search by name jumps to that person's área | REF-ORG |
+| O-06 | Flags: alta, baja, por confirmar, possible duplicate; data version date and who declared each position | REF-ORG |
+| O-07 | Export / print of the current page | REF-ORG |
 
-Changes from the reference, proposed for the real app:
-
-| ID | Change | Why |
-|---|---|---|
-| O-10 | Positions are append-only events; a correction supersedes, never edits | Origo non-negotiable |
-| O-11 | Import pipeline with a review queue for unconfirmed parents and duplicates | The reference documents a conversion bug and about fifteen hand-set parents awaiting confirmation |
-| O-12 | "Vacante" typed in a name field is normalized to a vacancy at import | Noted in REF-ORG |
-| O-13 | People map to payroll keys through a crosswalk table | Origo non-negotiable; Fortia / BioSync are read-only |
-| O-14 | Visibility by role: who may see which directions | ASSUMPTION: needed once names are behind sign-in; confirm with Capital Humano |
-| O-15 | The chart can be viewed as of a past date | Free consequence of O-10; confirm it is wanted |
-
-## 3. Open questions
-
-| # | Question | Owner |
-|---|---|---|
-| Q1 | What does GRZR-31 actually ask for, and what are its acceptance criteria? | PM |
-| Q2 | Is the hub in scope, or only the org chart? | PM / Capital Humano |
-| Q3 | REF-ORG states both "trece direcciones" and 11 directions, and 80 vs 81 positions in Contigo. Which is right? | Capital Humano |
-| Q4 | Who may see names and reporting lines of other directions? | Capital Humano |
-| Q5 | Is Fortia or BioSync the master for people keys (Origo D3)? | Polo / Adrián |
-| Q6 | Do the 19 published dashboards stay where they are for now? | Capital Humano |
+This needs reporting lines and positions on top of MD-2 (who reports to whom,
+vacancies). It is not required by GRZR-31 and is specified separately when
+scheduled. REF-ORG disagrees with itself on totals ("trece direcciones" vs 11;
+80 vs 81 positions in Contigo): to be settled with Capital Humano then.

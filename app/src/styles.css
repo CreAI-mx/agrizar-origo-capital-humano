@@ -1,0 +1,65 @@
+@import '../../design/tokens.css';
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+body {
+  background: var(--bg);
+  color: var(--txt);
+}
+
+.app-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 24px;
+  height: auto;
+  padding: 14px 24px;
+  line-height: 1.4;
+  border-bottom: 1px solid var(--linea);
+}
+.app-header h1 {
+  margin: 0;
+  font: italic 500 1.6rem/1.15 var(--f-display);
+}
+.app-header .spacer {
+  flex: 1;
+}
+.app-content {
+  padding: 20px 24px 48px;
+}
+.fresh {
+  font: 0.8rem var(--f-num);
+  opacity: 0.75;
+}
+.split {
+  display: grid;
+  grid-template-columns: minmax(280px, 5fr) minmax(320px, 7fr);
+  gap: 16px;
+  align-items: start;
+}
+@media (max-width: 900px) {
+  .split {
+    grid-template-columns: 1fr;
+  }
+}
+.tree-scroll {
+  max-height: 68vh;
+  overflow: auto;
+}
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.toolbar .grow {
+  flex: 1;
+  min-width: 200px;
+}
+.muted {
+  opacity: 0.65;
+}

@@ -1,0 +1,132 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://creai.mx/schemas/agrizar/capital-humano/organization.schema.json",
+  "title": "Organization",
+  "description": "Current state of the MD-2 organization tree (GRZR-31): áreas, roles, equipos, people, role assignments and team memberships. Used as the API read model, the seed format and the bulk-load format.",
+  "type": "object",
+  "required": ["orgUnits", "roles", "teams", "people", "roleAssignments", "teamMemberships"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "dataAsOf": { "type": "string", "format": "date-time" },
+    "isTestData": {
+      "type": "boolean",
+      "description": "True when the dataset is invented. The UI shows a test-data notice."
+    },
+    "orgUnits": { "type": "array", "items": { "$ref": "#/$defs/orgUnit" } },
+    "roles": { "type": "array", "items": { "$ref": "#/$defs/role" } },
+    "teams": { "type": "array", "items": { "$ref": "#/$defs/team" } },
+    "people": { "type": "array", "items": { "$ref": "#/$defs/person" } },
+    "roleAssignments": { "type": "array", "items": { "$ref": "#/$defs/roleAssignment" } },
+    "teamMemberships": { "type": "array", "items": { "$ref": "#/$defs/teamMembership" } }
+  },
+  "$defs": {
+    "id": { "type": "string", "minLength": 1 },
+    "code": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]*$",
+      "description": "Business code. Compared trimmed, case-insensitive."
+    },
+    "orgUnit": {
+      "type": "object",
+      "required": ["id", "code", "name", "kind", "status"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "code": { "$ref": "#/$defs/code" },
+        "name": { "type": "string", "minLength": 1 },
+        "kind": { "enum": ["empresa", "direccion", "area", "subarea"] },
+        "parentId": {
+          "oneOf": [{ "$ref": "#/$defs/id" }, { "type": "null" }],
+          "description": "Null only for the single root."
+        },
+        "sortOrder": { "type": "integer" },
+        "status": { "enum": ["active", "inactive"] }
+      }
+    },
+    "role": {
+      "type": "object",
+      "required": ["id", "code", "name", "status"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "code": { "$ref": "#/$defs/code" },
+        "name": { "type": "string", "minLength": 1 },
+        "description": { "type": "string" },
+        "level": {
+          "oneOf": [
+            {
+              "enum": [
+                "director",
+                "gerente",
+                "jefe",
+                "coordinador",
+                "lider",
+                "supervisor",
+                "especialista",
+                "analista",
+                "auxiliar",
+                "practicante"
+              ]
+            },
+            { "type": "null" }
+          ]
+        },
+        "isSystem": { "type": "boolean", "default": false },
+        "status": { "enum": ["active", "inactive"] }
+      }
+    },
+    "team": {
+      "type": "object",
+      "required": ["id", "orgUnitId", "code", "name", "status"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "orgUnitId": { "$ref": "#/$defs/id" },
+        "code": { "$ref": "#/$defs/code" },
+        "name": { "type": "string", "minLength": 1 },
+        "leadPersonId": { "oneOf": [{ "$ref": "#/$defs/id" }, { "type": "null" }] },
+        "status": { "enum": ["active", "inactive"] }
+      }
+    },
+    "person": {
+      "type": "object",
+      "required": ["id", "displayName", "status"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "displayName": { "type": "string", "minLength": 1 },
+        "account": { "oneOf": [{ "type": "string", "format": "email" }, { "type": "null" }] },
+        "employeeNumber": { "oneOf": [{ "type": "string" }, { "type": "null" }] },
+        "status": { "enum": ["active", "inactive"] }
+      }
+    },
+    "roleAssignment": {
+      "type": "object",
+      "required": ["id", "personId", "roleId", "orgUnitId", "status"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "personId": { "$ref": "#/$defs/id" },
+        "roleId": { "$ref": "#/$defs/id" },
+        "orgUnitId": {
+          "$ref": "#/$defs/id",
+          "description": "Scope root: covers this área and all its descendants."
+        },
+        "jobTitle": { "oneOf": [{ "type": "string" }, { "type": "null" }] },
+        "status": { "enum": ["active", "revoked"] }
+      }
+    },
+    "teamMembership": {
+      "type": "object",
+      "required": ["id", "teamId", "personId", "status"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "teamId": { "$ref": "#/$defs/id" },
+        "personId": { "$ref": "#/$defs/id" },
+        "status": { "enum": ["active", "removed"] }
+      }
+    }
+  }
+}
