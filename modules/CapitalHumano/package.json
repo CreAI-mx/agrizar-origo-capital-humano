@@ -1,0 +1,26 @@
+{
+  "name": "@origo/capital-humano",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./index.ts"
+  },
+  "scripts": {
+    "dev": "tsx watch infrastructure/onpremise/server.ts",
+    "start": "tsx infrastructure/onpremise/server.ts",
+    "test": "vitest run",
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "fastify": "^5.12.5",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.5",
+    "ajv": "^8.20.0",
+    "tsx": "^4.23.15",
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.11"
+  }
+}

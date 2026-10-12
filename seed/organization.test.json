@@ -1,0 +1,64 @@
+{
+  "isTestData": true,
+  "roles": [
+    { "code": "administrador_origo", "name": "Administrador de Origo", "isSystem": true, "description": "Puede cambiar la organización" },
+    { "code": "director", "name": "Director", "level": "director" },
+    { "code": "gerente", "name": "Gerente", "level": "gerente" },
+    { "code": "supervisor", "name": "Supervisor", "level": "supervisor" },
+    { "code": "capturista", "name": "Capturista" },
+    { "code": "aprobador", "name": "Aprobador" }
+  ],
+  "orgUnits": [
+    { "code": "AGZ", "name": "Agrizar (datos de prueba)", "kind": "empresa" },
+    { "code": "DIR-HID", "name": "Hidroponía", "kind": "direccion", "parentCode": "AGZ" },
+    { "code": "DIR-CH", "name": "Capital Humano", "kind": "direccion", "parentCode": "AGZ" },
+    { "code": "DIR-OPS", "name": "Operaciones", "kind": "direccion", "parentCode": "AGZ" },
+    { "code": "HID-AGZ1", "name": "Operación Hidroponía AGZ 1", "kind": "area", "parentCode": "DIR-HID" },
+    { "code": "HID-AGZ2", "name": "Operación Hidroponía AGZ 2", "kind": "area", "parentCode": "DIR-HID" },
+    { "code": "CH-REC", "name": "Reclutamiento", "kind": "area", "parentCode": "DIR-CH" },
+    { "code": "CH-ADM", "name": "Administración de Personal", "kind": "area", "parentCode": "DIR-CH" },
+    { "code": "OPS-LOG", "name": "Logística", "kind": "area", "parentCode": "DIR-OPS" },
+    { "code": "OPS-MTTO", "name": "Mantenimiento", "kind": "area", "parentCode": "DIR-OPS" },
+    { "code": "OPS-MTTO-AGZ2", "name": "Mantenimiento AGZ 2", "kind": "subarea", "parentCode": "OPS-MTTO" }
+  ],
+  "teams": [
+    { "orgUnitCode": "HID-AGZ1", "code": "CUADRILLA-A", "name": "Cuadrilla A", "leadKey": "P-0004" },
+    { "orgUnitCode": "OPS-LOG", "code": "EMBARQUES", "name": "Embarques" }
+  ],
+  "people": [
+    {
+      "displayName": "Administrador Demo",
+      "account": "admin.demo@origo.test",
+      "employeeNumber": "P-0001",
+      "assignments": [{ "roleCode": "administrador_origo", "orgUnitCode": "AGZ" }]
+    },
+    {
+      "displayName": "Persona Prueba Dos",
+      "employeeNumber": "P-0002",
+      "assignments": [{ "roleCode": "director", "orgUnitCode": "DIR-HID", "jobTitle": "Director de Hidroponía" }]
+    },
+    {
+      "displayName": "Persona Prueba Tres",
+      "employeeNumber": "P-0003",
+      "assignments": [{ "roleCode": "gerente", "orgUnitCode": "HID-AGZ1", "jobTitle": "Gerente de Operación AGZ 1" }]
+    },
+    {
+      "displayName": "Persona Prueba Cuatro",
+      "employeeNumber": "P-0004",
+      "assignments": [{ "roleCode": "supervisor", "orgUnitCode": "HID-AGZ1", "jobTitle": "Supervisor de Cuadrilla" }],
+      "teams": [{ "orgUnitCode": "HID-AGZ1", "teamCode": "CUADRILLA-A" }]
+    },
+    {
+      "displayName": "Persona Prueba Cinco",
+      "employeeNumber": "P-0005",
+      "assignments": [{ "roleCode": "capturista", "orgUnitCode": "HID-AGZ1" }],
+      "teams": [{ "orgUnitCode": "HID-AGZ1", "teamCode": "CUADRILLA-A" }]
+    },
+    {
+      "displayName": "Persona Prueba Seis",
+      "employeeNumber": "P-0006",
+      "assignments": [{ "roleCode": "aprobador", "orgUnitCode": "DIR-OPS" }]
+    },
+    { "displayName": "Persona Prueba Siete", "employeeNumber": "P-0007" }
+  ]
+}

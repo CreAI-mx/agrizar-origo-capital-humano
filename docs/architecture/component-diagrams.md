@@ -65,7 +65,7 @@ flowchart TB
     shell["App Shell<br/>routing, layout, session, theme"]
     fhub["Feature: Hub"]
     forg["Feature: Organigrama"]
-    fadm["Feature: Administration"]
+    fadm["Feature: Back Office<br/>organization tree, roles, teams, loading"]
     ds["Agrizar Design System"]
     apic["API Client<br/>(types generated from OpenAPI)"]
     prefs["Preferences Store"]
@@ -91,7 +91,7 @@ flowchart TB
   fadm -->|components, tokens| ds
   fhub -->|ICatalogQuery, IUsageTracking| apic
   forg -->|IOrgChartQuery| apic
-  fadm -->|ICatalogAdmin, IOrgAdmin| apic
+  fadm -->|IOrganizationAdmin, IAccessContext| apic
   fhub -->|IPreferences| prefs
   prefs -->|IPreferences, server adapter| apic
   apic -->|REST / JSON over HTTPS| http
@@ -111,12 +111,12 @@ flowchart TB
 |---|---|---|
 | Feature: Hub | Hub screen, command palette | `ICatalogQuery`, `IUsageTracking`, `IPreferences`, DS components |
 | Feature: Organigrama | Org chart screens, person search, print view | `IOrgChartQuery`, DS components |
-| Feature: Administration | Catalog editor, import and review queue | `ICatalogAdmin`, `IOrgAdmin` |
+| Feature: Back Office | Organization tree, roles, teams, people, bulk load, history, "Ver como" | `IOrganizationAdmin`, `IOrganizationQuery`, `IAccessContext` |
 | Agrizar Design System | Tokens, primitives, ambient effects | nothing (leaf) |
 | Preferences Store | `IPreferences` (order, view, theme) | browser storage now, API later |
 | API Client | Typed calls for every backend interface | HTTP, access token from the shell |
 | HTTP Adapter | REST endpoints, OpenAPI document | use cases, `IdentityPort` |
-| Application | `ICatalogQuery`, `ICatalogAdmin`, `IOrgChartQuery`, `IOrgAdmin`, `IUsageTracking`, `IPreferences` | domain, outbound ports |
+| Application | `IOrganizationQuery`, `IOrganizationAdmin`, `IAccessContext`, `ICatalogQuery`, `IUsageTracking`, `IPreferences`, `IOrgChartQuery` | domain, outbound ports |
 | Domain | Entities, value objects, rules | nothing (leaf) |
 | Adapters | Port implementations | store, Entra ID, clock |
 
@@ -142,7 +142,18 @@ flowchart TB
     hsvc["hub services + hooks<br/>search ranking, ordering, usage"]
   end
 
-  subgraph org["features/organigrama"]
+  subgraph bo["features/organizacion (Back Office, GRZR-31)"]
+    tree["Area Tree<br/>search, create, move, deactivate"]
+    rolesui["Roles"]
+    teamsui["Teams + Members"]
+    peopleui["People + Role Assignments"]
+    loadui["Bulk Load<br/>preview, confirm"]
+    hist["History Panel"]
+    viewas["Ver como"]
+    bsvc["organizacion services + hooks"]
+  end
+
+  subgraph org["features/organigrama (later)"]
     tabs["Area Tabs + Breadcrumb"]
     canvas["Org Chart Canvas"]
     node["Position Node<br/>role, holder, vacancy, flags"]
@@ -155,12 +166,20 @@ flowchart TB
 
   subgraph ds["agrizar-ds"]
     tokens["tokens.css"]
-    prim["Primitives<br/>Panel, Badge, Segmented, Kbd, Toast, Dialog"]
+    prim["Components<br/>Ant Design themed with Agrizar tokens,<br/>plus own: Panel, Kbd, Glass Card"]
     amb["Ambient<br/>Clouds (WebGL), Cursor Light, Tilt"]
   end
 
   router --> hub
   router --> org
+  router --> bo
+  tree --> bsvc
+  rolesui --> bsvc
+  teamsui --> bsvc
+  peopleui --> bsvc
+  loadui --> bsvc
+  hist --> bsvc
+  viewas --> bsvc
   grid --> card
   filt --> grid
   palette --> hsvc
@@ -175,6 +194,7 @@ flowchart TB
   print --> layout
   hub --> prim
   org --> prim
+  bo --> prim
   prim --> tokens
   amb --> tokens
   shell --> amb
@@ -190,43 +210,39 @@ layout are pure functions with unit tests and no React imports.
 ```mermaid
 flowchart LR
   subgraph inb["Inbound adapters"]
-    rest["REST handlers<br/>(Fastify now; Lambda / Azure Functions in Silia)"]
+    rest["REST handlers<br/>(Fastify locally, Silia handlers later)"]
     tools["Agent tools<br/>(Silia agents, future)"]
   end
 
   subgraph appl["application/ (one folder per use case)"]
-    uc1["listCatalog"]
-    uc2["recordDashboardOpen"]
-    uc3["getPreferences / savePreferences"]
-    uc4["getOrgUnitTree"]
-    uc5["searchPeople"]
-    uc6["importOrgSnapshot"]
-    uc7["reviewOrgChange"]
-    uc8["upsertDashboard"]
+    o1["getOrganization"]
+    o2["saveEntities<br/>create, rename, move, deactivate, assign,<br/>as one all-or-nothing batch"]
+    o6["importOrganization<br/>preview or apply"]
+    o7["resolveAccessContext"]
+    o8["getHistory"]
+    h1["listCatalog / recordDashboardOpen (hub)"]
   end
 
   subgraph domn["domain/"]
-    cat["Dashboard Catalog<br/>Area, Dashboard, Target"]
-    orgs["Org Structure<br/>OrgUnit, Position, Assignment, ReportingLine"]
-    rules["Rules<br/>level ladder, vacancy normalization,<br/>duplicate detection, supersession"]
+    orgs["Organization<br/>OrgUnit, Role, Team, Person,<br/>RoleAssignment, TeamMembership"]
+    rules["Rules<br/>single root, kind order, no cycles,<br/>deactivation guards, supersession"]
+    acc["Access<br/>covered areas = assigned + descendants"]
+    cat["Dashboard Catalog (hub)"]
   end
 
   subgraph outp["Outbound ports"]
-    p1["CatalogRepository"]
-    p2["OrgRepository"]
-    p3["PreferencesRepository"]
-    p4["UsageEventSink"]
-    p5["IdentityPort"]
-    p6["AuditLog"]
-    p7["Clock"]
-    p8["PayrollMasterPort (future)"]
+    p1["OrganizationRepository<br/>(also keeps the log of loads)"]
+    p3["IdentityPort"]
+    p4["Clock / IdGenerator"]
+    p5["CatalogRepository (hub)"]
   end
 
   subgraph outa["Outbound adapters"]
-    mem["In-memory + JSON seed"]
-    db["Store adapter<br/>(MongoDB or relational, per D1/D2)"]
-    oidc["Entra ID (OIDC)"]
-    fortia["Fortia / BioSync reader<br/>(read-only, crosswalk)"]
+    mem["In-memory (tests)"]
+    file["Append-only JSON-lines file store (local)"]
+    db["Shared store (per D1/D2)"]
+    sw["Local user switcher"]
+    oidc["Entra ID / Silia Auth"]
   end
 
   rest --> appl
@@ -234,18 +250,18 @@ flowchart LR
   appl --> domn
   appl --> outp
   mem -.->|implements| p1
-  mem -.->|implements| p2
-  mem -.->|implements| p3
+  file -.->|implements| p1
   db -.->|implements| p1
-  db -.->|implements| p2
-  db -.->|implements| p4
-  oidc -.->|implements| p5
-  fortia -.->|implements| p8
+  sw -.->|implements| p3
+  oidc -.->|implements| p3
 ```
 
 Dependency rule: arrows point inward. `domain/` imports nothing; `application/`
 imports `domain/` and port types; adapters import everything they need and are
 the only code that knows a framework, SDK or driver.
+
+`resolveAccessContext` is the interface the neighbouring stories consume: AG-1
+(GRZR-30) and MD-5 (GRZR-42) ask it who a person is in the organization.
 
 ## 5. Deployment view
 
@@ -308,33 +324,34 @@ sequenceDiagram
   Note over S,A: if the POST fails the event is queued and retried,<br/>opening the dashboard never waits on it
 ```
 
-### 6.2 Import a new org structure and review it
+### 6.2 Load the organization from a file (GRZR-31, AC2)
 
 ```mermaid
 sequenceDiagram
-  actor Ad as CH administrator
-  participant UI as Administration feature
+  actor Ad as Administrador de Origo
+  participant UI as Back Office
   participant A as API
-  participant I as importOrgSnapshot
+  participant P as importOrganization
   participant D as Domain rules
-  participant O as OrgRepository
+  participant R as OrganizationRepository
 
-  Ad->>UI: uploads source (declared by, declared on)
-  UI->>A: POST /org/snapshots
-  A->>I: run
-  I->>D: normalize ("Vacante" in name → vacancy), detect duplicates,<br/>validate parents and levels
-  D-->>I: proposed position events + findings
-  I->>O: append events with status "por confirmar"
-  A-->>UI: snapshot id + review queue
-  loop each finding
-    Ad->>UI: confirm, fix parent, or reject
-    UI->>A: POST /org/changes/{id}/review
-    A->>O: append superseding event (never update)
-  end
-  Note over O: the current chart is a view over the latest<br/>non-superseded event of each position
+  Ad->>UI: selects the file
+  UI->>A: POST /organization/imports (mode preview)
+  A->>P: run
+  P->>R: read current state
+  P->>D: validate rows against the current state
+  D-->>P: to create, to change, unchanged, rejected
+  P->>R: append run log (preview)
+  A-->>UI: preview with errors by sheet and row
+  Ad->>UI: confirms
+  UI->>A: POST /organization/imports (mode apply, same file hash)
+  A->>R: append one new version per created or changed entity
+  A->>R: append run log (apply)
+  A-->>UI: counts and new dataAsOf
+  Note over R: rows equal to the current version produce nothing,<br/>so loading the same file twice changes nothing
 ```
 
-### 6.3 Life cycle of a position record
+### 6.3 Life cycle of a position record (people chart, later)
 
 ```mermaid
 stateDiagram-v2
@@ -352,96 +369,47 @@ stateDiagram-v2
 
 ## 7. Data view
 
+The organization model (areas, roles, teams, people, assignments, memberships)
+is specified with its tables, rules and diagram in
+[`../spec/data-model-organization.md`](../spec/data-model-organization.md).
+
+The hub adds two small pieces:
+
 ```mermaid
 erDiagram
   AREA ||--o{ DASHBOARD : groups
   DASHBOARD ||--o{ DASHBOARD_OPEN_EVENT : "is opened"
-  APP_USER ||--o{ DASHBOARD_OPEN_EVENT : opens
-  APP_USER ||--o{ USER_PREFERENCE : keeps
-  ORG_UNIT ||--o{ ORG_UNIT : contains
-  ORG_UNIT ||--o{ POSITION_EVENT : "places position in"
-  ORG_SNAPSHOT ||--o{ POSITION_EVENT : produces
-  PERSON ||--o{ POSITION_EVENT : holds
-  POSITION_EVENT ||--o| POSITION_EVENT : supersedes
-  PERSON ||--o{ PERSON_CROSSWALK : "maps to legacy key"
-  ORG_UNIT ||--o{ CHANGE_NOTE : annotates
+  PERSON ||--o{ DASHBOARD_OPEN_EVENT : opens
+  PERSON ||--o{ USER_PREFERENCE : keeps
+  ORG_UNIT ||--o{ DASHBOARD : "limits visibility of"
 
-  AREA {
-    string id PK
-    string title
-    string tagline
-    int sort
-  }
   DASHBOARD {
     string id PK
     string area_id FK
     string title
-    string status "active | upcoming"
+    string status
     string cadence
     string source
-    string layout "standard | band"
-    string target_kind "external | internal"
+    string layout
+    string target_kind
     date data_as_of
   }
   DASHBOARD_OPEN_EVENT {
     string id PK
-    string user_id FK
+    string person_id FK
     string dashboard_id FK
     datetime opened_at
   }
   USER_PREFERENCE {
-    string user_id FK
+    string person_id FK
     string key
     json value
     datetime updated_at
   }
-  ORG_UNIT {
-    string id PK
-    string parent_id FK
-    string kind "direccion | area | subarea"
-    string name
-  }
-  POSITION_EVENT {
-    string event_id PK
-    string position_id
-    string code "e.g. CH-007"
-    string role_title
-    string level
-    string org_unit_id FK
-    string reports_to_position_id
-    string line_type "solid | dotted"
-    string holder_person_id FK "null = vacant"
-    string status
-    string declared_by
-    date declared_on
-    string supersedes_event_id FK
-    datetime recorded_at
-  }
-  PERSON {
-    string id PK
-    string display_name
-  }
-  PERSON_CROSSWALK {
-    string person_id FK
-    string system "fortia | biosync"
-    string legacy_key
-  }
-  ORG_SNAPSHOT {
-    string id PK
-    string source_document
-    date effective_on
-  }
-  CHANGE_NOTE {
-    string id PK
-    string org_unit_id FK
-    date noted_on
-    string text
-  }
 ```
 
-`DASHBOARD_OPEN_EVENT` and `POSITION_EVENT` are append-only. The org chart shown
-to users is a current-state view: for each `position_id`, the latest event that
-no other event supersedes.
+Catalog versions and events are append-only. What users see is a current-state
+view: for each stable id, the latest row that no other row supersedes.
 
 ## 8. Design principles applied
 

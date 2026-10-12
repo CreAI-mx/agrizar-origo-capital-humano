@@ -18,6 +18,7 @@ data/raw/
 # Dependencies and build output
 node_modules/
 dist/
+dist-demo/
 build/
 coverage/
 .turbo/
@@ -31,3 +32,6 @@ coverage/
 
 # Claude local settings
 .claude/settings.local.json
+
+# Local runtime data (may hold real names loaded for a demo)
+data/local/

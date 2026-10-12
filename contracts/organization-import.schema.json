@@ -1,0 +1,279 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://creai.mx/schemas/agrizar/capital-humano/organization-import.schema.json",
+  "title": "Organization load",
+  "description": "A bulk load of the MD-2 organization tree (GRZR-31), as one JSON file: the seed files and the JSON accepted by `POST /api/organization/imports`. Records are matched by business key, never by internal id: área and rol by code, equipo by área + code, persona by account or employee number. A load creates and changes; it never deactivates what it omits. CSV files carry the same fields, one sheet per file.",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "isTestData": {
+      "oneOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "True when everything in the file is invented. Omit it for real data."
+    },
+    "roles": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/role"
+      }
+    },
+    "orgUnits": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/orgUnit"
+      }
+    },
+    "teams": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/team"
+      }
+    },
+    "people": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/person"
+      }
+    }
+  },
+  "$defs": {
+    "code": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]*$",
+      "description": "Business code. Compared trimmed, case-insensitive and accent-insensitive; a code repeated inside one file is an error."
+    },
+    "role": {
+      "type": "object",
+      "required": [
+        "code",
+        "name"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "$ref": "#/$defs/code"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "level": {
+          "oneOf": [
+            {
+              "enum": [
+                "director",
+                "gerente",
+                "jefe",
+                "coordinador",
+                "lider",
+                "supervisor",
+                "especialista",
+                "analista",
+                "auxiliar",
+                "practicante"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "description": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "isSystem": {
+          "type": "boolean",
+          "description": "Only read when the role is created."
+        }
+      }
+    },
+    "orgUnit": {
+      "type": "object",
+      "required": [
+        "code",
+        "name",
+        "kind"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "$ref": "#/$defs/code"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "kind": {
+          "enum": [
+            "empresa",
+            "direccion",
+            "area",
+            "subarea"
+          ]
+        },
+        "parentCode": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/code"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Code of the área above. Omitted only for the single root. Rows may come in any order."
+        }
+      }
+    },
+    "team": {
+      "type": "object",
+      "required": [
+        "orgUnitCode",
+        "code",
+        "name"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "orgUnitCode": {
+          "$ref": "#/$defs/code"
+        },
+        "code": {
+          "$ref": "#/$defs/code"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "leadKey": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Account or employee number of the lead, who must be a member of the equipo."
+        }
+      }
+    },
+    "person": {
+      "type": "object",
+      "required": [
+        "displayName"
+      ],
+      "additionalProperties": false,
+      "anyOf": [
+        {
+          "required": [
+            "account"
+          ],
+          "properties": {
+            "account": {
+              "type": "string"
+            }
+          }
+        },
+        {
+          "required": [
+            "employeeNumber"
+          ],
+          "properties": {
+            "employeeNumber": {
+              "type": "string"
+            }
+          }
+        }
+      ],
+      "properties": {
+        "displayName": {
+          "type": "string",
+          "minLength": 1
+        },
+        "account": {
+          "oneOf": [
+            {
+              "type": "string",
+              "format": "email"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "employeeNumber": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "assignments": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "roleCode",
+              "orgUnitCode"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "roleCode": {
+                "$ref": "#/$defs/code"
+              },
+              "orgUnitCode": {
+                "$ref": "#/$defs/code"
+              },
+              "jobTitle": {
+                "oneOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "teams": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "orgUnitCode",
+              "teamCode"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "orgUnitCode": {
+                "$ref": "#/$defs/code"
+              },
+              "teamCode": {
+                "$ref": "#/$defs/code"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

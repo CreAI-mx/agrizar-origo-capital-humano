@@ -1,0 +1,2556 @@
+{
+ "isTestData": true,
+ "roles": [
+  {
+   "code": "administrador_origo",
+   "name": "Administrador de Origo",
+   "isSystem": true,
+   "description": "Puede cambiar la organización"
+  },
+  {
+   "code": "director",
+   "name": "Director",
+   "level": "director"
+  },
+  {
+   "code": "gerente",
+   "name": "Gerente",
+   "level": "gerente"
+  },
+  {
+   "code": "jefe",
+   "name": "Jefe",
+   "level": "jefe"
+  },
+  {
+   "code": "coordinador",
+   "name": "Coordinador",
+   "level": "coordinador"
+  },
+  {
+   "code": "lider",
+   "name": "Líder",
+   "level": "lider"
+  },
+  {
+   "code": "supervisor",
+   "name": "Supervisor",
+   "level": "supervisor"
+  },
+  {
+   "code": "especialista",
+   "name": "Especialista",
+   "level": "especialista"
+  },
+  {
+   "code": "analista",
+   "name": "Analista",
+   "level": "analista"
+  },
+  {
+   "code": "auxiliar",
+   "name": "Auxiliar",
+   "level": "auxiliar"
+  },
+  {
+   "code": "practicante",
+   "name": "Practicante",
+   "level": "practicante"
+  },
+  {
+   "code": "capturista",
+   "name": "Capturista",
+   "description": "Registra datos en campo"
+  },
+  {
+   "code": "aprobador",
+   "name": "Aprobador",
+   "description": "Autoriza capturas y cambios"
+  }
+ ],
+ "orgUnits": [
+  {
+   "code": "AGZ",
+   "name": "Agrizar (datos de prueba)",
+   "kind": "empresa"
+  },
+  {
+   "code": "DIR-PROD",
+   "name": "Dirección de Producción",
+   "kind": "direccion",
+   "parentCode": "AGZ"
+  },
+  {
+   "code": "PROD-INV-N",
+   "name": "Invernaderos Norte",
+   "kind": "area",
+   "parentCode": "DIR-PROD"
+  },
+  {
+   "code": "PROD-INV-N-1",
+   "name": "Riego y Nutrición",
+   "kind": "subarea",
+   "parentCode": "PROD-INV-N"
+  },
+  {
+   "code": "PROD-INV-N-2",
+   "name": "Sanidad Vegetal",
+   "kind": "subarea",
+   "parentCode": "PROD-INV-N"
+  },
+  {
+   "code": "PROD-INV-S",
+   "name": "Invernaderos Sur",
+   "kind": "area",
+   "parentCode": "DIR-PROD"
+  },
+  {
+   "code": "PROD-BER",
+   "name": "Berries",
+   "kind": "area",
+   "parentCode": "DIR-PROD"
+  },
+  {
+   "code": "DIR-EMP",
+   "name": "Dirección de Empaque",
+   "kind": "direccion",
+   "parentCode": "AGZ"
+  },
+  {
+   "code": "EMP-L1",
+   "name": "Línea de Empaque 1",
+   "kind": "area",
+   "parentCode": "DIR-EMP"
+  },
+  {
+   "code": "EMP-L2",
+   "name": "Línea de Empaque 2",
+   "kind": "area",
+   "parentCode": "DIR-EMP"
+  },
+  {
+   "code": "EMP-CAL",
+   "name": "Calidad e Inocuidad",
+   "kind": "area",
+   "parentCode": "DIR-EMP"
+  },
+  {
+   "code": "DIR-OPS",
+   "name": "Dirección de Operaciones",
+   "kind": "direccion",
+   "parentCode": "AGZ"
+  },
+  {
+   "code": "OPS-LOG",
+   "name": "Logística",
+   "kind": "area",
+   "parentCode": "DIR-OPS"
+  },
+  {
+   "code": "OPS-LOG-1",
+   "name": "Embarques",
+   "kind": "subarea",
+   "parentCode": "OPS-LOG"
+  },
+  {
+   "code": "OPS-LOG-2",
+   "name": "Almacén",
+   "kind": "subarea",
+   "parentCode": "OPS-LOG"
+  },
+  {
+   "code": "OPS-MTTO",
+   "name": "Mantenimiento",
+   "kind": "area",
+   "parentCode": "DIR-OPS"
+  },
+  {
+   "code": "OPS-COM",
+   "name": "Compras",
+   "kind": "area",
+   "parentCode": "DIR-OPS"
+  },
+  {
+   "code": "DIR-CH",
+   "name": "Dirección de Capital Humano",
+   "kind": "direccion",
+   "parentCode": "AGZ"
+  },
+  {
+   "code": "CH-REC",
+   "name": "Reclutamiento",
+   "kind": "area",
+   "parentCode": "DIR-CH"
+  },
+  {
+   "code": "CH-NOM",
+   "name": "Nómina",
+   "kind": "area",
+   "parentCode": "DIR-CH"
+  },
+  {
+   "code": "CH-CAP",
+   "name": "Capacitación",
+   "kind": "area",
+   "parentCode": "DIR-CH"
+  },
+  {
+   "code": "DIR-FIN",
+   "name": "Dirección de Finanzas",
+   "kind": "direccion",
+   "parentCode": "AGZ"
+  },
+  {
+   "code": "FIN-CON",
+   "name": "Contabilidad",
+   "kind": "area",
+   "parentCode": "DIR-FIN"
+  },
+  {
+   "code": "FIN-TES",
+   "name": "Tesorería",
+   "kind": "area",
+   "parentCode": "DIR-FIN"
+  },
+  {
+   "code": "DIR-TI",
+   "name": "Dirección de Tecnología",
+   "kind": "direccion",
+   "parentCode": "AGZ"
+  },
+  {
+   "code": "TI-SIS",
+   "name": "Sistemas",
+   "kind": "area",
+   "parentCode": "DIR-TI"
+  },
+  {
+   "code": "TI-DAT",
+   "name": "Datos",
+   "kind": "area",
+   "parentCode": "DIR-TI"
+  }
+ ],
+ "teams": [
+  {
+   "orgUnitCode": "PROD-INV-N-1",
+   "code": "EQ-01",
+   "name": "Equipo A · Riego y Nutrición",
+   "leadKey": "P-0007"
+  },
+  {
+   "orgUnitCode": "PROD-INV-N-2",
+   "code": "EQ-01",
+   "name": "Equipo A · Sanidad Vegetal",
+   "leadKey": "P-0013"
+  },
+  {
+   "orgUnitCode": "PROD-INV-S",
+   "code": "EQ-01",
+   "name": "Turno A · Invernaderos Sur",
+   "leadKey": "P-0019"
+  },
+  {
+   "orgUnitCode": "PROD-BER",
+   "code": "EQ-01",
+   "name": "Equipo A · Berries",
+   "leadKey": "P-0026"
+  },
+  {
+   "orgUnitCode": "EMP-L1",
+   "code": "EQ-01",
+   "name": "Turno A · Línea de Empaque 1",
+   "leadKey": "P-0034"
+  },
+  {
+   "orgUnitCode": "EMP-L1",
+   "code": "EQ-02",
+   "name": "Turno B · Línea de Empaque 1",
+   "leadKey": "P-0039"
+  },
+  {
+   "orgUnitCode": "EMP-L2",
+   "code": "EQ-01",
+   "name": "Turno A · Línea de Empaque 2",
+   "leadKey": "P-0043"
+  },
+  {
+   "orgUnitCode": "EMP-CAL",
+   "code": "EQ-01",
+   "name": "Equipo A · Calidad e Inocuidad",
+   "leadKey": "P-0049"
+  },
+  {
+   "orgUnitCode": "EMP-CAL",
+   "code": "EQ-02",
+   "name": "Equipo B · Calidad e Inocuidad",
+   "leadKey": "P-0052"
+  },
+  {
+   "orgUnitCode": "OPS-LOG-1",
+   "code": "EQ-01",
+   "name": "Equipo A · Embarques",
+   "leadKey": "P-0059"
+  },
+  {
+   "orgUnitCode": "OPS-LOG-2",
+   "code": "EQ-01",
+   "name": "Equipo A · Almacén",
+   "leadKey": "P-0065"
+  },
+  {
+   "orgUnitCode": "OPS-MTTO",
+   "code": "EQ-01",
+   "name": "Equipo A · Mantenimiento",
+   "leadKey": "P-0071"
+  },
+  {
+   "orgUnitCode": "OPS-MTTO",
+   "code": "EQ-02",
+   "name": "Equipo B · Mantenimiento",
+   "leadKey": "P-0075"
+  },
+  {
+   "orgUnitCode": "OPS-COM",
+   "code": "EQ-01",
+   "name": "Equipo A · Compras",
+   "leadKey": "P-0079"
+  },
+  {
+   "orgUnitCode": "OPS-COM",
+   "code": "EQ-02",
+   "name": "Equipo B · Compras",
+   "leadKey": "P-0084"
+  },
+  {
+   "orgUnitCode": "CH-REC",
+   "code": "EQ-01",
+   "name": "Equipo A · Reclutamiento",
+   "leadKey": "P-0090"
+  },
+  {
+   "orgUnitCode": "CH-REC",
+   "code": "EQ-02",
+   "name": "Equipo B · Reclutamiento",
+   "leadKey": "P-0093"
+  },
+  {
+   "orgUnitCode": "CH-NOM",
+   "code": "EQ-01",
+   "name": "Equipo A · Nómina",
+   "leadKey": "P-0099"
+  },
+  {
+   "orgUnitCode": "CH-NOM",
+   "code": "EQ-02",
+   "name": "Equipo B · Nómina",
+   "leadKey": "P-0102"
+  },
+  {
+   "orgUnitCode": "CH-CAP",
+   "code": "EQ-01",
+   "name": "Equipo A · Capacitación",
+   "leadKey": "P-0106"
+  },
+  {
+   "orgUnitCode": "FIN-CON",
+   "code": "EQ-01",
+   "name": "Equipo A · Contabilidad",
+   "leadKey": "P-0112"
+  },
+  {
+   "orgUnitCode": "FIN-TES",
+   "code": "EQ-01",
+   "name": "Equipo A · Tesorería",
+   "leadKey": "P-0119"
+  },
+  {
+   "orgUnitCode": "TI-SIS",
+   "code": "EQ-01",
+   "name": "Equipo A · Sistemas",
+   "leadKey": "P-0126"
+  },
+  {
+   "orgUnitCode": "TI-SIS",
+   "code": "EQ-02",
+   "name": "Equipo B · Sistemas",
+   "leadKey": "P-0130"
+  },
+  {
+   "orgUnitCode": "TI-DAT",
+   "code": "EQ-01",
+   "name": "Equipo A · Datos",
+   "leadKey": "P-0135"
+  },
+  {
+   "orgUnitCode": "TI-DAT",
+   "code": "EQ-02",
+   "name": "Equipo B · Datos",
+   "leadKey": "P-0140"
+  }
+ ],
+ "people": [
+  {
+   "displayName": "Administrador Demo",
+   "account": "admin.demo@origo.test",
+   "employeeNumber": "P-0001",
+   "assignments": [
+    {
+     "roleCode": "administrador_origo",
+     "orgUnitCode": "AGZ"
+    }
+   ]
+  },
+  {
+   "displayName": "Saúl Huerta Valdivia",
+   "employeeNumber": "P-0002",
+   "assignments": [
+    {
+     "roleCode": "director",
+     "orgUnitCode": "AGZ",
+     "jobTitle": "Director General"
+    }
+   ]
+  },
+  {
+   "displayName": "Ignacio Treviño Galindo",
+   "employeeNumber": "P-0003",
+   "assignments": [
+    {
+     "roleCode": "director",
+     "orgUnitCode": "DIR-PROD",
+     "jobTitle": "Director de Producción"
+    }
+   ]
+  },
+  {
+   "displayName": "Tomás Acosta Maldonado",
+   "employeeNumber": "P-0004",
+   "assignments": [
+    {
+     "roleCode": "aprobador",
+     "orgUnitCode": "DIR-PROD",
+     "jobTitle": "Aprobador de Producción"
+    }
+   ]
+  },
+  {
+   "displayName": "Benjamín Acosta Salgado",
+   "employeeNumber": "P-0005",
+   "assignments": [
+    {
+     "roleCode": "gerente",
+     "orgUnitCode": "PROD-INV-N",
+     "jobTitle": "Gerente de Invernaderos Norte"
+    }
+   ]
+  },
+  {
+   "displayName": "Alejandro Ochoa Quintero",
+   "employeeNumber": "P-0006",
+   "assignments": [
+    {
+     "roleCode": "coordinador",
+     "orgUnitCode": "PROD-INV-N-1",
+     "jobTitle": "Coordinador de Riego y Nutrición"
+    }
+   ]
+  },
+  {
+   "displayName": "Octavio Huerta Tapia",
+   "employeeNumber": "P-0007",
+   "assignments": [
+    {
+     "roleCode": "supervisor",
+     "orgUnitCode": "PROD-INV-N-1",
+     "jobTitle": "Supervisor de Riego y Nutrición"
+    }
+   ],
+   "teams": [
+    {
+     "orgUnitCode": "PROD-INV-N-1",
+     "teamCode": "EQ-01"
+    }
+   ]
+  },
+  {
+   "displayName": "Rocío Arriaga Salgado",
+   "employeeNumber": "P-0008",
+   "assignments": [
+    {
+     "roleCode": "auxiliar",
+     "orgUnitCode": "PROD-INV-N-1",
+     "jobTitle": "Auxiliar de Riego y Nutrición"
+    }
+   ],
+   "teams": [
+    {
+     "orgUnitCode": "PROD-INV-N-1",
+     "teamCode": "EQ-01"
+    }
+   ]
+  },
+  {
+   "displayName": "Mauricio Olvera Fuentes",
+   "employeeNumber": "P-0009",
+   "assignments": [
+    {
+     "roleCode": "auxiliar",
+     "orgUnitCode": "PROD-INV-N-1",
+     "jobTitle": "Auxiliar de Riego y Nutrición"
+    }
+   ],
+   "teams": [
+    {
+     "orgUnitCode": "PROD-INV-N-1",
+     "teamCode": "EQ-01"
+    }
+   ]
+  },
+  {
+   "displayName": "Karla Barragán Esquivel",
+   "employeeNumber": "P-0010",
+   "assignments": [
+    {
+     "roleCode": "auxiliar",
+     "orgUnitCode": "PROD-INV-N-1",
+     "jobTitle": "Auxiliar de Riego y Nutrición"
+    }
+   ],
+   "teams": [
+    {
+     "orgUnitCode": "PROD-INV-N-1",
+     "teamCode": "EQ-01"
+    }
+   ]
+  },
+  {
+   "displayName": "Daniela Escobedo Zamora",
+   "employeeNumber": "P-0011",
+   "assignments": [
+    {
+     "roleCode": "especialista",
+     "orgUnitCode": "PROD-INV-N-1",
+     "jobTitle": "Especialista de Riego y Nutrición"
+    }
+   ],
+   "teams": [
+    {
+     "orgUnitCode": "PROD-INV-N-1",
+     "teamCode": "EQ-01"
+    }
+   ]
+  },
+  {
+   "displayName": "Rodrigo Acosta Zepeda",
+   "employeeNumber": "P-0012",
+   "assignments": [
+    {
+     "roleCode": "coordinador",
+     "orgUnitCode": "PROD-INV-N-2",
+     "jobTitle": "Coordinador de Sanidad Vegetal"
+    }
+   ]
+  },
+  {
+   "displayName": "Renata Jaramillo Beltrán",
+   "employeeNumber": "P-0013",
+   "assignments": [
+    {
+     "roleCode": "lider",
+     "orgUnitCode": "PROD-INV-N-2",
+     "jobTitle": "Líder de Sanidad Vegetal"
+    }
+   ],
+   "teams": [
+    {
+     "orgUnitCode": "PROD-INV-N-2",
+     "teamCode": "EQ-01"
+    }
+   ]
+  },
+  {
+   "displayName": "Itzel Cervantes Padilla",
+   "employeeNumber": "P-0014",
+   "assignments": [
+    {
+     "roleCode": "analista",
+     "orgUnitCode": "PROD-INV-N-2",
+     "jobTitle": "Analista de Sanidad Vegetal"
+    }
+   ],
+   "teams": [
+    {
+     "orgUnitCode": "PROD-INV-N-2",
+     "teamCode": "EQ-01"
+    }
+   ]
+  },
+  {
+   "displayName": "Yolanda Fuentes Carrillo",
+   "employeeNumber": "P-0015",
+   "assignments": [
+    {
+     "roleCode": "analista",
+     "orgUnitCode": "PROD-INV-N-2",
+     "jobTitle": "Analista de Sanidad Vegetal"
+    }
+   ],
+   "teams": [
+    {
+     "orgUnitCode": "PROD-INV-N-2",
+     "teamCode": "EQ-01"
+    }
+   ]
+  },
+  {
+   "displayName": "Saúl Huerta Nava",
+   "employeeNumber": "P-0016",
+   "assignments": [
+    {
+     "roleCode": "auxiliar",
+     "orgUnitCode": "PROD-INV-N-2",
+     "jobTitle": "Auxiliar de Sanidad Vegetal"
+    }
+   ],
+   "teams": [
+    {
+     "orgUnitCode": "PROD-INV-N-2",
+     "teamCode": "EQ-01"
+    }
+   ]
+  },
+  {
+   "displayName": "Brenda Salgado Fuentes",
+   "employeeNumber": "P-0017",
+   "assignments": [
+    {
+     "roleCode": "gerente",
+     "orgUnitCode": "PROD-INV-S",
+     "jobTitle": "Gerente de Invernaderos Sur"
+    }
+   ]
+  },
+  {
+   "displayName": "Emilio Maldonado Beltrán",
+   "employeeNumber": "P-0018",
+   "assignments": [
+    {
+     "roleCode": "jefe",
+     "orgUnitCode": "PROD-INV-S",
+     "jobTitle": "Jefe de Invernaderos Sur"
+    }
+   ]
+  },
+  {
+   "displayName": "Araceli Beltrán Paredes",
+   "employeeNumber": "P-0019",
+   "assignments": [
+    {
+     "roleCode": "supervisor",
+     "orgUnitCode": "PROD-INV-S",
+     "jobTitle": "Supervisor de Invernaderos Sur"
+    }
+   ],
+   "teams": [
+    {
+     "orgUnitCode": "PROD-INV-S",
+     "teamCode": "EQ-01"
+    }
+   ]
+  },
+  {
+   "displayName": "Iván Delgadillo Villaseñor",
+   "employeeNumber": "P-0020",
+   "assignments": [
+    {
+     "roleCode": "analista",
+     "orgUnitCode": "PROD-INV-S",
+     "jobTitle": "Analista de Invernaderos Sur"
+    }
+   ],
+   "teams": [
+    {
+     "orgUnitCode": "PROD-INV-S",
+     "teamCode": "EQ-01"
+    }
+   ]
+  },
+  {
+   "displayName": "Ximena Nava Rangel",
+   "employeeNumber": "P-0021",
+   "assignments": [
+    {
+     "roleCode": "analista",
+     "orgUnitCode": "PROD-INV-S",
+     "jobTitle": "Analista de Invernaderos Sur"
+    }
+   ],
+   "teams": [
+    {
+     "orgUnitCode": "PROD-INV-S",
+     "teamCode": "EQ-01"
+    }
+   ]
+  },
+  {
+   "displayName": "Noé Paredes Huerta",
+   "employeeNumber": "P-0022",
+   "assignments": [
+    {
+     "roleCode": "auxiliar",
+     "orgUnitCode": "PROD-INV-S",
+     "jobTitle": "Auxiliar de Invernaderos Sur"
+    }
+   ],
+   "teams": [
+    {
+     "orgUnitCode": "PROD-INV-S",
+     "teamCode": "EQ-01"
+    }
+   ]
+  },
+  {
+   "displayName": "Silvia Padilla Rangel",
+   "employeeNumber": "P-0023",
+   "assignments": [
+    {
+     "roleCode": "capturista",
+     "orgUnitCode": "PROD-INV-S",
+     "jobTitle": "Capturista de Invernaderos Sur"
+    }
+   ],
+   "teams": [
+    {
+     "orgUnitCode": "PROD-INV-S",
+     "teamCode": "EQ-01"
+    }
+   ]
+  },
+  {
+   "displayName": "Yolanda Zepeda Rosales",
+   "employeeNumber": "P-0024",
+   "assignments": [
+    {
+     "roleCode": "gerente",
+     "orgUnitCode": "PROD-BER",
+     "jobTitle": "Gerente de Berries"
+    }
+   ]
+  },
+  {
+   "displayName": "Miriam Urbina Acosta",
+   "employeeNumber": "P-0025",
+   "assignments": [
+    {
+     "roleCode": "jefe",
+     "orgUnitCode": "PROD-BER",
+     "jobTitle": "Jefe de Berries"
+    }
+   ]
+  },
+  {
+   "displayName": "Rodrigo Nava Navarrete",
+   "employeeNumber": "P-0026",
+   "assignments": [
+    {
+     "roleCode": "lider",
+     "orgUnitCode": "PROD-BER",
+     "jobTitle": "Líder de Berries"
+    }
+   ],
+   "teams": [
+    {
+     "orgUnitCode": "PROD-BER",
+     "teamCode": "EQ-01"
+    }
+   ]
+  },
+  {
+   "displayName": "Ricardo Solís Arriaga",
+   "employeeNumber": "P-0027",
+   "assignments": [
+    {
+     "roleCode": "practicante",
+     "orgUnitCode": "PROD-BER",
+     "jobTitle": "Practicante de Berries"
+    }
+   ],
+   "teams": [
+    {
+     "orgUnitCode": "PROD-BER",
+     "teamCode": "EQ-01"
+    }
+   ]
+  },
+  {
+   "displayName": "Carolina Padilla Villaseñor",
+   "employeeNumber": "P-0028",
+   "assignments": [
+    {
+     "roleCode": "analista",
+     "orgUnitCode": "PROD-BER",
+     "jobTitle": "Analista de Berries"
+    }
+   ],
+   "teams": [
+    {
+     "orgUnitCode": "PROD-BER",
+     "teamCode": "EQ-01"
+    }
+   ]
+  },
+  {
+   "displayName": "Armando Navarrete Rosales",
+   "employeeNumber": "P-0029",
+   "assignments": [
+    {
+     "roleCode": "auxiliar",
+     "orgUnitCode": "PROD-BER",
+     "jobTitle": "Auxiliar de Berries"
+    }
+   ],
+   "teams": [
+    {
+     "orgUnitCode": "PROD-BER",
+     "teamCode": "EQ-01"
+    }
+   ]
+  },
+  {
+   "displayName": "Araceli Padilla Treviño",
+   "employeeNumber": "P-0030",
+   "assignments": [
+    {
+     "roleCode": "auxiliar",
+     "orgUnitCode": "PROD-BER",
+     "jobTitle": "Auxiliar de Berries"
+    }
+   ],
+   "teams": [
+    {
+     "orgUnitCode": "PROD-BER",
+     "teamCode": "EQ-01"
+    }
+   ]
+  },
+  {
+   "displayName": "Yolanda Salgado Nava",
+   "employeeNumber": "P-0031",
+   "assignments": [
+    {
+     "roleCode": "director",
+     "orgUnitCode": "DIR-EMP",
+     "jobTitle": "Director de Empaque"
+    }
+   ]
+  },
+  {
+   "displayName": "Esteban Cisneros Tapia",
+   "employeeNumber": "P-0032",
+   "assignments": [
+    {
+     "roleCode": "aprobador",
+     "orgUnitCode": "DIR-EMP",
+     "jobTitle": "Aprobador de Empaque"
+    }
+   ]
+  },
+  {
+   "displayName": "Ramiro Padilla Galindo",
+   "employeeNumber": "P-0033",
+   "assignments": [
+    {
+     "roleCode": "gerente",
+     "orgUnitCode": "EMP-L1",
+     "jobTitle": "Gerente de Línea de Empaque 1"
+    }
+   ]
+  },
+  {
+   "displayName": "Miriam Rangel Escobedo",
+   "employeeNumber": "P-0034",
+   "assignments": [
+    {
+     "roleCode": "lider",
+     "orgUnitCode": "EMP-L1",
+     "jobTitle": "Líder de Línea de Empaque 1"
+    }
+   ],
+   "teams": [
+    {
+     "orgUnitCode": "EMP-L1",
+     "teamCode": "EQ-01"
+    }
+   ]
+  },
+  {
+   "displayName": "Octavio Salgado Cervantes",
+   "employeeNumber": "P-0035",
+   "assignments": [
+    {
+     "roleCode": "auxiliar",
+     "orgUnitCode": "EMP-L1",
+     "jobTitle": "Auxiliar de Línea de Empaque 1"
+    }
+   ],
+   "teams": [
+    {
+     "orgUnitCode": "EMP-L1",
+     "teamCode": "EQ-01"
+    }
+   ]
+  },
+  {
+   "displayName": "Ramiro Maldonado Jaramillo",
+   "employeeNumber": "P-0036",
+   "assignments": [
+    {
+     "roleCode": "analista",
+     "orgUnitCode": "EMP-L1",
+     "jobTitle": "Analista de Línea de Empaque 1"
+    }
+   ],
+   "teams": [
+    {
+     "orgUnitCode": "EMP-L1",
+     "teamCode": "EQ-01"
+    }
+   ]
+  },
+  {
+   "displayName": "Ramiro Figueroa Arriaga",
+   "employeeNumber": "P-0037",
+   "assignments": [
+    {
+     "roleCode": "analista",
+     "orgUnitCode": "EMP-L1",
+     "jobTitle": "Analista de Línea de Empaque 1"
+    }
+   ],
+   "teams": [
+    {
+     "orgUnitCode": "EMP-L1",
+     "teamCode": "EQ-01"
+    }
+   ]
+  },
+  {
+   "displayName": "Elisa Zepeda Figueroa",
+   "employeeNumber": "P-0038",
+   "assignments": [
+    {
+     "roleCode": "especialista",
+     "orgUnitCode": "EMP-L1",
+     "jobTitle": "Especialista de Línea de Empaque 1"
+    }
+   ],
+   "teams": [
+    {
+     "orgUnitCode": "EMP-L1",
+     "teamCode": "EQ-01"
+    }
+   ]
+  },
+  {
+   "displayName": "Elisa Quintero Huerta",
+   "employeeNumber": "P-0039",
+   "assignments": [
+    {
+     "roleCode": "supervisor",
+     "orgUnitCode": "EMP-L1",
+     "jobTitle": "Supervisor de Línea de Empaque 1"
+    }
+   ],
+   "teams": [
+    {
+     "orgUnitCode": "EMP-L1",
+     "teamCode": "EQ-02"
+    }
+   ]
+  },
+  {
+   "displayName": "Iván Zepeda Solís",
+   "employeeNumber": "P-0040",
+   "assignments": [
+    {
+     "roleCode": "analista",
+     "orgUnitCode": "EMP-L1",
+     "jobTitle": "Analista de Línea de Empaque 1"
+    }
+   ],
+   "teams": [
+    {
+     "orgUnitCode": "EMP-L1",
+     "teamCode": "EQ-02"
+    }
+   ]
+  },
+  {
+   "displayName": "Alejandro Barragán Jaramillo",
+   "employeeNumber": "P-0041",
+   "assignments": [
+    {
+     "roleCode": "practicante",
+     "orgUnitCode": "EMP-L1",
+     "jobTitle": "Practicante de Línea de Empaque 1"
+    }
+   ],
+   "teams": [
+    {
+     "orgUnitCode": "EMP-L1",
+     "teamCode": "EQ-02"
+    }
+   ]
+  },
+  {
+   "displayName": "Tomás Valdivia Carrillo",
+   "employeeNumber": "P-0042",
+   "assignments": [
+    {
+     "roleCode": "gerente",
+     "orgUnitCode": "EMP-L2",
+     "jobTitle": "Gerente de Línea de Empaque 2"
+    }
+   ]
+  },
+  {
+   "displayName": "Emilio Zepeda Paredes",
+   "employeeNumber": "P-0043",
+   "assignments": [
+    {
+     "roleCode": "supervisor",
+     "orgUnitCode": "EMP-L2",
+     "jobTitle": "Supervisor de Línea de Empaque 2"
+    }
+   ],
+   "teams": [
+    {
+     "orgUnitCode": "EMP-L2",
+     "teamCode": "EQ-01"
+    }
+   ]
+  },
+  {
+   "displayName": "Rodrigo Ibarra Treviño",
+   "employeeNumber": "P-0044",
+   "assignments": [
+    {
+     "roleCode": "especialista",
+     "orgUnitCode": "EMP-L2",
+     "jobTitle": "Especialista de Línea de Empaque 2"
+    }
+   ],
+   "teams": [
+    {
+     "orgUnitCode": "EMP-L2",
+     "teamCode": "EQ-01"
+    }
+   ]
+  },
+  {
+   "displayName": "Rubén Maldonado Lozano",
+   "employeeNumber": "P-0045",
+   "assignments": [
+    {
+     "roleCode": "analista",
+     "orgUnitCode": "EMP-L2",
+     "jobTitle": "Analista de Línea de Empaque 2"
+    }
+   ],
+   "teams": [
+    {
+     "orgUnitCode": "EMP-L2",
+     "teamCode": "EQ-01"
+    }
+   ]
+  },
+  {
+   "displayName": "Saúl Carrillo Urbina",
+   "employeeNumber": "P-0046",
+   "assignments": [
+    {
+     "roleCode": "practicante",
+     "orgUnitCode": "EMP-L2",
+     "jobTitle": "Practicante de Línea de Empaque 2"
+    }
+   ],
+   "teams": [
+    {
+     "orgUnitCode": "EMP-L2",
+     "teamCode": "EQ-01"
+    }
+   ]
+  },
+  {
+   "displayName": "Ximena Maldonado Esquivel",
+   "employeeNumber": "P-0047",
+   "assignments": [
+    {
+     "roleCode": "gerente",
+     "orgUnitCode": "EMP-CAL",
+     "jobTitle": "Gerente de Calidad e Inocuidad"
+    }
+   ]
+  },
+  {
+   "displayName": "Alejandro Navarrete Esquivel",
+   "employeeNumber": "P-0048",
+   "assignments": [
+    {
+     "roleCode": "jefe",
+     "orgUnitCode": "EMP-CAL",
+     "jobTitle": "Jefe de Calidad e Inocuidad"
+    }
+   ]
+  },
+  {
+   "displayName": "Mariana Barragán Bustamante",
+   "employeeNumber": "P-0049",
+   "assignments": [
+    {
+     "roleCode": "supervisor",
+     "orgUnitCode": "EMP-CAL",
+     "jobTitle": "Supervisor de Calidad e Inocuidad"
+    }
+   ],
+   "teams": [
+    {
+     "orgUnitCode": "EMP-CAL",
+     "teamCode": "EQ-01"
+    }
+   ]
+  },
+  {
+   "displayName": "Rocío Rangel Valdivia",
+   "employeeNumber": "P-0050",
+   "assignments": [
+    {
+     "roleCode": "especialista",
+     "orgUnitCode": "EMP-CAL",
+     "jobTitle": "Especialista de Calidad e Inocuidad"
+    }
+   ],
+   "teams": [
+    {
+     "orgUnitCode": "EMP-CAL",
+     "teamCode": "EQ-01"
+    }
+   ]
+  },
+  {
+   "displayName": "Paola Ochoa Valdivia",
+   "employeeNumber": "P-0051",
+   "assignments": [
+    {
+     "roleCode": "auxiliar",
+     "orgUnitCode": "EMP-CAL",
+     "jobTitle": "Auxiliar de Calidad e Inocuidad"
+    }
+   ],
+   "teams": [
+    {
+     "orgUnitCode": "EMP-CAL",
+     "teamCode": "EQ-01"
+    }
+   ]
+  },
+  {
+   "displayName": "Elisa Padilla Beltrán",
+   "employeeNumber": "P-0052",
+   "assignments": [
+    {
+     "roleCode": "lider",
+     "orgUnitCode": "EMP-CAL",
+     "jobTitle": "Líder de Calidad e Inocuidad"
+    }
+   ],
+   "teams": [
+    {
+     "orgUnitCode": "EMP-CAL",
+     "teamCode": "EQ-02"
+    }
+   ]
+  },
+  {
+   "displayName": "Adriana Lozano Jaramillo",
+   "employeeNumber": "P-0053",
+   "assignments": [
+    {
+     "roleCode": "practicante",
+     "orgUnitCode": "EMP-CAL",
+     "jobTitle": "Practicante de Calidad e Inocuidad"
+    }
+   ],
+   "teams": [
+    {
+     "orgUnitCode": "EMP-CAL",
+     "teamCode": "EQ-02"
+    }
+   ]
+  },
+  {
+   "displayName": "Elisa Olvera Nava",
+   "employeeNumber": "P-0054",
+   "assignments": [
+    {
+     "roleCode": "especialista",
+     "orgUnitCode": "EMP-CAL",
+     "jobTitle": "Especialista de Calidad e Inocuidad"
+    }
+   ],
+   "teams": [
+    {
+     "orgUnitCode": "EMP-CAL",
+     "teamCode": "EQ-02"
+    }
+   ]
+  },
+  {
+   "displayName": "Julián Zamora Padilla",
+   "employeeNumber": "P-0055",
+   "assignments": [
+    {
+     "roleCode": "director",
+     "orgUnitCode": "DIR-OPS",
+     "jobTitle": "Director de Operaciones"
+    }
+   ]
+  },
+  {
+   "displayName": "Yolanda Paredes Escobedo",
+   "employeeNumber": "P-0056",
+   "assignments": [
+    {
+     "roleCode": "aprobador",
+     "orgUnitCode": "DIR-OPS",
+     "jobTitle": "Aprobador de Operaciones"
+    }
+   ]
+  },
+  {
+   "displayName": "Ernesto Fuentes Cisneros",
+   "employeeNumber": "P-0057",
+   "assignments": [
+    {
+     "roleCode": "gerente",
+     "orgUnitCode": "OPS-LOG",
+     "jobTitle": "Gerente de Logística"
+    }
+   ]
+  },
+  {
+   "displayName": "Miriam Montoya Cisneros",
+   "employeeNumber": "P-0058",
+   "assignments": [
+    {
+     "roleCode": "coordinador",
+     "orgUnitCode": "OPS-LOG-1",
+     "jobTitle": "Coordinador de Embarques"
+    }
+   ]
+  },
+  {
+   "displayName": "Emilio Ochoa Navarrete",
+   "employeeNumber": "P-0059",
+   "assignments": [
+    {
+     "roleCode": "supervisor",
+     "orgUnitCode": "OPS-LOG-1",
+     "jobTitle": "Supervisor de Embarques"
+    }
+   ],
+   "teams": [
+    {
+     "orgUnitCode": "OPS-LOG-1",
+     "teamCode": "EQ-01"
+    }
+   ]
+  },
+  {
+   "displayName": "Miriam Bustamante Ibarra",
+   "employeeNumber": "P-0060",
+   "assignments": [
+    {
+     "roleCode": "capturista",
+     "orgUnitCode": "OPS-LOG-1",
+     "jobTitle": "Capturista de Embarques"
+    }
+   ],
+   "teams": [
+    {
+     "orgUnitCode": "OPS-LOG-1",
+     "teamCode": "EQ-01"
+    }
+   ]
+  },
+  {
+   "displayName": "Rubén Olvera Villaseñor",
+   "employeeNumber": "P-0061",
+   "assignments": [
+    {
+     "roleCode": "especialista",
+     "orgUnitCode": "OPS-LOG-1",
+     "jobTitle": "Especialista de Embarques"
+    }
+   ],
+   "teams": [
+    {
+     "orgUnitCode": "OPS-LOG-1",
+     "teamCode": "EQ-01"
+    }
+   ]
+  },
+  {
+   "displayName": "Camila Montoya Esquivel",
+   "employeeNumber": "P-0062",
+   "assignments": [
+    {
+     "roleCode": "analista",
+     "orgUnitCode": "OPS-LOG-1",
+     "jobTitle": "Analista de Embarques"
+    }
+   ],
+   "teams": [
+    {
+     "orgUnitCode": "OPS-LOG-1",
+     "teamCode": "EQ-01"
+    }
+   ]
+  },
+  {
+   "displayName": "Daniela Zepeda Maldonado",
+   "employeeNumber": "P-0063",
+   "assignments": [
+    {
+     "roleCode": "auxiliar",
+     "orgUnitCode": "OPS-LOG-1",
+     "jobTitle": "Auxiliar de Embarques"
+    }
+   ],
+   "teams": [
+    {
+     "orgUnitCode": "OPS-LOG-1",
+     "teamCode": "EQ-01"
+    }
+   ]
+  },
+  {
+   "displayName": "Lucía Esquivel Urbina",
+   "employeeNumber": "P-0064",
+   "assignments": [
+    {
+     "roleCode": "coordinador",
+     "orgUnitCode": "OPS-LOG-2",
+     "jobTitle": "Coordinador de Almacén"
+    }
+   ]
+  },
+  {
+   "displayName": "Carolina Rosales Padilla",
+   "employeeNumber": "P-0065",
+   "assignments": [
+    {
+     "roleCode": "supervisor",
+     "orgUnitCode": "OPS-LOG-2",
+     "jobTitle": "Supervisor de Almacén"
+    }
+   ],
+   "teams": [
+    {
+     "orgUnitCode": "OPS-LOG-2",
+     "teamCode": "EQ-01"
+    }
+   ]
+  },
+  {
+   "displayName": "Montserrat Maldonado Tapia",
+   "employeeNumber": "P-0066",
+   "assignments": [
+    {
+     "roleCode": "practicante",
+     "orgUnitCode": "OPS-LOG-2",
+     "jobTitle": "Practicante de Almacén"
+    }
+   ],
+   "teams": [
+    {
+     "orgUnitCode": "OPS-LOG-2",
+     "teamCode": "EQ-01"
+    }
+   ]
+  },
+  {
+   "displayName": "Emilio Valdivia Villaseñor",
+   "employeeNumber": "P-0067",
+   "assignments": [
+    {
+     "roleCode": "analista",
+     "orgUnitCode": "OPS-LOG-2",
+     "jobTitle": "Analista de Almacén"
+    }
+   ],
+   "teams": [
+    {
+     "orgUnitCode": "OPS-LOG-2",
+     "teamCode": "EQ-01"
+    }
+   ]
+  },
+  {
+   "displayName": "Brenda Huerta Villaseñor",
+   "employeeNumber": "P-0068",
+   "assignments": [
+    {
+     "roleCode": "auxiliar",
+     "orgUnitCode": "OPS-LOG-2",
+     "jobTitle": "Auxiliar de Almacén"
+    }
+   ],
+   "teams": [
+    {
+     "orgUnitCode": "OPS-LOG-2",
+     "teamCode": "EQ-01"
+    }
+   ]
+  },
+  {
+   "displayName": "Valeria Solís Galindo",
+   "employeeNumber": "P-0069",
+   "assignments": [
+    {
+     "roleCode": "gerente",
+     "orgUnitCode": "OPS-MTTO",
+     "jobTitle": "Gerente de Mantenimiento"
+    }
+   ]
+  },
+  {
+   "displayName": "Miriam Figueroa Padilla",
+   "employeeNumber": "P-0070",
+   "assignments": [
+    {
+     "roleCode": "jefe",
+     "orgUnitCode": "OPS-MTTO",
+     "jobTitle": "Jefe de Mantenimiento"
+    }
+   ]
+  },
+  {
+   "displayName": "Leonel Barragán Lozano",
+   "employeeNumber": "P-0071",
+   "assignments": [
+    {
+     "roleCode": "supervisor",
+     "orgUnitCode": "OPS-MTTO",
+     "jobTitle": "Supervisor de Mantenimiento"
+    }
+   ],
+   "teams": [
+    {
+     "orgUnitCode": "OPS-MTTO",
+     "teamCode": "EQ-01"
+    }
+   ]
+  },
+  {
+   "displayName": "Valeria Beltrán Zepeda",
+   "employeeNumber": "P-0072",
+   "assignments": [
+    {
+     "roleCode": "especialista",
+     "orgUnitCode": "OPS-MTTO",
+     "jobTitle": "Especialista de Mantenimiento"
+    }
+   ],
+   "teams": [
+    {
+     "orgUnitCode": "OPS-MTTO",
+     "teamCode": "EQ-01"
+    }
+   ]
+  },
+  {
+   "displayName": "Benjamín Solís Acosta",
+   "employeeNumber": "P-0073",
+   "assignments": [
+    {
+     "roleCode": "analista",
+     "orgUnitCode": "OPS-MTTO",
+     "jobTitle": "Analista de Mantenimiento"
+    }
+   ],
+   "teams": [
+    {
+     "orgUnitCode": "OPS-MTTO",
+     "teamCode": "EQ-01"
+    }
+   ]
+  },
+  {
+   "displayName": "Rodrigo Olvera Beltrán",
+   "employeeNumber": "P-0074",
+   "assignments": [
+    {
+     "roleCode": "especialista",
+     "orgUnitCode": "OPS-MTTO",
+     "jobTitle": "Especialista de Mantenimiento"
+    }
+   ],
+   "teams": [
+    {
+     "orgUnitCode": "OPS-MTTO",
+     "teamCode": "EQ-01"
+    }
+   ]
+  },
+  {
+   "displayName": "Rubén Solís Acosta",
+   "employeeNumber": "P-0075",
+   "assignments": [
+    {
+     "roleCode": "coordinador",
+     "orgUnitCode": "OPS-MTTO",
+     "jobTitle": "Coordinador de Mantenimiento"
+    }
+   ],
+   "teams": [
+    {
+     "orgUnitCode": "OPS-MTTO",
+     "teamCode": "EQ-02"
+    }
+   ]
+  },
+  {
+   "displayName": "Itzel Rosales Galindo",
+   "employeeNumber": "P-0076",
+   "assignments": [
+    {
+     "roleCode": "analista",
+     "orgUnitCode": "OPS-MTTO",
+     "jobTitle": "Analista de Mantenimiento"
+    }
+   ],
+   "teams": [
+    {
+     "orgUnitCode": "OPS-MTTO",
+     "teamCode": "EQ-02"
+    }
+   ]
+  },
+  {
+   "displayName": "Benjamín Galindo Delgadillo",
+   "employeeNumber": "P-0077",
+   "assignments": [
+    {
+     "roleCode": "analista",
+     "orgUnitCode": "OPS-MTTO",
+     "jobTitle": "Analista de Mantenimiento"
+    }
+   ],
+   "teams": [
+    {
+     "orgUnitCode": "OPS-MTTO",
+     "teamCode": "EQ-02"
+    }
+   ]
+  },
+  {
+   "displayName": "Miriam Barragán Montoya",
+   "employeeNumber": "P-0078",
+   "assignments": [
+    {
+     "roleCode": "gerente",
+     "orgUnitCode": "OPS-COM",
+     "jobTitle": "Gerente de Compras"
+    }
+   ]
+  },
+  {
+   "displayName": "Mauricio Valdivia Lozano",
+   "employeeNumber": "P-0079",
+   "assignments": [
+    {
+     "roleCode": "lider",
+     "orgUnitCode": "OPS-COM",
+     "jobTitle": "Líder de Compras"
+    }
+   ],
+   "teams": [
+    {
+     "orgUnitCode": "OPS-COM",
+     "teamCode": "EQ-01"
+    }
+   ]
+  },
+  {
+   "displayName": "Gustavo Escobedo Arriaga",
+   "employeeNumber": "P-0080",
+   "assignments": [
+    {
+     "roleCode": "auxiliar",
+     "orgUnitCode": "OPS-COM",
+     "jobTitle": "Auxiliar de Compras"
+    }
+   ],
+   "teams": [
+    {
+     "orgUnitCode": "OPS-COM",
+     "teamCode": "EQ-01"
+    }
+   ]
+  },
+  {
+   "displayName": "Alejandro Rosales Maldonado",
+   "employeeNumber": "P-0081",
+   "assignments": [
+    {
+     "roleCode": "practicante",
+     "orgUnitCode": "OPS-COM",
+     "jobTitle": "Practicante de Compras"
+    }
+   ],
+   "teams": [
+    {
+     "orgUnitCode": "OPS-COM",
+     "teamCode": "EQ-01"
+    }
+   ]
+  },
+  {
+   "displayName": "Mariana Galindo Quintero",
+   "employeeNumber": "P-0082",
+   "assignments": [
+    {
+     "roleCode": "analista",
+     "orgUnitCode": "OPS-COM",
+     "jobTitle": "Analista de Compras"
+    }
+   ],
+   "teams": [
+    {
+     "orgUnitCode": "OPS-COM",
+     "teamCode": "EQ-01"
+    }
+   ]
+  },
+  {
+   "displayName": "Rocío Huerta Galindo",
+   "employeeNumber": "P-0083",
+   "assignments": [
+    {
+     "roleCode": "auxiliar",
+     "orgUnitCode": "OPS-COM",
+     "jobTitle": "Auxiliar de Compras"
+    }
+   ],
+   "teams": [
+    {
+     "orgUnitCode": "OPS-COM",
+     "teamCode": "EQ-01"
+    }
+   ]
+  },
+  {
+   "displayName": "Esteban Beltrán Barragán",
+   "employeeNumber": "P-0084",
+   "assignments": [
+    {
+     "roleCode": "coordinador",
+     "orgUnitCode": "OPS-COM",
+     "jobTitle": "Coordinador de Compras"
+    }
+   ],
+   "teams": [
+    {
+     "orgUnitCode": "OPS-COM",
+     "teamCode": "EQ-02"
+    }
+   ]
+  },
+  {
+   "displayName": "Natalia Padilla Cisneros",
+   "employeeNumber": "P-0085",
+   "assignments": [
+    {
+     "roleCode": "practicante",
+     "orgUnitCode": "OPS-COM",
+     "jobTitle": "Practicante de Compras"
+    }
+   ],
+   "teams": [
+    {
+     "orgUnitCode": "OPS-COM",
+     "teamCode": "EQ-02"
+    }
+   ]
+  },
+  {
+   "displayName": "Itzel Olvera Padilla",
+   "employeeNumber": "P-0086",
+   "assignments": [
+    {
+     "roleCode": "auxiliar",
+     "orgUnitCode": "OPS-COM",
+     "jobTitle": "Auxiliar de Compras"
+    }
+   ],
+   "teams": [
+    {
+     "orgUnitCode": "OPS-COM",
+     "teamCode": "EQ-02"
+    }
+   ]
+  },
+  {
+   "displayName": "Saúl Huerta Cervantes",
+   "employeeNumber": "P-0087",
+   "assignments": [
+    {
+     "roleCode": "director",
+     "orgUnitCode": "DIR-CH",
+     "jobTitle": "Director de Capital Humano"
+    }
+   ]
+  },
+  {
+   "displayName": "Rodrigo Rosales Esquivel",
+   "employeeNumber": "P-0088",
+   "assignments": [
+    {
+     "roleCode": "aprobador",
+     "orgUnitCode": "DIR-CH",
+     "jobTitle": "Aprobador de Capital Humano"
+    }
+   ]
+  },
+  {
+   "displayName": "Karla Barragán Delgadillo",
+   "employeeNumber": "P-0089",
+   "assignments": [
+    {
+     "roleCode": "gerente",
+     "orgUnitCode": "CH-REC",
+     "jobTitle": "Gerente de Reclutamiento"
+    }
+   ]
+  },
+  {
+   "displayName": "Araceli Huerta Urbina",
+   "employeeNumber": "P-0090",
+   "assignments": [
+    {
+     "roleCode": "lider",
+     "orgUnitCode": "CH-REC",
+     "jobTitle": "Líder de Reclutamiento"
+    }
+   ],
+   "teams": [
+    {
+     "orgUnitCode": "CH-REC",
+     "teamCode": "EQ-01"
+    }
+   ]
+  },
+  {
+   "displayName": "Mariana Valdivia Carrillo",
+   "employeeNumber": "P-0091",
+   "assignments": [
+    {
+     "roleCode": "auxiliar",
+     "orgUnitCode": "CH-REC",
+     "jobTitle": "Auxiliar de Reclutamiento"
+    }
+   ],
+   "teams": [
+    {
+     "orgUnitCode": "CH-REC",
+     "teamCode": "EQ-01"
+    }
+   ]
+  },
+  {
+   "displayName": "Yolanda Zamora Navarrete",
+   "employeeNumber": "P-0092",
+   "assignments": [
+    {
+     "roleCode": "especialista",
+     "orgUnitCode": "CH-REC",
+     "jobTitle": "Especialista de Reclutamiento"
+    }
+   ],
+   "teams": [
+    {
+     "orgUnitCode": "CH-REC",
+     "teamCode": "EQ-01"
+    }
+   ]
+  },
+  {
+   "displayName": "Elisa Huerta Lozano",
+   "employeeNumber": "P-0093",
+   "assignments": [
+    {
+     "roleCode": "supervisor",
+     "orgUnitCode": "CH-REC",
+     "jobTitle": "Supervisor de Reclutamiento"
+    }
+   ],
+   "teams": [
+    {
+     "orgUnitCode": "CH-REC",
+     "teamCode": "EQ-02"
+    }
+   ]
+  },
+  {
+   "displayName": "Rubén Huerta Cisneros",
+   "employeeNumber": "P-0094",
+   "assignments": [
+    {
+     "roleCode": "analista",
+     "orgUnitCode": "CH-REC",
+     "jobTitle": "Analista de Reclutamiento"
+    }
+   ],
+   "teams": [
+    {
+     "orgUnitCode": "CH-REC",
+     "teamCode": "EQ-02"
+    }
+   ]
+  },
+  {
+   "displayName": "Mariana Barragán Urbina",
+   "employeeNumber": "P-0095",
+   "assignments": [
+    {
+     "roleCode": "especialista",
+     "orgUnitCode": "CH-REC",
+     "jobTitle": "Especialista de Reclutamiento"
+    }
+   ],
+   "teams": [
+    {
+     "orgUnitCode": "CH-REC",
+     "teamCode": "EQ-02"
+    }
+   ]
+  },
+  {
+   "displayName": "Leonel Carrillo Ibarra",
+   "employeeNumber": "P-0096",
+   "assignments": [
+    {
+     "roleCode": "auxiliar",
+     "orgUnitCode": "CH-REC",
+     "jobTitle": "Auxiliar de Reclutamiento"
+    }
+   ],
+   "teams": [
+    {
+     "orgUnitCode": "CH-REC",
+     "teamCode": "EQ-02"
+    }
+   ]
+  },
+  {
+   "displayName": "Fabián Maldonado Esquivel",
+   "employeeNumber": "P-0097",
+   "assignments": [
+    {
+     "roleCode": "gerente",
+     "orgUnitCode": "CH-NOM",
+     "jobTitle": "Gerente de Nómina"
+    }
+   ]
+  },
+  {
+   "displayName": "Araceli Maldonado Paredes",
+   "employeeNumber": "P-0098",
+   "assignments": [
+    {
+     "roleCode": "jefe",
+     "orgUnitCode": "CH-NOM",
+     "jobTitle": "Jefe de Nómina"
+    }
+   ]
+  },
+  {
+   "displayName": "Natalia Zepeda Acosta",
+   "employeeNumber": "P-0099",
+   "assignments": [
+    {
+     "roleCode": "coordinador",
+     "orgUnitCode": "CH-NOM",
+     "jobTitle": "Coordinador de Nómina"
+    }
+   ],
+   "teams": [
+    {
+     "orgUnitCode": "CH-NOM",
+     "teamCode": "EQ-01"
+    }
+   ]
+  },
+  {
+   "displayName": "Mariana Jaramillo Paredes",
+   "employeeNumber": "P-0100",
+   "assignments": [
+    {
+     "roleCode": "auxiliar",
+     "orgUnitCode": "CH-NOM",
+     "jobTitle": "Auxiliar de Nómina"
+    }
+   ],
+   "teams": [
+    {
+     "orgUnitCode": "CH-NOM",
+     "teamCode": "EQ-01"
+    }
+   ]
+  },
+  {
+   "displayName": "Emilio Solís Zepeda",
+   "employeeNumber": "P-0101",
+   "assignments": [
+    {
+     "roleCode": "analista",
+     "orgUnitCode": "CH-NOM",
+     "jobTitle": "Analista de Nómina"
+    }
+   ],
+   "teams": [
+    {
+     "orgUnitCode": "CH-NOM",
+     "teamCode": "EQ-01"
+    }
+   ]
+  },
+  {
+   "displayName": "Rubén Rosales Valdivia",
+   "employeeNumber": "P-0102",
+   "assignments": [
+    {
+     "roleCode": "lider",
+     "orgUnitCode": "CH-NOM",
+     "jobTitle": "Líder de Nómina"
+    }
+   ],
+   "teams": [
+    {
+     "orgUnitCode": "CH-NOM",
+     "teamCode": "EQ-02"
+    }
+   ]
+  },
+  {
+   "displayName": "Lucía Carrillo Figueroa",
+   "employeeNumber": "P-0103",
+   "assignments": [
+    {
+     "roleCode": "capturista",
+     "orgUnitCode": "CH-NOM",
+     "jobTitle": "Capturista de Nómina"
+    }
+   ],
+   "teams": [
+    {
+     "orgUnitCode": "CH-NOM",
+     "teamCode": "EQ-02"
+    }
+   ]
+  },
+  {
+   "displayName": "Mauricio Cisneros Treviño",
+   "employeeNumber": "P-0104",
+   "assignments": [
+    {
+     "roleCode": "especialista",
+     "orgUnitCode": "CH-NOM",
+     "jobTitle": "Especialista de Nómina"
+    }
+   ],
+   "teams": [
+    {
+     "orgUnitCode": "CH-NOM",
+     "teamCode": "EQ-02"
+    }
+   ]
+  },
+  {
+   "displayName": "Benjamín Zamora Villaseñor",
+   "employeeNumber": "P-0105",
+   "assignments": [
+    {
+     "roleCode": "gerente",
+     "orgUnitCode": "CH-CAP",
+     "jobTitle": "Gerente de Capacitación"
+    }
+   ]
+  },
+  {
+   "displayName": "Fernanda Quintero Rangel",
+   "employeeNumber": "P-0106",
+   "assignments": [
+    {
+     "roleCode": "supervisor",
+     "orgUnitCode": "CH-CAP",
+     "jobTitle": "Supervisor de Capacitación"
+    }
+   ],
+   "teams": [
+    {
+     "orgUnitCode": "CH-CAP",
+     "teamCode": "EQ-01"
+    }
+   ]
+  },
+  {
+   "displayName": "Karla Treviño Jaramillo",
+   "employeeNumber": "P-0107",
+   "assignments": [
+    {
+     "roleCode": "analista",
+     "orgUnitCode": "CH-CAP",
+     "jobTitle": "Analista de Capacitación"
+    }
+   ],
+   "teams": [
+    {
+     "orgUnitCode": "CH-CAP",
+     "teamCode": "EQ-01"
+    }
+   ]
+  },
+  {
+   "displayName": "Ignacio Fuentes Cervantes",
+   "employeeNumber": "P-0108",
+   "assignments": [
+    {
+     "roleCode": "practicante",
+     "orgUnitCode": "CH-CAP",
+     "jobTitle": "Practicante de Capacitación"
+    }
+   ],
+   "teams": [
+    {
+     "orgUnitCode": "CH-CAP",
+     "teamCode": "EQ-01"
+    }
+   ]
+  },
+  {
+   "displayName": "Jimena Acosta Solís",
+   "employeeNumber": "P-0109",
+   "assignments": [
+    {
+     "roleCode": "director",
+     "orgUnitCode": "DIR-FIN",
+     "jobTitle": "Director de Finanzas"
+    }
+   ]
+  },
+  {
+   "displayName": "Leonel Navarrete Cervantes",
+   "employeeNumber": "P-0110",
+   "assignments": [
+    {
+     "roleCode": "aprobador",
+     "orgUnitCode": "DIR-FIN",
+     "jobTitle": "Aprobador de Finanzas"
+    }
+   ]
+  },
+  {
+   "displayName": "Emilio Padilla Acosta",
+   "employeeNumber": "P-0111",
+   "assignments": [
+    {
+     "roleCode": "gerente",
+     "orgUnitCode": "FIN-CON",
+     "jobTitle": "Gerente de Contabilidad"
+    }
+   ]
+  },
+  {
+   "displayName": "Ximena Lozano Maldonado",
+   "employeeNumber": "P-0112",
+   "assignments": [
+    {
+     "roleCode": "supervisor",
+     "orgUnitCode": "FIN-CON",
+     "jobTitle": "Supervisor de Contabilidad"
+    }
+   ],
+   "teams": [
+    {
+     "orgUnitCode": "FIN-CON",
+     "teamCode": "EQ-01"
+    }
+   ]
+  },
+  {
+   "displayName": "Brenda Arriaga Barragán",
+   "employeeNumber": "P-0113",
+   "assignments": [
+    {
+     "roleCode": "auxiliar",
+     "orgUnitCode": "FIN-CON",
+     "jobTitle": "Auxiliar de Contabilidad"
+    }
+   ],
+   "teams": [
+    {
+     "orgUnitCode": "FIN-CON",
+     "teamCode": "EQ-01"
+    }
+   ]
+  },
+  {
+   "displayName": "Noé Maldonado Cisneros",
+   "employeeNumber": "P-0114",
+   "assignments": [
+    {
+     "roleCode": "capturista",
+     "orgUnitCode": "FIN-CON",
+     "jobTitle": "Capturista de Contabilidad"
+    }
+   ],
+   "teams": [
+    {
+     "orgUnitCode": "FIN-CON",
+     "teamCode": "EQ-01"
+    }
+   ]
+  },
+  {
+   "displayName": "Abril Figueroa Urbina",
+   "employeeNumber": "P-0115",
+   "assignments": [
+    {
+     "roleCode": "analista",
+     "orgUnitCode": "FIN-CON",
+     "jobTitle": "Analista de Contabilidad"
+    }
+   ],
+   "teams": [
+    {
+     "orgUnitCode": "FIN-CON",
+     "teamCode": "EQ-01"
+    }
+   ]
+  },
+  {
+   "displayName": "Silvia Rosales Ibarra",
+   "employeeNumber": "P-0116",
+   "assignments": [
+    {
+     "roleCode": "especialista",
+     "orgUnitCode": "FIN-CON",
+     "jobTitle": "Especialista de Contabilidad"
+    }
+   ],
+   "teams": [
+    {
+     "orgUnitCode": "FIN-CON",
+     "teamCode": "EQ-01"
+    }
+   ]
+  },
+  {
+   "displayName": "Marcos Galindo Bustamante",
+   "employeeNumber": "P-0117",
+   "assignments": [
+    {
+     "roleCode": "gerente",
+     "orgUnitCode": "FIN-TES",
+     "jobTitle": "Gerente de Tesorería"
+    }
+   ]
+  },
+  {
+   "displayName": "Tomás Carrillo Urbina",
+   "employeeNumber": "P-0118",
+   "assignments": [
+    {
+     "roleCode": "jefe",
+     "orgUnitCode": "FIN-TES",
+     "jobTitle": "Jefe de Tesorería"
+    }
+   ]
+  },
+  {
+   "displayName": "Miriam Zepeda Villaseñor",
+   "employeeNumber": "P-0119",
+   "assignments": [
+    {
+     "roleCode": "lider",
+     "orgUnitCode": "FIN-TES",
+     "jobTitle": "Líder de Tesorería"
+    }
+   ],
+   "teams": [
+    {
+     "orgUnitCode": "FIN-TES",
+     "teamCode": "EQ-01"
+    }
+   ]
+  },
+  {
+   "displayName": "Octavio Lozano Treviño",
+   "employeeNumber": "P-0120",
+   "assignments": [
+    {
+     "roleCode": "capturista",
+     "orgUnitCode": "FIN-TES",
+     "jobTitle": "Capturista de Tesorería"
+    }
+   ],
+   "teams": [
+    {
+     "orgUnitCode": "FIN-TES",
+     "teamCode": "EQ-01"
+    }
+   ]
+  },
+  {
+   "displayName": "Jimena Jaramillo Esquivel",
+   "employeeNumber": "P-0121",
+   "assignments": [
+    {
+     "roleCode": "analista",
+     "orgUnitCode": "FIN-TES",
+     "jobTitle": "Analista de Tesorería"
+    }
+   ],
+   "teams": [
+    {
+     "orgUnitCode": "FIN-TES",
+     "teamCode": "EQ-01"
+    }
+   ]
+  },
+  {
+   "displayName": "Renata Acosta Rosales",
+   "employeeNumber": "P-0122",
+   "assignments": [
+    {
+     "roleCode": "director",
+     "orgUnitCode": "DIR-TI",
+     "jobTitle": "Director de Tecnología"
+    }
+   ]
+  },
+  {
+   "displayName": "Iván Cisneros Carrillo",
+   "employeeNumber": "P-0123",
+   "assignments": [
+    {
+     "roleCode": "aprobador",
+     "orgUnitCode": "DIR-TI",
+     "jobTitle": "Aprobador de Tecnología"
+    }
+   ]
+  },
+  {
+   "displayName": "Rodrigo Navarrete Lozano",
+   "employeeNumber": "P-0124",
+   "assignments": [
+    {
+     "roleCode": "gerente",
+     "orgUnitCode": "TI-SIS",
+     "jobTitle": "Gerente de Sistemas"
+    }
+   ]
+  },
+  {
+   "displayName": "Rubén Tapia Barragán",
+   "employeeNumber": "P-0125",
+   "assignments": [
+    {
+     "roleCode": "jefe",
+     "orgUnitCode": "TI-SIS",
+     "jobTitle": "Jefe de Sistemas"
+    }
+   ]
+  },
+  {
+   "displayName": "Leonel Rangel Nava",
+   "employeeNumber": "P-0126",
+   "assignments": [
+    {
+     "roleCode": "coordinador",
+     "orgUnitCode": "TI-SIS",
+     "jobTitle": "Coordinador de Sistemas"
+    }
+   ],
+   "teams": [
+    {
+     "orgUnitCode": "TI-SIS",
+     "teamCode": "EQ-01"
+    }
+   ]
+  },
+  {
+   "displayName": "Hugo Zepeda Lozano",
+   "employeeNumber": "P-0127",
+   "assignments": [
+    {
+     "roleCode": "practicante",
+     "orgUnitCode": "TI-SIS",
+     "jobTitle": "Practicante de Sistemas"
+    }
+   ],
+   "teams": [
+    {
+     "orgUnitCode": "TI-SIS",
+     "teamCode": "EQ-01"
+    }
+   ]
+  },
+  {
+   "displayName": "Esteban Bustamante Montoya",
+   "employeeNumber": "P-0128",
+   "assignments": [
+    {
+     "roleCode": "especialista",
+     "orgUnitCode": "TI-SIS",
+     "jobTitle": "Especialista de Sistemas"
+    }
+   ],
+   "teams": [
+    {
+     "orgUnitCode": "TI-SIS",
+     "teamCode": "EQ-01"
+    }
+   ]
+  },
+  {
+   "displayName": "Mariana Jaramillo Lozano",
+   "employeeNumber": "P-0129",
+   "assignments": [
+    {
+     "roleCode": "especialista",
+     "orgUnitCode": "TI-SIS",
+     "jobTitle": "Especialista de Sistemas"
+    }
+   ],
+   "teams": [
+    {
+     "orgUnitCode": "TI-SIS",
+     "teamCode": "EQ-01"
+    }
+   ]
+  },
+  {
+   "displayName": "Abril Treviño Arriaga",
+   "employeeNumber": "P-0130",
+   "assignments": [
+    {
+     "roleCode": "supervisor",
+     "orgUnitCode": "TI-SIS",
+     "jobTitle": "Supervisor de Sistemas"
+    }
+   ],
+   "teams": [
+    {
+     "orgUnitCode": "TI-SIS",
+     "teamCode": "EQ-02"
+    }
+   ]
+  },
+  {
+   "displayName": "Valeria Cervantes Urbina",
+   "employeeNumber": "P-0131",
+   "assignments": [
+    {
+     "roleCode": "analista",
+     "orgUnitCode": "TI-SIS",
+     "jobTitle": "Analista de Sistemas"
+    }
+   ],
+   "teams": [
+    {
+     "orgUnitCode": "TI-SIS",
+     "teamCode": "EQ-02"
+    }
+   ]
+  },
+  {
+   "displayName": "Rubén Jaramillo Quintero",
+   "employeeNumber": "P-0132",
+   "assignments": [
+    {
+     "roleCode": "especialista",
+     "orgUnitCode": "TI-SIS",
+     "jobTitle": "Especialista de Sistemas"
+    }
+   ],
+   "teams": [
+    {
+     "orgUnitCode": "TI-SIS",
+     "teamCode": "EQ-02"
+    }
+   ]
+  },
+  {
+   "displayName": "Carolina Galindo Valdivia",
+   "employeeNumber": "P-0133",
+   "assignments": [
+    {
+     "roleCode": "gerente",
+     "orgUnitCode": "TI-DAT",
+     "jobTitle": "Gerente de Datos"
+    }
+   ]
+  },
+  {
+   "displayName": "Mauricio Escobedo Esquivel",
+   "employeeNumber": "P-0134",
+   "assignments": [
+    {
+     "roleCode": "jefe",
+     "orgUnitCode": "TI-DAT",
+     "jobTitle": "Jefe de Datos"
+    }
+   ]
+  },
+  {
+   "displayName": "Paola Rangel Salgado",
+   "employeeNumber": "P-0135",
+   "assignments": [
+    {
+     "roleCode": "lider",
+     "orgUnitCode": "TI-DAT",
+     "jobTitle": "Líder de Datos"
+    }
+   ],
+   "teams": [
+    {
+     "orgUnitCode": "TI-DAT",
+     "teamCode": "EQ-01"
+    }
+   ]
+  },
+  {
+   "displayName": "Leonel Villaseñor Quintero",
+   "employeeNumber": "P-0136",
+   "assignments": [
+    {
+     "roleCode": "especialista",
+     "orgUnitCode": "TI-DAT",
+     "jobTitle": "Especialista de Datos"
+    }
+   ],
+   "teams": [
+    {
+     "orgUnitCode": "TI-DAT",
+     "teamCode": "EQ-01"
+    }
+   ]
+  },
+  {
+   "displayName": "Leonel Padilla Carrillo",
+   "employeeNumber": "P-0137",
+   "assignments": [
+    {
+     "roleCode": "capturista",
+     "orgUnitCode": "TI-DAT",
+     "jobTitle": "Capturista de Datos"
+    }
+   ],
+   "teams": [
+    {
+     "orgUnitCode": "TI-DAT",
+     "teamCode": "EQ-01"
+    }
+   ]
+  },
+  {
+   "displayName": "Carolina Escobedo Figueroa",
+   "employeeNumber": "P-0138",
+   "assignments": [
+    {
+     "roleCode": "analista",
+     "orgUnitCode": "TI-DAT",
+     "jobTitle": "Analista de Datos"
+    }
+   ],
+   "teams": [
+    {
+     "orgUnitCode": "TI-DAT",
+     "teamCode": "EQ-01"
+    }
+   ]
+  },
+  {
+   "displayName": "Benjamín Urbina Rosales",
+   "employeeNumber": "P-0139",
+   "assignments": [
+    {
+     "roleCode": "practicante",
+     "orgUnitCode": "TI-DAT",
+     "jobTitle": "Practicante de Datos"
+    }
+   ],
+   "teams": [
+    {
+     "orgUnitCode": "TI-DAT",
+     "teamCode": "EQ-01"
+    }
+   ]
+  },
+  {
+   "displayName": "Esteban Paredes Lozano",
+   "employeeNumber": "P-0140",
+   "assignments": [
+    {
+     "roleCode": "coordinador",
+     "orgUnitCode": "TI-DAT",
+     "jobTitle": "Coordinador de Datos"
+    }
+   ],
+   "teams": [
+    {
+     "orgUnitCode": "TI-DAT",
+     "teamCode": "EQ-02"
+    }
+   ]
+  },
+  {
+   "displayName": "Jimena Treviño Acosta",
+   "employeeNumber": "P-0141",
+   "assignments": [
+    {
+     "roleCode": "auxiliar",
+     "orgUnitCode": "TI-DAT",
+     "jobTitle": "Auxiliar de Datos"
+    }
+   ],
+   "teams": [
+    {
+     "orgUnitCode": "TI-DAT",
+     "teamCode": "EQ-02"
+    }
+   ]
+  },
+  {
+   "displayName": "Esteban Salgado Fuentes",
+   "employeeNumber": "P-0142",
+   "assignments": [
+    {
+     "roleCode": "auxiliar",
+     "orgUnitCode": "TI-DAT",
+     "jobTitle": "Auxiliar de Datos"
+    }
+   ],
+   "teams": [
+    {
+     "orgUnitCode": "TI-DAT",
+     "teamCode": "EQ-02"
+    }
+   ]
+  }
+ ]
+}
