@@ -11,7 +11,7 @@ organización), epic GRZR-17 · Client: Agrizar · Program: Origo (creai Solutio
 
 | Deliverable | State |
 |---|---|
-| MD-2 organization tree: API, rules, bulk load, Back Office | Built; runs locally; 54 automated tests |
+| MD-2 organization tree: API, rules, bulk load, Back Office | Built; runs locally; 69 automated tests |
 | Centro de mando (dashboard hub) | Specified, not built |
 | Organigrama as a people chart | Specified, not built |
 
@@ -60,7 +60,7 @@ person with the role Administrador de Origo can change the organization.
 | `modules/CapitalHumano/infrastructure/` | Stores (memory, append-only file) and the local Fastify server |
 | `modules/CapitalHumano/tests/` | Automated tests, including the GRZR-31 demo script |
 | `app/src/features/organizacion/` | Back Office feature: React + Ant Design with the Agrizar theme |
-| `contracts/` | JSON Schemas: organization read model, organization load format, hub catalog, org chart |
+| `contracts/` | JSON Schemas: organization read model, people directory read models, organization load format, hub catalog, org chart |
 | `design/tokens.css` | Agrizar design tokens, ported from the reference design system |
 | `seed/` | Invented organizations for tests and for the shareable demo; hub catalog without links |
 | `scripts/` | Dev launcher; converter from the published org chart to the load format; generator of the demo organization |

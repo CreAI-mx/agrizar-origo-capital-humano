@@ -21,7 +21,15 @@ export function OrganizationPage({ org, canEdit, mode }: { org: OrganizationView
   const scope = useMemo(() => (scopeUnit ? scopeOf(org.orgUnits, scopeUnit.id) : null), [org.orgUnits, scopeUnit]);
   const scopeCrop = useMemo(() => (scopeUnit ? cropsOf(org.orgUnits).get(scopeUnit.id) : undefined), [org.orgUnits, scopeUnit]);
   const scopePeople = useMemo(() => (scope ? peopleInScope(org, scope) : null), [org, scope]);
-  const props: TabProps = { org, canEdit, mode, scope, onScope: setScopeId, onHistory: (entityId, title) => setHistory({ entityId, title }) };
+  const [tab, setTab] = useState('areas');
+  const [focusAreaId, setFocusAreaId] = useState<string | null>(null);
+  // From a person to their área: the whole chart, opened on that área.
+  const showArea = (orgUnitId: string) => {
+    setScopeId(null);
+    setFocusAreaId(orgUnitId);
+    setTab('areas');
+  };
+  const props: TabProps = { org, canEdit, mode, scope, scopeId: scopeUnit?.id ?? null, onScope: setScopeId, onShowArea: showArea, focusAreaId, onHistory: (entityId, title) => setHistory({ entityId, title }) };
 
   const active = <T extends { status: string }>(items: T[]) => items.filter((item) => item.status === 'active');
   const counts = {
@@ -53,6 +61,11 @@ export function OrganizationPage({ org, canEdit, mode }: { org: OrganizationView
       </div>
       <Tabs
         destroyOnHidden
+        activeKey={tab}
+        onChange={(key) => {
+          setTab(key);
+          setFocusAreaId(null);
+        }}
         items={[
           { key: 'areas', label: `Áreas (${counts.areas})`, children: <AreasTab {...props} /> },
           { key: 'roles', label: `Roles (${counts.roles})`, children: <RolesTab {...props} /> },

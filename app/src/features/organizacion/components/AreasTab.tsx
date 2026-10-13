@@ -13,11 +13,11 @@ type Draft = Partial<OrgUnit>;
 
 type View = 'diagram' | 'list';
 
-export function AreasTab({ org, canEdit, onHistory, mode, scope, onScope }: TabProps) {
+export function AreasTab({ org, canEdit, onHistory, mode, scope, onScope, focusAreaId }: TabProps) {
   const [view, setView] = useState<View>('diagram');
   const [search, setSearch] = useState('');
   const [showInactive, setShowInactive] = useState(false);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(focusAreaId);
   const [expanded, setExpanded] = useState<Key[] | null>(null);
   const [draft, setDraft] = useState<Draft | null>(null);
   const [form] = Form.useForm<Draft>();
@@ -98,7 +98,7 @@ export function AreasTab({ org, canEdit, onHistory, mode, scope, onScope }: TabP
       </div>
     <div className={view === 'diagram' ? 'chart-stage' : 'split'}>
       {view === 'diagram' ? (
-        <TreeChart items={chartItems} legend={legend} matchIds={matchIds} selectedId={selectedId} onSelect={setSelectedId} mode={mode} emptyText={query ? 'Ningún área coincide con la búsqueda' : 'Aún no hay áreas. Usa la pestaña Carga o crea la primera.'} />
+        <TreeChart items={chartItems} legend={legend} frameIds={focusAreaId ? [focusAreaId] : undefined} matchIds={matchIds} selectedId={selectedId} onSelect={setSelectedId} mode={mode} emptyText={query ? 'Ningún área coincide con la búsqueda' : 'Aún no hay áreas. Usa la pestaña Carga o crea la primera.'} />
       ) : (
       <Card size="small">
         <div className="tree-scroll">

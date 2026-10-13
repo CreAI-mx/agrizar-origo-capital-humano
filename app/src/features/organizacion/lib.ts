@@ -19,6 +19,15 @@ export const normalize = (text: string) =>
 /** "1 equipo", "3 equipos" */
 export const count = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
 
+/** "Octavio Huerta Tapia" → "OH" */
+export const initials = (name: string) =>
+  name
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((word) => word.charAt(0).toUpperCase())
+    .join('');
+
 const dateTime = new Intl.DateTimeFormat('es-MX', { dateStyle: 'medium', timeStyle: 'short' });
 export const formatDateTime = (iso: string) => dateTime.format(new Date(iso));
 

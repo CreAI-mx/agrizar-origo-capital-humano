@@ -1,0 +1,111 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://creai.mx/schemas/agrizar/capital-humano/people-directory.schema.json",
+  "title": "People directory",
+  "description": "Read models of the people directory (GRZR-31, spec M2-26 and M2-27). `$defs/peoplePage` is what `GET /api/organization/people` returns: one page of people with the size of each alert tray. `$defs/personProfile` is what `GET /api/organization/people/{personId}` returns: one person with their line of command.",
+  "$defs": {
+    "dataAsOf": {
+      "oneOf": [{ "type": "string", "format": "date-time" }, { "type": "null" }],
+      "description": "When the organization last changed. Null while nothing has been loaded."
+    },
+    "personRow": {
+      "type": "object",
+      "required": ["id", "displayName", "account", "employeeNumber", "status", "assignments", "teams", "alerts"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "displayName": { "type": "string", "minLength": 1 },
+        "account": { "type": ["string", "null"] },
+        "employeeNumber": { "type": ["string", "null"] },
+        "status": { "enum": ["active", "inactive"] },
+        "assignments": {
+          "type": "array",
+          "description": "Active roles, the highest of the ladder first.",
+          "items": {
+            "type": "object",
+            "required": ["id", "roleId", "roleName", "level", "orgUnitId", "orgUnitName", "orgUnitPath", "jobTitle"],
+            "additionalProperties": false,
+            "properties": {
+              "id": { "type": "string" },
+              "roleId": { "type": "string" },
+              "roleName": { "type": "string" },
+              "level": { "enum": ["director", "gerente", "jefe", "coordinador", "lider", "supervisor", "especialista", "analista", "auxiliar", "practicante", null] },
+              "orgUnitId": { "type": "string" },
+              "orgUnitName": { "type": "string" },
+              "orgUnitPath": { "type": "array", "items": { "type": "string" }, "description": "Names from the empresa down to the área." },
+              "jobTitle": { "type": ["string", "null"] }
+            }
+          }
+        },
+        "teams": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["id", "membershipId", "name", "orgUnitId", "isLead", "members"],
+            "additionalProperties": false,
+            "properties": {
+              "id": { "type": "string" },
+              "membershipId": { "type": "string", "description": "The person's membership in this equipo." },
+              "name": { "type": "string" },
+              "orgUnitId": { "type": "string" },
+              "isLead": { "type": "boolean" },
+              "members": { "type": "integer", "minimum": 1 }
+            }
+          }
+        },
+        "alerts": {
+          "type": "array",
+          "description": "What is missing on an active person. Always empty for an inactive one.",
+          "items": { "enum": ["noTeam", "noAccount", "noRole"] }
+        }
+      }
+    },
+    "personRef": {
+      "type": "object",
+      "required": ["id", "displayName", "title", "orgUnitId"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string" },
+        "displayName": { "type": "string" },
+        "title": { "type": ["string", "null"], "description": "Job title of their main role, or the role's name." },
+        "orgUnitId": { "type": ["string", "null"], "description": "Área of their main role." }
+      }
+    },
+    "peoplePage": {
+      "type": "object",
+      "required": ["items", "total", "page", "pageSize", "counts", "dataAsOf"],
+      "additionalProperties": false,
+      "properties": {
+        "items": { "type": "array", "items": { "$ref": "#/$defs/personRow" } },
+        "total": { "type": "integer", "minimum": 0, "description": "People that match the filters, across all pages." },
+        "page": { "type": "integer", "minimum": 1 },
+        "pageSize": { "type": "integer", "minimum": 1, "maximum": 100 },
+        "counts": {
+          "type": "object",
+          "description": "Size of each tray within the chosen área, whatever else is filtered.",
+          "required": ["active", "noTeam", "noAccount", "noRole", "inactive"],
+          "additionalProperties": false,
+          "properties": {
+            "active": { "type": "integer", "minimum": 0 },
+            "noTeam": { "type": "integer", "minimum": 0 },
+            "noAccount": { "type": "integer", "minimum": 0 },
+            "noRole": { "type": "integer", "minimum": 0 },
+            "inactive": { "type": "integer", "minimum": 0 }
+          }
+        },
+        "dataAsOf": { "$ref": "#/$defs/dataAsOf" }
+      }
+    },
+    "personProfile": {
+      "type": "object",
+      "required": ["person", "chain", "reports", "dataAsOf"],
+      "additionalProperties": false,
+      "properties": {
+        "person": { "$ref": "#/$defs/personRow" },
+        "chain": { "type": "array", "items": { "$ref": "#/$defs/personRef" }, "description": "Line of command, from the top down to the person's boss. Inferred, not captured." },
+        "reports": { "type": "array", "items": { "$ref": "#/$defs/personRef" }, "description": "People who answer to this person." },
+        "dataAsOf": { "$ref": "#/$defs/dataAsOf" }
+      }
+    }
+  }
+}
