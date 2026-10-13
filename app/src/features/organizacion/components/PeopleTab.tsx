@@ -3,7 +3,7 @@ import { Button, Form, Input, Modal, Popconfirm, Select, Space, Switch, Table, T
 import { useMemo, useState } from 'react';
 import type { Change } from '../api';
 import { useSave } from '../hooks';
-import { normalize, unitTree } from '../lib';
+import { normalize, peopleInScope, unitTree } from '../lib';
 import { READ_ONLY_HINT, type TabProps } from '../types';
 
 interface AssignmentDraft {
@@ -20,7 +20,7 @@ interface Draft {
   assignments: AssignmentDraft[];
 }
 
-export function PeopleTab({ org, canEdit, onHistory }: TabProps) {
+export function PeopleTab({ org, canEdit, onHistory, scope }: TabProps) {
   const [search, setSearch] = useState('');
   const [showInactive, setShowInactive] = useState(false);
   const [draft, setDraft] = useState<Draft | null>(null);
@@ -34,8 +34,10 @@ export function PeopleTab({ org, canEdit, onHistory }: TabProps) {
   const unitOptions = useMemo(() => unitTree(org.orgUnits.filter((u) => u.status === 'active')), [org.orgUnits]);
 
   const query = normalize(search);
+  const inScope = useMemo(() => (scope ? peopleInScope(org, scope) : null), [org, scope]);
   const people = org.people
     .filter((p) => showInactive || p.status === 'active')
+    .filter((p) => !inScope || inScope.has(p.id))
     .filter((p) => !query || normalize(`${p.displayName} ${p.account ?? ''} ${p.employeeNumber ?? ''}`).includes(query))
     .sort((a, b) => a.displayName.localeCompare(b.displayName, 'es'));
 
@@ -94,7 +96,7 @@ export function PeopleTab({ org, canEdit, onHistory }: TabProps) {
         rowKey="id"
         dataSource={people}
         pagination={{ pageSize: 12, showSizeChanger: false, showTotal: (total) => `${total} personas` }}
-        locale={{ emptyText: query ? 'Nadie coincide con la búsqueda' : 'Aún no hay personas' }}
+        locale={{ emptyText: query ? 'Nadie coincide con la búsqueda' : scope ? 'Nadie tiene rol ni equipo en esta área' : 'Aún no hay personas' }}
         columns={[
           {
             title: 'Nombre',

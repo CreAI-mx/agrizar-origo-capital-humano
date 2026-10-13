@@ -6,13 +6,14 @@ import { useSave } from '../hooks';
 import { KIND_LABEL, count, normalize, unitPath, unitTree } from '../lib';
 import { READ_ONLY_HINT, type TabProps } from '../types';
 import { areaItems } from '../chartItems';
+import { CropDot, CropSeal, cropLegend, cropsOf } from '../crops';
 import { TreeChart } from './TreeChart';
 
 type Draft = Partial<OrgUnit>;
 
 type View = 'diagram' | 'list';
 
-export function AreasTab({ org, canEdit, onHistory, mode }: TabProps) {
+export function AreasTab({ org, canEdit, onHistory, mode, scope, onScope }: TabProps) {
   const [view, setView] = useState<View>('diagram');
   const [search, setSearch] = useState('');
   const [showInactive, setShowInactive] = useState(false);
@@ -22,7 +23,7 @@ export function AreasTab({ org, canEdit, onHistory, mode }: TabProps) {
   const [form] = Form.useForm<Draft>();
   const save = useSave();
 
-  const units = useMemo(() => org.orgUnits.filter((u) => showInactive || u.status === 'active'), [org.orgUnits, showInactive]);
+  const units = useMemo(() => org.orgUnits.filter((u) => (showInactive || u.status === 'active') && (!scope || scope.has(u.id))), [org.orgUnits, showInactive, scope]);
   const teamsIn = (id: string) => org.teams.filter((t) => t.orgUnitId === id && t.status === 'active');
   const assignmentsIn = (id: string) => org.roleAssignments.filter((a) => a.orgUnitId === id && a.status === 'active');
 
@@ -37,8 +38,11 @@ export function AreasTab({ org, canEdit, onHistory, mode }: TabProps) {
     return units.filter((u) => keep.has(u.id));
   }, [units, query]);
 
+  const crops = useMemo(() => cropsOf(org.orgUnits), [org.orgUnits]);
+  const legend = useMemo(() => cropLegend(org.orgUnits, scope), [org.orgUnits, scope]);
   const treeData = unitTree(visible, (unit) => (
     <span className={unit.status === 'inactive' ? 'muted' : undefined}>
+      <CropDot crop={crops.get(unit.id)} />
       {unit.name}{' '}
       <span className="muted">
         · {count(teamsIn(unit.id).length, 'equipo', 'equipos')} · {count(new Set(assignmentsIn(unit.id).map((a) => a.personId)).size, 'persona', 'personas')}
@@ -46,9 +50,12 @@ export function AreasTab({ org, canEdit, onHistory, mode }: TabProps) {
       {unit.status === 'inactive' && <Tag style={{ marginLeft: 8 }}>Inactiva</Tag>}
     </span>
   ));
-  const topLevels = units.filter((u) => u.parentId === null || units.find((p) => p.id === u.parentId)?.parentId === null).map((u) => u.id);
+  // The first two levels shown start open; with a filter, the top is the filtered área.
+  const isTop = (u: OrgUnit) => !units.some((p) => p.id === u.parentId);
+  const topLevels = units.filter((u) => isTop(u) || units.some((p) => p.id === u.parentId && isTop(p))).map((u) => u.id);
   const expandedKeys = query ? visible.map((u) => u.id) : (expanded ?? topLevels);
-  const selected = org.orgUnits.find((u) => u.id === selectedId) ?? null;
+  // An área left outside the filter closes its detail; an inactive one keeps it, to reactivate it.
+  const selected = org.orgUnits.find((u) => u.id === selectedId && (!scope || scope.has(u.id))) ?? null;
 
   const open = (value: Draft) => {
     setDraft(value);
@@ -63,7 +70,15 @@ export function AreasTab({ org, canEdit, onHistory, mode }: TabProps) {
   const setStatus = (unit: OrgUnit, status: OrgUnit['status']) =>
     save.mutate({ changes: [{ kind: 'orgUnit', data: { ...unit, status } }], done: status === 'active' ? 'Área reactivada' : 'Área desactivada' });
 
-  const detailTitle = selected ? selected.name : 'Detalle del área';
+  const selectedCrop = selected ? crops.get(selected.id) : undefined;
+  const detailTitle = selected ? (
+    <Space size={8}>
+      {selectedCrop && <CropSeal crop={selectedCrop} size={24} />}
+      {selected.name}
+    </Space>
+  ) : (
+    'Detalle del área'
+  );
   const chartItems = useMemo(() => areaItems(org, units), [org, units]);
   const matchIds = useMemo(() => (query ? units.filter((u) => normalize(`${u.name} ${u.code}`).includes(query)).map((u) => u.id) : undefined), [units, query]);
   return (
@@ -83,7 +98,7 @@ export function AreasTab({ org, canEdit, onHistory, mode }: TabProps) {
       </div>
     <div className={view === 'diagram' ? 'chart-stage' : 'split'}>
       {view === 'diagram' ? (
-        <TreeChart items={chartItems} matchIds={matchIds} selectedId={selectedId} onSelect={setSelectedId} mode={mode} emptyText={query ? 'Ningún área coincide con la búsqueda' : 'Aún no hay áreas. Usa la pestaña Carga o crea la primera.'} />
+        <TreeChart items={chartItems} legend={legend} matchIds={matchIds} selectedId={selectedId} onSelect={setSelectedId} mode={mode} emptyText={query ? 'Ningún área coincide con la búsqueda' : 'Aún no hay áreas. Usa la pestaña Carga o crea la primera.'} />
       ) : (
       <Card size="small">
         <div className="tree-scroll">
@@ -144,6 +159,17 @@ export function AreasTab({ org, canEdit, onHistory, mode }: TabProps) {
                 </Button>
               </Space>
             </Tooltip>
+            {scope && !scope.has(selected.parentId ?? '') ? (
+              <Button block onClick={() => onScope(null)}>
+                Ver toda la organización
+              </Button>
+            ) : (
+              selected.parentId !== null && (
+                <Button block onClick={() => onScope(selected.id)}>
+                  Ver solo esta área
+                </Button>
+              )
+            )}
             <List
               size="small"
               header={<strong>Equipos ({teamsIn(selected.id).length})</strong>}

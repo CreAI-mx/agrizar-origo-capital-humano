@@ -1,4 +1,4 @@
-import type { OrgUnit } from '@origo/capital-humano';
+import type { OrgUnit, OrganizationView } from '@origo/capital-humano';
 import type { ReactNode } from 'react';
 
 export const KIND_LABEL: Record<OrgUnit['kind'], string> = {
@@ -21,6 +21,36 @@ export const count = (n: number, one: string, many: string) => `${n} ${n === 1 ?
 
 const dateTime = new Intl.DateTimeFormat('es-MX', { dateStyle: 'medium', timeStyle: 'short' });
 export const formatDateTime = (iso: string) => dateTime.format(new Date(iso));
+
+/** Siblings in their saved order, then by name; parents before children is not required. */
+export const sortUnits = (units: OrgUnit[]) => [...units].sort((a, b) => a.sortOrder - b.sortOrder || a.name.localeCompare(b.name, 'es'));
+
+/** The área and everything under it, active or not. */
+export function scopeOf(units: OrgUnit[], orgUnitId: string): Set<string> {
+  const found = new Set<string>();
+  const pending = [orgUnitId];
+  while (pending.length) {
+    const id = pending.pop()!;
+    if (found.has(id)) continue;
+    found.add(id);
+    for (const unit of units) if (unit.parentId === id) pending.push(unit.id);
+  }
+  return found;
+}
+
+/**
+ * People who belong to the filtered áreas: by a role given there or by an equipo of theirs.
+ * An active person belongs where they are now; an inactive one, who has no role or equipo
+ * left, where they were.
+ */
+export function peopleInScope(org: OrganizationView, scope: ReadonlySet<string>): Set<string> {
+  const inactive = new Set(org.people.filter((p) => p.status !== 'active').map((p) => p.id));
+  const teams = new Map(org.teams.filter((t) => scope.has(t.orgUnitId)).map((t) => [t.id, t]));
+  return new Set([
+    ...org.roleAssignments.filter((a) => scope.has(a.orgUnitId) && (a.status === 'active' || inactive.has(a.personId))).map((a) => a.personId),
+    ...org.teamMemberships.filter((m) => teams.has(m.teamId) && ((m.status === 'active' && teams.get(m.teamId)!.status === 'active') || inactive.has(m.personId))).map((m) => m.personId),
+  ]);
+}
 
 export interface UnitNode {
   key: string;
@@ -48,9 +78,10 @@ export function unitTree(units: OrgUnit[], title: (unit: OrgUnit) => ReactNode =
 /** "Agrizar › Capital Humano › Reclutamiento" */
 export function unitPath(units: OrgUnit[], id: string | null): string {
   const names: string[] = [];
-  for (let unit = units.find((u) => u.id === id); unit; unit = units.find((u) => u.id === unit!.parentId)) {
+  const seen = new Set<string>();
+  for (let unit = units.find((u) => u.id === id); unit && !seen.has(unit.id); unit = units.find((u) => u.id === unit!.parentId)) {
+    seen.add(unit.id);
     names.unshift(unit.name);
-    if (names.length > 12) break;
   }
   return names.join(' › ');
 }

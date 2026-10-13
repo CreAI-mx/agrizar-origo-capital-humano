@@ -129,7 +129,7 @@ body {
 /* ── Org chart ──────────────────────────────────────────────────────────────────── */
 .chart-stage {
   position: relative;
-  height: calc(100vh - 236px);
+  height: calc(100vh - 276px);
   min-height: 520px;
   overflow: hidden;
   border: 1px solid var(--linea);
@@ -175,8 +175,8 @@ body {
   position: relative;
   box-sizing: border-box;
   display: flex;
-  flex-direction: column;
-  gap: 3px;
+  align-items: center;
+  gap: 12px;
   width: 236px;
   height: 122px;
   padding: 12px 14px;
@@ -203,10 +203,21 @@ body {
   border-style: dashed;
   opacity: 0.6;
 }
+/* The empresa is a filled pill in the accent color (ADR-0002). */
 .org-node.tone-root {
-  background: linear-gradient(160deg, var(--brand), var(--glass-solido) 130%);
-  border-color: var(--accent-borde);
-  color: #fff;
+  padding: 12px 22px;
+  color: var(--txt-invertido);
+  background: var(--accent);
+  border-color: transparent;
+  border-radius: 61px;
+}
+.org-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 3px;
+  align-self: stretch;
+  min-width: 0;
 }
 .org-top {
   display: flex;
@@ -220,7 +231,7 @@ body {
   color: var(--accent);
 }
 .tone-root .org-kind {
-  color: var(--lima);
+  color: inherit;
 }
 .tone-normal .org-kind,
 .tone-person .org-kind,
@@ -238,9 +249,9 @@ body {
   border-radius: var(--r-pill);
 }
 .tone-root .org-people {
-  color: #fff;
-  background: rgba(255, 255, 255, 0.16);
-  border-color: rgba(255, 255, 255, 0.28);
+  color: inherit;
+  background: color-mix(in srgb, currentColor 12%, transparent);
+  border-color: color-mix(in srgb, currentColor 32%, transparent);
 }
 .org-name {
   display: -webkit-box;
@@ -264,7 +275,11 @@ body {
   color: var(--txt-2);
 }
 .tone-root .org-meta {
-  color: rgba(255, 255, 255, 0.72);
+  color: inherit;
+  opacity: 0.78;
+}
+.tone-root .org-toggle {
+  left: 44px;
 }
 .org-toggle {
   position: absolute;
@@ -381,4 +396,139 @@ body {
 .chart-detail.is-left {
   bottom: auto;
   max-height: calc(100% - 64px);
+}
+
+/* ── Área filter above the tabs ─────────────────────────────────────────────────────── */
+.scope-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  margin-bottom: 8px;
+}
+.scope-bar label {
+  font-weight: 600;
+}
+.scope-select {
+  width: min(360px, 100%);
+}
+
+/* ── Crop identity (ADR-0002) ───────────────────────────────────────────────────────── */
+/* One color per crop Agrizar grows. They extend the ported design system, so they live here and
+   not in design/tokens.css. Dark values first; the light ones are darker to stay readable. */
+:root {
+  --cultivo-pimiento: #f2a93b;
+  --cultivo-tomate: #f0624d;
+  --cultivo-pepino: #58c08a;
+  --cultivo-frambuesa: #ee5d8a;
+  --cultivo-zarzamora: #a283ea;
+  --cultivo-arandano: #6c9bf2;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme='dark']) {
+    --cultivo-pimiento: #9a5a0a;
+    --cultivo-tomate: #b23a2b;
+    --cultivo-pepino: #2c7a4e;
+    --cultivo-frambuesa: #ad2f5a;
+    --cultivo-zarzamora: #55409a;
+    --cultivo-arandano: #2c55a6;
+  }
+}
+:root[data-theme='light'] {
+  --cultivo-pimiento: #9a5a0a;
+  --cultivo-tomate: #b23a2b;
+  --cultivo-pepino: #2c7a4e;
+  --cultivo-frambuesa: #ad2f5a;
+  --cultivo-zarzamora: #55409a;
+  --cultivo-arandano: #2c55a6;
+}
+[data-crop='pimiento'] {
+  --crop: var(--cultivo-pimiento);
+}
+[data-crop='tomate'] {
+  --crop: var(--cultivo-tomate);
+}
+[data-crop='pepino'] {
+  --crop: var(--cultivo-pepino);
+}
+[data-crop='frambuesa'] {
+  --crop: var(--cultivo-frambuesa);
+}
+[data-crop='zarzamora'] {
+  --crop: var(--cultivo-zarzamora);
+}
+[data-crop='arandano'] {
+  --crop: var(--cultivo-arandano);
+}
+.crop-seal {
+  flex: none;
+  fill: none;
+  stroke: var(--txt-invertido);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  background: var(--crop);
+  border-radius: 50%;
+}
+.crop-seal[data-crop='brote'] {
+  stroke: var(--accent);
+  background: var(--txt-invertido);
+}
+.crop-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-right: 8px;
+  vertical-align: 1px;
+  background: var(--crop);
+  border-radius: 50%;
+}
+/* The head of a branch wears the seal, whatever its kind; what hangs from it is tinted with the same crop. */
+.org-node.has-crop:not(.is-selected, .is-lit) {
+  border-color: color-mix(in srgb, var(--crop) 45%, transparent);
+}
+.org-node.has-crop:not(.is-static, .is-selected, .is-lit):hover {
+  border-color: var(--crop);
+}
+.org-node.has-crop.has-seal .org-kind {
+  color: var(--crop);
+}
+.org-node.has-crop:not(.has-seal).tone-strong,
+.org-node.has-crop:not(.has-seal).tone-normal,
+.org-node.has-crop:not(.has-seal).tone-team {
+  background: color-mix(in srgb, var(--crop) 10%, var(--glass-solido));
+}
+.org-node.has-crop:not(.has-seal).tone-strong .org-people,
+.org-node.has-crop:not(.has-seal).tone-normal .org-people,
+.org-node.has-crop:not(.has-seal).tone-team .org-people {
+  color: var(--crop);
+  background: transparent;
+  border-color: color-mix(in srgb, var(--crop) 45%, transparent);
+}
+.crop-legend {
+  max-width: min(920px, calc(100vw - 220px));
+  max-height: 132px;
+  overflow: auto;
+  padding: 8px 14px;
+  font-size: 0.78rem;
+  background: var(--flotante);
+  border: 1px solid var(--flotante-borde);
+  border-radius: var(--r-sm);
+}
+.crop-legend summary {
+  cursor: pointer;
+}
+.crop-legend ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  margin: 8px 0 2px;
+  padding: 0;
+  list-style: none;
+}
+.crop-legend li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
 }

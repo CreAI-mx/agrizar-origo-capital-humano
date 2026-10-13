@@ -1,12 +1,11 @@
 import type { OrgUnit, OrganizationView } from '@origo/capital-humano';
 import { ROLE_LEVELS } from '@origo/capital-humano';
 import type { ChartItem } from './components/TreeChart';
-import { KIND_LABEL, count } from './lib';
+import { cropsOf, sealsOf } from './crops';
+import { KIND_LABEL, count, sortUnits } from './lib';
 
-const TONE: Record<OrgUnit['kind'], ChartItem['tone']> = { empresa: 'root', direccion: 'strong', area: 'normal', subarea: 'normal' };
-
-/** Siblings in their saved order, then by name; parents before children is not required. */
-export const sortUnits = (units: OrgUnit[]) => [...units].sort((a, b) => a.sortOrder - b.sortOrder || a.name.localeCompare(b.name, 'es'));
+/** How loud an área's card is: the empresa and the direcciones stand out. */
+export const UNIT_TONE: Record<OrgUnit['kind'], ChartItem['tone']> = { empresa: 'root', direccion: 'strong', area: 'normal', subarea: 'normal' };
 
 /** Área cards for a diagram: head of the área, its job title, and people in it or under it. */
 export function areaItems(org: OrganizationView, units: OrgUnit[]): ChartItem[] {
@@ -18,6 +17,8 @@ export function areaItems(org: OrganizationView, units: OrgUnit[]): ChartItem[] 
     for (const child of childrenOf.get(id) ?? []) peopleUnder(child.id, into);
     return into;
   };
+  const crops = cropsOf(org.orgUnits);
+  const seals = sealsOf(org.orgUnits);
   const rank = (roleId: string) => {
     const level = org.roles.find((r) => r.id === roleId)?.level;
     return level ? ROLE_LEVELS.indexOf(level) : ROLE_LEVELS.length;
@@ -35,7 +36,9 @@ export function areaItems(org: OrganizationView, units: OrgUnit[]): ChartItem[] 
       line2: head ? (head.jobTitle ?? org.roles.find((r) => r.id === head.roleId)?.name ?? null) : count(teams, 'equipo', 'equipos'),
       badge: people,
       badgeTitle: `${count(people, 'persona', 'personas')} en esta área y las que tiene debajo`,
-      tone: TONE[unit.kind],
+      tone: UNIT_TONE[unit.kind],
+      crop: crops.get(unit.id) ?? null,
+      seal: seals.get(unit.id) ?? null,
       inactive: unit.status === 'inactive',
     };
   });

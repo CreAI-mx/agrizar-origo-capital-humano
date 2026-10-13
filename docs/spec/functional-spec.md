@@ -35,7 +35,7 @@ Window: built in DEV during S2–S3 (12 to 23 Oct 2026). Validation with users
 | Jira acceptance criterion | Met by |
 |---|---|
 | AC1 · Áreas, roles y equipos reales (S2) | M2-01 to M2-08, M2-20 |
-| AC2 · Carga y mantenimiento en Back Office (S2–S3) | M2-10 to M2-19 |
+| AC2 · Carga y mantenimiento en Back Office (S2–S3) | M2-10 to M2-19, M2-24, M2-25 |
 | AC3 · Demo interna en DEV con datos de prueba, de punta a punta, lista para STAGE en S4 | M2-20 to M2-23, §1.5 demo script |
 | DoD · Tests automatizados que cubren los ACs | §1.6 |
 
@@ -99,6 +99,8 @@ Demo readiness (AC3)
 | M2-21 | One command starts the app locally with the test dataset loaded |
 | M2-22 | "Ver como": the administrator picks a person and the organization diagram lights the áreas that person's roles cover, names the role on the área where it was given, and lists roles and equipos |
 | M2-23 | UI copy in Spanish; works on a laptop screen; keyboard reachable |
+| M2-24 | Filter by área or departamento: one selector above the tabs narrows áreas, equipos, people and role counts to an área and everything under it, and stays on while moving between tabs. An área's detail offers "Ver solo esta área". Source: tech lead review of the demo, 12 Oct 2026 |
+| M2-25 | Crop identity: each branch under the empresa carries one of the six crops Agrizar grows, as a solid seal on the dirección and a tint on its áreas, subáreas and equipos, in the diagrams, the lists and the área filter, with a legend. Presentation only; the crop is derived, not stored. Source: story owner decision, 13 Oct 2026 (`docs/adr/ADR-0002-crop-identity.md`) |
 
 ### 1.4 Out of scope for GRZR-31
 

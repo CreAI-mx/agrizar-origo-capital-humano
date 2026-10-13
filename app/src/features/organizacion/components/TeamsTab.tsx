@@ -3,8 +3,9 @@ import { Button, Card, Descriptions, Form, Input, List, Modal, Popconfirm, Segme
 import { useMemo, useState } from 'react';
 import type { Change } from '../api';
 import { useSave } from '../hooks';
-import { sortUnits } from '../chartItems';
-import { KIND_LABEL, count, normalize, unitPath, unitTree } from '../lib';
+import { UNIT_TONE } from '../chartItems';
+import { CropDot, cropLegend, cropsOf, sealsOf } from '../crops';
+import { KIND_LABEL, count, normalize, sortUnits, unitPath, unitTree } from '../lib';
 import { READ_ONLY_HINT, type TabProps } from '../types';
 import { TreeChart, type ChartItem } from './TreeChart';
 
@@ -19,7 +20,7 @@ interface Draft {
 
 type View = 'diagram' | 'list';
 
-export function TeamsTab({ org, canEdit, onHistory, mode }: TabProps) {
+export function TeamsTab({ org, canEdit, onHistory, mode, scope }: TabProps) {
   const [view, setView] = useState<View>('diagram');
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [search, setSearch] = useState('');
@@ -33,7 +34,7 @@ export function TeamsTab({ org, canEdit, onHistory, mode }: TabProps) {
   const nameOf = (personId: string | null) => org.people.find((p) => p.id === personId)?.displayName;
   const membersOf = (teamId: string) => org.teamMemberships.filter((m) => m.teamId === teamId && m.status === 'active');
   const query = normalize(search);
-  const allTeams = useMemo(() => org.teams.filter((t) => showInactive || t.status === 'active'), [org.teams, showInactive]);
+  const allTeams = useMemo(() => org.teams.filter((t) => (showInactive || t.status === 'active') && (!scope || scope.has(t.orgUnitId))), [org.teams, showInactive, scope]);
   const teams = allTeams
     .filter((t) => !query || normalize(`${t.name} ${t.code} ${unitPath(org.orgUnits, t.orgUnitId)}`).includes(query));
 
@@ -63,7 +64,7 @@ export function TeamsTab({ org, canEdit, onHistory, mode }: TabProps) {
 
   // Only the áreas that lead to an equipo are drawn; each equipo opens to show its integrantes.
   const { items, closed } = useMemo(() => {
-    const units = org.orgUnits.filter((u) => u.status === 'active');
+    const units = org.orgUnits.filter((u) => u.status === 'active' && (!scope || scope.has(u.id)));
     const needed = new Set<string>();
     for (const team of allTeams) {
       for (let unit = units.find((u) => u.id === team.orgUnitId); unit && !needed.has(unit.id); unit = units.find((u) => u.id === unit!.parentId)) needed.add(unit.id);
@@ -71,20 +72,24 @@ export function TeamsTab({ org, canEdit, onHistory, mode }: TabProps) {
     const teamsUnder = (id: string): number =>
       allTeams.filter((t) => t.orgUnitId === id).length + units.filter((u) => u.parentId === id).reduce((sum, child) => sum + teamsUnder(child.id), 0);
     const cards: ChartItem[] = [];
+    const crops = cropsOf(org.orgUnits);
+    const seals = sealsOf(org.orgUnits);
     for (const unit of sortUnits(units.filter((u) => needed.has(u.id)))) {
-      cards.push({ id: unit.id, parentId: unit.parentId, eyebrow: KIND_LABEL[unit.kind], title: unit.name, line1: count(teamsUnder(unit.id), 'equipo', 'equipos'), line2: allTeams.some((t) => t.orgUnitId === unit.id) ? 'Abre el área para ver sus equipos' : null, tone: unit.kind === 'empresa' ? 'root' : 'normal', selectable: false });
+      cards.push({ id: unit.id, parentId: unit.parentId, eyebrow: KIND_LABEL[unit.kind], title: unit.name, line1: count(teamsUnder(unit.id), 'equipo', 'equipos'), line2: allTeams.some((t) => t.orgUnitId === unit.id) ? 'Abre el área para ver sus equipos' : null, tone: UNIT_TONE[unit.kind], crop: crops.get(unit.id) ?? null, seal: seals.get(unit.id) ?? null, selectable: false });
     }
     for (const team of [...allTeams].sort((a, b) => a.name.localeCompare(b.name, 'es'))) {
       const members = org.teamMemberships.filter((m) => m.teamId === team.id && m.status === 'active');
-      cards.push({ id: team.id, parentId: team.orgUnitId, eyebrow: team.status === 'inactive' ? 'Equipo inactivo' : 'Equipo', inactive: team.status === 'inactive', title: team.name, line1: org.people.find((p) => p.id === team.leadPersonId)?.displayName ?? 'Sin líder', line2: team.code, badge: members.length, badgeTitle: count(members.length, 'integrante', 'integrantes'), tone: 'team' });
+      cards.push({ id: team.id, parentId: team.orgUnitId, eyebrow: team.status === 'inactive' ? 'Equipo inactivo' : 'Equipo', inactive: team.status === 'inactive', title: team.name, line1: org.people.find((p) => p.id === team.leadPersonId)?.displayName ?? 'Sin líder', line2: team.code, badge: members.length, badgeTitle: count(members.length, 'integrante', 'integrantes'), tone: 'team', crop: crops.get(team.orgUnitId) ?? null });
       for (const member of [...members].sort((a, b) => Number(b.personId === team.leadPersonId) - Number(a.personId === team.leadPersonId))) {
         const title = org.roleAssignments.find((a) => a.personId === member.personId && a.status === 'active')?.jobTitle;
         cards.push({ id: `member:${member.id}`, parentId: team.id, eyebrow: member.personId === team.leadPersonId ? 'Líder' : 'Integrante', title: org.people.find((p) => p.id === member.personId)?.displayName ?? '', line1: title ?? null, tone: 'person', selectable: false });
       }
     }
     return { items: cards, closed: [...new Set(allTeams.map((t) => t.orgUnitId)), ...allTeams.map((t) => t.id)] };
-  }, [org, allTeams]);
+  }, [org, allTeams, scope]);
   const matchIds = query ? teams.map((t) => t.id) : undefined;
+  const crops = useMemo(() => cropsOf(org.orgUnits), [org.orgUnits]);
+  const legend = useMemo(() => cropLegend(org.orgUnits, scope), [org.orgUnits, scope]);
   const selected = allTeams.find((t) => t.id === selectedId) ?? null;
 
   return (
@@ -104,7 +109,7 @@ export function TeamsTab({ org, canEdit, onHistory, mode }: TabProps) {
       </div>
       {view === 'diagram' && (
         <div className="chart-stage">
-          <TreeChart items={items} mode={mode} matchIds={matchIds} selectedId={selectedId} onSelect={setSelectedId} initiallyCollapsed={closed} emptyText={query ? 'Ningún equipo coincide con la búsqueda' : 'Aún no hay equipos'} />
+          <TreeChart items={items} mode={mode} legend={legend} matchIds={matchIds} selectedId={selectedId} onSelect={setSelectedId} initiallyCollapsed={closed} emptyText={query ? 'Ningún equipo coincide con la búsqueda' : 'Aún no hay equipos'} />
           {selected && (
             <Card size="small" className="chart-detail" title={selected.name} extra={<Button type="text" size="small" aria-label="Cerrar detalle" onClick={() => setSelectedId(null)}>✕</Button>}>
               <Space direction="vertical" size="middle" style={{ width: '100%' }}>
@@ -170,7 +175,15 @@ export function TeamsTab({ org, canEdit, onHistory, mode }: TabProps) {
               </Space>
             ),
           },
-          { title: 'Área', render: (_, team) => unitPath(org.orgUnits, team.orgUnitId) },
+          {
+            title: 'Área',
+            render: (_, team) => (
+              <>
+                <CropDot crop={crops.get(team.orgUnitId)} />
+                {unitPath(org.orgUnits, team.orgUnitId)}
+              </>
+            ),
+          },
           { title: 'Líder', render: (_, team) => nameOf(team.leadPersonId) ?? <span className="muted">Sin líder</span> },
           { title: 'Integrantes', align: 'right', render: (_, team) => membersOf(team.id).length },
           {

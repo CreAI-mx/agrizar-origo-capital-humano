@@ -7,6 +7,7 @@ program; will be migrated into creai's **Silia** platform. Jira: GRZR-31.
 - `docs/spec/functional-spec.md`: what the app must do, with sources
 - `docs/spec/data-model-organization.md`: tables and rules (R-xx) the code cites
 - `docs/adr/ADR-0001-technology-stack.md`: stack and why
+- `docs/adr/ADR-0002-crop-identity.md`: crop seals and colors in the org chart
 - `docs/architecture/component-diagrams.md`: components and their interfaces
 - `docs/architecture/silia-migration.md`: folder-to-Silia mapping; keep it true
 
