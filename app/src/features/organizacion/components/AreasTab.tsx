@@ -6,6 +6,7 @@ import { useSave } from '../hooks';
 import { KIND_LABEL, count, normalize, unitPath, unitTree } from '../lib';
 import { READ_ONLY_HINT, type TabProps } from '../types';
 import { areaItems } from '../chartItems';
+import { CropDot, CropSeal, cropLegend, cropsOf } from '../crops';
 import { TreeChart } from './TreeChart';
 
 type Draft = Partial<OrgUnit>;
@@ -37,8 +38,11 @@ export function AreasTab({ org, canEdit, onHistory, mode, scope, onScope }: TabP
     return units.filter((u) => keep.has(u.id));
   }, [units, query]);
 
+  const crops = useMemo(() => cropsOf(org.orgUnits), [org.orgUnits]);
+  const legend = useMemo(() => cropLegend(org.orgUnits, scope), [org.orgUnits, scope]);
   const treeData = unitTree(visible, (unit) => (
     <span className={unit.status === 'inactive' ? 'muted' : undefined}>
+      <CropDot crop={crops.get(unit.id)} />
       {unit.name}{' '}
       <span className="muted">
         · {count(teamsIn(unit.id).length, 'equipo', 'equipos')} · {count(new Set(assignmentsIn(unit.id).map((a) => a.personId)).size, 'persona', 'personas')}
@@ -65,7 +69,15 @@ export function AreasTab({ org, canEdit, onHistory, mode, scope, onScope }: TabP
   const setStatus = (unit: OrgUnit, status: OrgUnit['status']) =>
     save.mutate({ changes: [{ kind: 'orgUnit', data: { ...unit, status } }], done: status === 'active' ? 'Área reactivada' : 'Área desactivada' });
 
-  const detailTitle = selected ? selected.name : 'Detalle del área';
+  const selectedCrop = selected ? crops.get(selected.id) : undefined;
+  const detailTitle = selected ? (
+    <Space size={8}>
+      {selectedCrop && <CropSeal crop={selectedCrop} size={24} />}
+      {selected.name}
+    </Space>
+  ) : (
+    'Detalle del área'
+  );
   const chartItems = useMemo(() => areaItems(org, units), [org, units]);
   const matchIds = useMemo(() => (query ? units.filter((u) => normalize(`${u.name} ${u.code}`).includes(query)).map((u) => u.id) : undefined), [units, query]);
   return (
@@ -85,7 +97,7 @@ export function AreasTab({ org, canEdit, onHistory, mode, scope, onScope }: TabP
       </div>
     <div className={view === 'diagram' ? 'chart-stage' : 'split'}>
       {view === 'diagram' ? (
-        <TreeChart items={chartItems} matchIds={matchIds} selectedId={selectedId} onSelect={setSelectedId} mode={mode} emptyText={query ? 'Ningún área coincide con la búsqueda' : 'Aún no hay áreas. Usa la pestaña Carga o crea la primera.'} />
+        <TreeChart items={chartItems} legend={legend} matchIds={matchIds} selectedId={selectedId} onSelect={setSelectedId} mode={mode} emptyText={query ? 'Ningún área coincide con la búsqueda' : 'Aún no hay áreas. Usa la pestaña Carga o crea la primera.'} />
       ) : (
       <Card size="small">
         <div className="tree-scroll">

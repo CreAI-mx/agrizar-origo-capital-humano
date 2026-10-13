@@ -8,6 +8,7 @@ import { PeopleTab } from './components/PeopleTab';
 import { RolesTab } from './components/RolesTab';
 import { TeamsTab } from './components/TeamsTab';
 import { ViewAsTab } from './components/ViewAsTab';
+import { CropSeal, cropsOf } from './crops';
 import { peopleInScope, scopeOf, unitPath, unitTree } from './lib';
 import type { TabProps } from './types';
 
@@ -18,6 +19,7 @@ export function OrganizationPage({ org, canEdit, mode }: { org: OrganizationView
   const [scopeId, setScopeId] = useState<string | null>(null);
   const scopeUnit = org.orgUnits.find((u) => u.id === scopeId) ?? null;
   const scope = useMemo(() => (scopeUnit ? scopeOf(org.orgUnits, scopeUnit.id) : null), [org.orgUnits, scopeUnit]);
+  const scopeCrop = useMemo(() => (scopeUnit ? cropsOf(org.orgUnits).get(scopeUnit.id) : undefined), [org.orgUnits, scopeUnit]);
   const scopePeople = useMemo(() => (scope ? peopleInScope(org, scope) : null), [org, scope]);
   const props: TabProps = { org, canEdit, mode, scope, onScope: setScopeId, onHistory: (entityId, title) => setHistory({ entityId, title }) };
 
@@ -46,6 +48,7 @@ export function OrganizationPage({ org, canEdit, mode }: { org: OrganizationView
           onChange={(value) => setScopeId(value ?? null)}
           treeData={options}
         />
+        {scopeCrop && <CropSeal crop={scopeCrop} size={24} />}
         {scopeUnit && <span className="muted">{unitPath(org.orgUnits, scopeUnit.id)} · incluye lo que tiene debajo</span>}
       </div>
       <Tabs

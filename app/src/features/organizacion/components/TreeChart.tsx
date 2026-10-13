@@ -3,6 +3,7 @@ import '@xyflow/react/dist/style.css';
 import { Button, Space } from 'antd';
 import { useEffect, useMemo, useState } from 'react';
 import { NODE_H, NODE_W, layoutChart, type ChartInput, type Entry } from '../chartLayout';
+import { CROP_NAME, CropSeal, type Crop, type CropLegendEntry } from '../crops';
 
 /** One card of a diagram. Siblings are drawn in the order the items are given. */
 export interface ChartItem {
@@ -17,6 +18,8 @@ export interface ChartItem {
   /** Short accent label, e.g. the role a person holds on this área. */
   tag?: string | null;
   tone?: 'root' | 'strong' | 'normal' | 'group' | 'team' | 'person';
+  /** Crop of the branch the card belongs to (ADR-0002): a seal on 'strong' cards, a tint on the rest. */
+  crop?: Crop | null;
   lit?: boolean;
   dim?: boolean;
   inactive?: boolean;
@@ -45,25 +48,29 @@ type CardNode = Node<CardData, 'card'>;
 
 function ItemCard({ data, selected }: NodeProps<CardNode>) {
   const { item } = data;
-  const classes = ['org-node', `tone-${item.tone ?? 'normal'}`, selected && 'is-selected', (data.dim || item.dim) && 'is-dim', item.lit && 'is-lit', item.inactive && 'is-inactive', item.selectable === false && 'is-static'];
+  const seal = item.tone === 'root' ? 'brote' : item.tone === 'strong' ? item.crop : null;
+  const classes = ['org-node', `tone-${item.tone ?? 'normal'}`, item.crop && 'has-crop', selected && 'is-selected', (data.dim || item.dim) && 'is-dim', item.lit && 'is-lit', item.inactive && 'is-inactive', item.selectable === false && 'is-static'];
   return (
-    <div className={classes.filter(Boolean).join(' ')}>
+    <div className={classes.filter(Boolean).join(' ')} data-crop={item.crop ?? undefined}>
       <Handle type="target" position={Position.Top} id="top" />
       <Handle type="target" position={Position.Left} id="side" />
-      <div className="org-top">
-        <span className="org-kind">{item.eyebrow}</span>
-        <span className="org-top-right">
-          {item.tag && <span className="org-tag">{item.tag}</span>}
-          {item.badge !== null && item.badge !== undefined && (
-            <span className="org-people" title={item.badgeTitle}>
-              {item.badge}
-            </span>
-          )}
-        </span>
+      {seal && <CropSeal crop={seal} size={item.tone === 'root' ? 52 : 44} />}
+      <div className="org-body">
+        <div className="org-top">
+          <span className="org-kind">{item.eyebrow}</span>
+          <span className="org-top-right">
+            {item.tag && <span className="org-tag">{item.tag}</span>}
+            {item.badge !== null && item.badge !== undefined && (
+              <span className="org-people" title={item.badgeTitle}>
+                {item.badge}
+              </span>
+            )}
+          </span>
+        </div>
+        <div className="org-name">{item.title}</div>
+        <div className="org-lead">{item.line1}</div>
+        <div className="org-meta">{item.line2}</div>
       </div>
-      <div className="org-name">{item.title}</div>
-      <div className="org-lead">{item.line1}</div>
-      <div className="org-meta">{item.line2}</div>
       {data.childCount > 0 && (
         <button
           type="button"
@@ -96,10 +103,12 @@ interface Props {
   frameIds?: string[];
   /** Branches that start closed. */
   initiallyCollapsed?: string[];
+  /** Which crop stands for which branch; shown in a corner when given. */
+  legend?: CropLegendEntry[];
   emptyText?: string;
 }
 
-function Chart({ items, mode, selectedId, onSelect, matchIds, frameIds, initiallyCollapsed, emptyText }: Props) {
+function Chart({ items, mode, selectedId, onSelect, matchIds, frameIds, initiallyCollapsed, legend, emptyText }: Props) {
   const flow = useReactFlow();
   const [collapsed, setCollapsed] = useState<Set<string>>(() => new Set(initiallyCollapsed));
   const toggle = (id: string) =>
@@ -201,6 +210,21 @@ function Chart({ items, mode, selectedId, onSelect, matchIds, frameIds, initiall
           </Button>
         </Space>
       </Panel>
+      {legend && legend.length > 0 && (
+        <Panel position="bottom-center">
+          <details className="crop-legend" open>
+            <summary className="eyebrow">Un cultivo por dirección</summary>
+            <ul>
+              {legend.map((entry) => (
+                <li key={entry.id} title={CROP_NAME[entry.crop]}>
+                  <CropSeal crop={entry.crop} size={18} />
+                  {entry.label}
+                </li>
+              ))}
+            </ul>
+          </details>
+        </Panel>
+      )}
       {(!items.length || (matchIds && !matchIds.length)) && (
         <Panel position="top-center">
           <span className="org-empty">{emptyText ?? 'Nada coincide con la búsqueda'}</span>

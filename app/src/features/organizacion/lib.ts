@@ -22,6 +22,9 @@ export const count = (n: number, one: string, many: string) => `${n} ${n === 1 ?
 const dateTime = new Intl.DateTimeFormat('es-MX', { dateStyle: 'medium', timeStyle: 'short' });
 export const formatDateTime = (iso: string) => dateTime.format(new Date(iso));
 
+/** Siblings in their saved order, then by name; parents before children is not required. */
+export const sortUnits = (units: OrgUnit[]) => [...units].sort((a, b) => a.sortOrder - b.sortOrder || a.name.localeCompare(b.name, 'es'));
+
 /** The área and everything under it, active or not. */
 export function scopeOf(units: OrgUnit[], orgUnitId: string): Set<string> {
   const found = new Set<string>();

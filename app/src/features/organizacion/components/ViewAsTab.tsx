@@ -1,6 +1,7 @@
 import { Alert, Card, List, Select, Space, Tag } from 'antd';
 import { useMemo, useState } from 'react';
 import { areaItems } from '../chartItems';
+import { cropLegend } from '../crops';
 import { useAccess } from '../hooks';
 import { count, unitPath } from '../lib';
 import type { TabProps } from '../types';
@@ -15,6 +16,7 @@ export function ViewAsTab({ org, mode }: TabProps) {
   const access = useAccess(personId);
   const units = useMemo(() => org.orgUnits.filter((u) => u.status === 'active'), [org.orgUnits]);
   const context = personId ? access.data : undefined;
+  const legend = useMemo(() => cropLegend(org.orgUnits, null), [org.orgUnits]);
 
   const items = useMemo(() => {
     const base = areaItems(org, units);
@@ -62,7 +64,7 @@ export function ViewAsTab({ org, mode }: TabProps) {
         )}
       </div>
       <div className="chart-stage">
-        <TreeChart key={personId ?? 'nobody'} items={items} mode={mode} frameIds={context?.orgUnitIds} emptyText="Aún no hay áreas" />
+        <TreeChart key={personId ?? 'nobody'} items={items} mode={mode} legend={legend} frameIds={context?.orgUnitIds} emptyText="Aún no hay áreas" />
         {!personId && <span className="chart-hint chart-hint-center">Elige una persona: las áreas que cubren sus roles se iluminan y el resto se atenúa</span>}
         {context && (
           <Card size="small" className="chart-detail is-left" title="Roles y equipos">
