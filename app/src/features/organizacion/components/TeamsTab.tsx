@@ -85,7 +85,9 @@ export function TeamsTab({ org, canEdit, onHistory, mode, scope }: TabProps) {
         cards.push({ id: `member:${member.id}`, parentId: team.id, eyebrow: member.personId === team.leadPersonId ? 'Líder' : 'Integrante', title: org.people.find((p) => p.id === member.personId)?.displayName ?? '', line1: title ?? null, tone: 'person', selectable: false });
       }
     }
-    return { items: cards, shownUnits: [...needed], closed: [...new Set(allTeams.map((t) => t.orgUnitId)), ...allTeams.map((t) => t.id)] };
+    // The legend follows the cards: the áreas drawn, plus the área of every equipo drawn, which
+    // is not among them when an inactive equipo sits under an inactive área.
+    return { items: cards, shownUnits: [...new Set([...needed, ...allTeams.map((t) => t.orgUnitId)])], closed: [...new Set(allTeams.map((t) => t.orgUnitId)), ...allTeams.map((t) => t.id)] };
   }, [org, allTeams, scope]);
   const matchIds = query ? teams.map((t) => t.id) : undefined;
   const crops = useMemo(() => cropsOf(org.orgUnits), [org.orgUnits]);
