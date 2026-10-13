@@ -1,4 +1,4 @@
-import type { AccessContext, HistoryEntry, ImportResult, OrganizationView } from '@origo/capital-humano';
+import type { AccessContext, HistoryEntry, ImportResult, OrganizationView, PeoplePageView, PeopleQueryInput, PersonProfile } from '@origo/capital-humano';
 
 /** An error the API explained: `message` is ready to show, `details` lists what is in the way. */
 export class ApiError extends Error {
@@ -42,7 +42,16 @@ export interface ImportFile {
   text: string;
 }
 
+/** Query string of the filters that are set; empty ones are left out. */
+const toQuery = (params: object) => {
+  const query = new URLSearchParams();
+  for (const [key, value] of Object.entries(params)) if (value !== null && value !== undefined && value !== '' && value !== false) query.set(key, String(value));
+  return query.toString();
+};
+
 export const api = {
+  people: (query: PeopleQueryInput) => request<PeoplePageView>(`/organization/people?${toQuery(query)}`),
+  person: (personId: string) => request<PersonProfile>(`/organization/people/${encodeURIComponent(personId)}`),
   organization: () => request<OrganizationView>('/organization'),
   save: (changes: Change[]) => request<{ dataAsOf: string | null }>('/organization/entities', { changes }),
   importFiles: (mode: 'preview' | 'apply', files: ImportFile[], previewId?: string) => request<ImportResult>('/organization/imports', { mode, files, previewId }),

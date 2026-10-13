@@ -220,6 +220,8 @@ flowchart LR
     o6["importOrganization<br/>preview or apply"]
     o7["resolveAccessContext"]
     o8["getHistory"]
+    o9["listPeople<br/>one page, searched and filtered,<br/>with the alert trays"]
+    o10["getPersonProfile<br/>one person with their line of command"]
     h1["listCatalog / recordDashboardOpen (hub)"]
   end
 
@@ -227,6 +229,8 @@ flowchart LR
     orgs["Organization<br/>OrgUnit, Role, Team, Person,<br/>RoleAssignment, TeamMembership"]
     rules["Rules<br/>single root, kind order, no cycles,<br/>deactivation guards, supersession"]
     acc["Access<br/>covered areas = assigned + descendants"]
+    dir["People directory<br/>rows, trays, paging"]
+    rep["Reporting<br/>line of command, inferred"]
     cat["Dashboard Catalog (hub)"]
   end
 

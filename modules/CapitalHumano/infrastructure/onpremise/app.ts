@@ -2,7 +2,9 @@ import Fastify, { type FastifyInstance, type FastifyRequest } from 'fastify';
 import { ZodError } from 'zod';
 import { getHistory } from '../../application/getHistory';
 import { getOrganization } from '../../application/getOrganization';
+import { getPersonProfile } from '../../application/getPersonProfile';
 import { importOrganization } from '../../application/importOrganization';
+import { listPeople } from '../../application/listPeople';
 import type { Actor, Deps } from '../../application/ports';
 import { resolveAccessContext } from '../../application/resolveAccessContext';
 import { saveEntities } from '../../application/saveEntities';
@@ -41,6 +43,10 @@ export function buildApp(deps: Deps): FastifyInstance {
   app.post('/api/organization/imports', (request) => importOrganization(request.body as never, actorOf(request), deps));
   app.get<{ Params: { personId: string } }>('/api/organization/access/:personId', (request) =>
     resolveAccessContext({ personId: request.params.personId }, deps),
+  );
+  app.get('/api/organization/people', (request) => listPeople(request.query as never, deps));
+  app.get<{ Params: { personId: string } }>('/api/organization/people/:personId', (request) =>
+    getPersonProfile({ personId: request.params.personId }, deps),
   );
   app.get<{ Params: { entityId: string } }>('/api/organization/history/:entityId', (request) =>
     getHistory({ entityId: request.params.entityId }, deps),

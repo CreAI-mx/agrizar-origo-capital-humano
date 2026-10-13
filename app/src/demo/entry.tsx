@@ -3,7 +3,9 @@
 // organization in seed/organization.demo.json. Changes live only in the open page.
 import { getHistory } from '../../../modules/CapitalHumano/application/getHistory';
 import { getOrganization } from '../../../modules/CapitalHumano/application/getOrganization';
+import { getPersonProfile } from '../../../modules/CapitalHumano/application/getPersonProfile';
 import { importOrganization } from '../../../modules/CapitalHumano/application/importOrganization';
+import { listPeople } from '../../../modules/CapitalHumano/application/listPeople';
 import type { Actor, Deps } from '../../../modules/CapitalHumano/application/ports';
 import { resolveAccessContext } from '../../../modules/CapitalHumano/application/resolveAccessContext';
 import { saveEntities } from '../../../modules/CapitalHumano/application/saveEntities';
@@ -32,7 +34,8 @@ const fail = (error: unknown) => {
 const realFetch = window.fetch.bind(window);
 window.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
   const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
-  const route = new URL(url, location.href).pathname.match(/\/api\/organization(?:\/(entities|imports|access|history))?(?:\/([^/]+))?$/);
+  const target = new URL(url, location.href);
+  const route = target.pathname.match(/\/api\/organization(?:\/(entities|imports|access|history|people))?(?:\/([^/]+))?$/);
   if (!route) return realFetch(input, init);
   try {
     await ready;
@@ -46,6 +49,9 @@ window.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
     if (!action) return json(200, await getOrganization(undefined, deps));
     if (action === 'entities') return json(200, await saveEntities(body, actor(), deps));
     if (action === 'imports') return json(200, await importOrganization(body, actor(), deps));
+    if (action === 'people') {
+      return json(200, id ? await getPersonProfile({ personId: decodeURIComponent(id) }, deps) : await listPeople(Object.fromEntries(target.searchParams), deps));
+    }
     if (action === 'access') return json(200, await resolveAccessContext({ personId: decodeURIComponent(id ?? '') }, deps));
     return json(200, await getHistory({ entityId: decodeURIComponent(id ?? '') }, deps));
   } catch (error) {

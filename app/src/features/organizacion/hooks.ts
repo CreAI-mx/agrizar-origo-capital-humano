@@ -1,9 +1,29 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import type { PeopleQueryInput } from '@origo/capital-humano';
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { App } from 'antd';
-import { createElement } from 'react';
+import { createElement, useEffect } from 'react';
 import { ApiError, api, type Change, type ImportFile } from './api';
 
 export const useOrganization = () => useQuery({ queryKey: ['organization'], queryFn: api.organization });
+
+/** One page of the people directory; the page on screen stays while the next one loads. */
+export const usePeople = (query: PeopleQueryInput) => useQuery({ queryKey: ['people', query], queryFn: () => api.people(query), placeholderData: keepPreviousData });
+
+export const usePerson = (personId: string | null) =>
+  useQuery({ queryKey: ['person', personId], queryFn: () => api.person(personId!), enabled: Boolean(personId) });
+
+/**
+ * A read model fetched on its own can be newer or older than the organization on screen.
+ * Whichever is behind is fetched again, so the "Dato de" of the header is true for both (M2-15).
+ * `other` is undefined while that read model has not arrived.
+ */
+export function useSameSnapshot(orgDataAsOf: string | null, other: string | null | undefined, key: 'people' | 'person') {
+  const client = useQueryClient();
+  useEffect(() => {
+    if (other === undefined || other === orgDataAsOf) return;
+    void client.invalidateQueries({ queryKey: [(other ?? '') > (orgDataAsOf ?? '') ? 'organization' : key] });
+  }, [client, orgDataAsOf, other, key]);
+}
 
 export const useAccess = (personId: string | undefined) =>
   useQuery({ queryKey: ['access', personId], queryFn: () => api.access(personId!), enabled: Boolean(personId) });
