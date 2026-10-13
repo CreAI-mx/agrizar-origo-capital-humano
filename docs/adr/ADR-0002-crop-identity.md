@@ -97,8 +97,10 @@ solid seal on the dirección and as a tint on everything below it.**
   across the Áreas, Equipos and "Ver como" diagrams and the lists.
 - The identity is Agrizar's own: the seals are the company's crops, not stock
   icons.
-- Nothing to migrate. Removing the feature is deleting one file and one CSS
-  block.
+- Nothing to migrate: no stored data depends on it. Taking the feature out is a
+  frontend-only change, though not a small one: besides `crops.tsx` and its CSS
+  block, the seal and the crop are read in `OrganizationPage`, `chartItems`,
+  `TreeChart`, `AreasTab`, `TeamsTab` and `ViewAsTab`.
 
 **Costs and risks**
 
