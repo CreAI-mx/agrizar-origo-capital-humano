@@ -129,9 +129,18 @@ describe('person profile and line of command (M2-27)', () => {
     const cinco = await profile('P-0005');
     expect(names(cinco.chain)).toEqual(['Dos', 'Tres', 'Cuatro']);
     expect(cinco.chain[2]).toMatchObject({ title: 'Supervisor de Cuadrilla', orgUnitId: unit(state, 'HID-AGZ1').id });
-    expect(names((await profile('P-0004')).reports)).toEqual(['Cinco']);
+    expect((await profile('P-0004')).reports).toMatchObject([{ displayName: 'Persona Prueba Cinco', orgUnitId: unit(state, 'HID-AGZ1').id, sharedWith: [] }]);
     expect(names((await profile('P-0003')).reports)).toEqual(['Cuatro']);
     expect(names((await profile('P-0002')).reports)).toEqual(['Tres']);
+  });
+
+  it('puts a director under the director of the empresa', async () => {
+    const siete = person(state, 'P-0007');
+    await saveEntities({ changes: [{ kind: 'roleAssignment', data: { personId: siete.id, roleId: role(state, 'director').id, orgUnitId: unit(state, 'AGZ').id, jobTitle: 'Director General' } }] }, admin, deps);
+    // Same level of the ladder, but one área up: that is a boss, not a peer.
+    expect((await profile('P-0002')).chain).toMatchObject([{ displayName: 'Persona Prueba Siete', title: 'Director General' }]);
+    expect(names((await profile('P-0005')).chain)).toEqual(['Siete', 'Dos', 'Tres', 'Cuatro']);
+    expect((await profile('P-0007')).chain).toEqual([]);
   });
 
   it('gives no boss to someone under nobody of the ladder', async () => {
@@ -154,6 +163,9 @@ describe('person profile and line of command (M2-27)', () => {
     expect(names((await profile('P-0003')).chain)).toEqual(['Dos']);
     expect(names((await profile('P-0007')).chain)).toEqual(['Dos']);
     expect(names((await profile('P-0002')).reports)).toEqual(['Siete', 'Tres']);
+    // Cuatro shows under both, each naming the other: neither profile claims him alone.
+    expect((await profile('P-0007')).reports).toMatchObject([{ displayName: 'Persona Prueba Cuatro', sharedWith: ['Persona Prueba Tres'] }]);
+    expect((await profile('P-0003')).reports).toMatchObject([{ displayName: 'Persona Prueba Cuatro', sharedWith: ['Persona Prueba Siete'] }]);
   });
 
   it('stops when two people lead an equipo the other belongs to', async () => {

@@ -70,8 +70,8 @@
         "id": { "type": "string" },
         "displayName": { "type": "string" },
         "title": { "type": ["string", "null"], "description": "Job title of their main role, or the role's name." },
-        "orgUnitId": { "type": ["string", "null"], "description": "Área of their main role." },
-        "sharedWith": { "type": "array", "items": { "type": "string" }, "description": "Names of the people who hold the same top role on the área this person heads in the chain. Not empty means the organization does not say which of them is the boss." }
+        "orgUnitId": { "type": ["string", "null"], "description": "Área of their main role, or of their first equipo when they hold no role." },
+        "sharedWith": { "type": "array", "items": { "type": "string" }, "description": "Not empty means the organization does not settle this link. In `chain`: the other people who hold the same top role on the área this person stands as head of. In `reports`: the other heads this person may answer to instead." }
       }
     },
     "peoplePage": {

@@ -26,8 +26,8 @@ export function areaItems(org: OrganizationView, units: OrgUnit[]): ChartItem[] 
     return level ? ROLE_LEVELS.indexOf(level) : ROLE_LEVELS.length;
   };
   return sortUnits(units).map((unit) => {
-    // Ties go by name, like the line of command (domain/reporting.ts), not by stored order.
-    const head = assignments.filter((a) => a.orgUnitId === unit.id).sort((a, b) => rank(a.roleId) - rank(b.roleId) || personName(a.personId).localeCompare(personName(b.personId), 'es'))[0];
+    // Ties go by name and then id, like the line of command (domain/reporting.ts), not by stored order.
+    const head = assignments.filter((a) => a.orgUnitId === unit.id).sort((a, b) => rank(a.roleId) - rank(b.roleId) || personName(a.personId).localeCompare(personName(b.personId), 'es') || a.personId.localeCompare(b.personId))[0];
     const people = peopleUnder(unit.id).size;
     const teams = org.teams.filter((t) => t.orgUnitId === unit.id && t.status === 'active').length;
     return {

@@ -46,16 +46,21 @@ export function PersonDrawer({ personId, org, canEdit, busy, onClose, onOpen, on
   useSameSnapshot(org.dataAsOf, data?.dataAsOf, 'person');
   const person = data?.person;
   const main = person?.assignments[0];
+  // Someone with no role still belongs to the área of their equipo.
+  const areaId = main?.orgUnitId ?? person?.teams[0]?.orgUnitId;
 
-  const link = (ref: PersonRef) => (
+  // `unsettled` is what to say when the organization does not settle that link.
+  const link = (ref: PersonRef, unsettled: (others: string) => string) => (
     <button key={ref.id} type="button" className="chain-row" onClick={() => onOpen(ref.id)}>
       <PersonAvatar name={ref.displayName} crop={ref.orgUnitId ? crops.get(ref.orgUnitId) : undefined} size={28} />
       <span>
         {ref.displayName} {ref.title && <span className="muted">· {ref.title}</span>}
-        {ref.sharedWith.length > 0 && <span className="chain-shared">Comparte ese nivel con {ref.sharedWith.join(', ')}: la organización no dice a quién de ellos reporta.</span>}
+        {ref.sharedWith.length > 0 && <span className="chain-shared">{unsettled(ref.sharedWith.join(', '))}</span>}
       </span>
     </button>
   );
+  const inChain = (ref: PersonRef) => link(ref, (others) => `Comparte ese nivel con ${others}: la organización no dice a quién de ellos reporta.`);
+  const asReport = (ref: PersonRef) => link(ref, (others) => `O a ${others}: comparten el nivel más alto del área.`);
 
   return (
     <Drawer open={personId !== null} onClose={onClose} title="Ficha de persona" width="min(580px, 100vw)" destroyOnHidden>
@@ -66,7 +71,7 @@ export function PersonDrawer({ personId, org, canEdit, busy, onClose, onOpen, on
       ) : (
         <div className="ficha">
           <div className="ficha-head">
-            <PersonAvatar name={person.displayName} crop={main ? crops.get(main.orgUnitId) : undefined} size={64} />
+            <PersonAvatar name={person.displayName} crop={areaId ? crops.get(areaId) : undefined} size={64} />
             <div>
               <h2>{person.displayName}</h2>
               <div className="ficha-title">{titleOf(person) ?? 'Sin puesto'}</div>
@@ -87,7 +92,7 @@ export function PersonDrawer({ personId, org, canEdit, busy, onClose, onOpen, on
                   <Button type="primary" disabled={!canEdit} onClick={() => onEdit(person)}>
                     Editar
                   </Button>
-                  {main && <Button onClick={() => onShowArea(main.orgUnitId)}>Ver en el organigrama</Button>}
+                  {areaId && <Button onClick={() => onShowArea(areaId)}>Ver en el organigrama</Button>}
                   <Popconfirm title={`¿Desactivar a «${person.displayName}»?`} description="Se revocan sus roles, sale de sus equipos y los que lidera quedan sin líder." okText="Desactivar" cancelText="Cancelar" onConfirm={() => onDeactivate(person)} disabled={!canEdit}>
                     <Button danger disabled={!canEdit} loading={busy}>
                       Desactivar
@@ -126,9 +131,9 @@ export function PersonDrawer({ personId, org, canEdit, busy, onClose, onOpen, on
               <p className="muted">No se puede deducir: nadie encabeza su área ni lidera su equipo, y nadie depende de esta persona.</p>
             ) : (
               <div className="chain">
-                {data.chain.map(link)}
+                {data.chain.map(inChain)}
                 <div className="chain-row is-current">
-                  <PersonAvatar name={person.displayName} crop={main ? crops.get(main.orgUnitId) : undefined} size={28} />
+                  <PersonAvatar name={person.displayName} crop={areaId ? crops.get(areaId) : undefined} size={28} />
                   <span>
                     <strong>{person.displayName}</strong> {titleOf(person) && <span className="muted">· {titleOf(person)}</span>}
                   </span>
@@ -136,7 +141,7 @@ export function PersonDrawer({ personId, org, canEdit, busy, onClose, onOpen, on
                 {data.reports.length > 0 && (
                   <div className="chain-reports">
                     <span className="muted">Le {data.reports.length === 1 ? 'reporta' : 'reportan'} {count(data.reports.length, 'persona', 'personas')}</span>
-                    {data.reports.slice(0, SHOWN_REPORTS).map(link)}
+                    {data.reports.slice(0, SHOWN_REPORTS).map(asReport)}
                     {data.reports.length > SHOWN_REPORTS && <span className="muted">y {data.reports.length - SHOWN_REPORTS} más</span>}
                   </div>
                 )}

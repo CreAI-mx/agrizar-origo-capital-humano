@@ -4,19 +4,20 @@ import { levelRank } from './peopleDirectory';
 // Line of command (spec M2-27). Nobody captures "reports to" per person, so it is read from the
 // organization itself.
 // ASSUMPTION: a person answers to the lead of their equipo; otherwise to whoever holds the
-// highest ladder role on their área, or on the nearest área above, as long as that role is
-// above their own. Capital Humano has not confirmed this reading (spec Q-6).
+// highest ladder role on their área, as long as it is above their own, or on the nearest área
+// above, where it may also be the same level. Capital Humano has not confirmed this reading (spec Q-6).
 
 export interface PersonRef {
   id: string;
   displayName: string;
   /** Job title of their main role, or the role's name. */
   title: string | null;
-  /** Área of their main role; null when they hold no role. */
+  /** Área of their main role, or of their first equipo when they hold no role; null with neither. */
   orgUnitId: string | null;
   /**
-   * Names of the people who hold the same top role on the área this person was taken as the
-   * head of. Not empty means the organization does not say which of them is the boss.
+   * Not empty means the organization does not settle this link. In a chain: the other people
+   * who hold the same top role on the área this person stands as head of. In a list of
+   * reports: the other heads this person may answer to instead.
    */
   sharedWith: string[];
 }
@@ -26,7 +27,7 @@ export interface Reporting {
   bossOf(personId: string): string | null;
   /** From the top of the organization down to the person's boss. */
   chainOf(personId: string): PersonRef[];
-  /** Everyone who answers to the person, by name. */
+  /** Everyone who answers to the person, by name, including those who may answer to a co-head instead. */
   reportsOf(personId: string): PersonRef[];
   ref(personId: string): PersonRef | null;
 }
@@ -70,10 +71,15 @@ export function buildReporting(state: OrganizationState): Reporting {
   // Lead of the first equipo, by name and then id, that each person belongs to.
   const teams = new Map(state.teams.filter((t) => t.status === 'active').map((t) => [t.id, t]));
   const leadOf = new Map<string, { personId: string; team: string; teamId: string }>();
+  // Área of each person's first equipo, for people who hold no role.
+  const teamUnit = new Map<string, { orgUnitId: string; team: string; teamId: string }>();
   for (const m of state.teamMemberships) {
     const team = m.status === 'active' ? teams.get(m.teamId) : undefined;
-    const lead = team?.leadPersonId;
-    if (!team || !lead || lead === m.personId || !people.has(lead)) continue;
+    if (!team) continue;
+    const first = teamUnit.get(m.personId);
+    if (!first || (team.name.localeCompare(first.team, 'es') || team.id.localeCompare(first.teamId)) < 0) teamUnit.set(m.personId, { orgUnitId: team.orgUnitId, team: team.name, teamId: team.id });
+    const lead = team.leadPersonId;
+    if (!lead || lead === m.personId || !people.has(lead)) continue;
     const current = leadOf.get(m.personId);
     if (!current || (team.name.localeCompare(current.team, 'es') || team.id.localeCompare(current.teamId)) < 0) leadOf.set(m.personId, { personId: lead, team: team.name, teamId: team.id });
   }
@@ -88,8 +94,11 @@ export function buildReporting(state: OrganizationState): Reporting {
     for (let unit = units.get(own?.orgUnitId ?? ''); unit && !seen.has(unit.id); unit = unit.parentId ? units.get(unit.parentId) : undefined) {
       seen.add(unit.id);
       const leading = head.get(unit.id);
-      // A boss is above: someone at the person's own level, co-heads included, is a peer.
-      if (leading && leading.rank < own!.rank) return { personId: leading.personId, peers: leading.peers };
+      // On their own área a boss is above them: someone at their level, co-heads included, is
+      // a peer. Further up the tree the head may hold the same level, as a Director General
+      // does over a director.
+      const above = unit.id === own!.orgUnitId ? leading && leading.rank < own!.rank : leading && leading.rank <= own!.rank;
+      if (leading && above && leading.personId !== personId) return { personId: leading.personId, peers: leading.peers.filter((peer) => peer !== personId) };
     }
     return null;
   };
@@ -99,7 +108,7 @@ export function buildReporting(state: OrganizationState): Reporting {
     const person = people.get(personId) ?? state.people.find((p) => p.id === personId);
     if (!person) return null;
     const role = main.get(personId);
-    return { id: person.id, displayName: person.displayName, title: role?.title ?? null, orgUnitId: role?.orgUnitId ?? null, sharedWith: peers.map(nameOf) };
+    return { id: person.id, displayName: person.displayName, title: role?.title ?? null, orgUnitId: role?.orgUnitId ?? teamUnit.get(personId)?.orgUnitId ?? null, sharedWith: peers.map(nameOf) };
   };
 
   return {
@@ -116,10 +125,14 @@ export function buildReporting(state: OrganizationState): Reporting {
       return chain;
     },
     reportsOf(personId) {
-      return [...people.keys()]
-        .filter((id) => bossOf(id) === personId)
-        .sort(byName)
-        .map((id) => ref(id)!);
+      const reports: PersonRef[] = [];
+      for (const id of [...people.keys()].sort(byName)) {
+        const link = linkOf(id);
+        // Under co-heads the same person shows on each of them, naming the others.
+        const heads = link ? [link.personId, ...link.peers] : [];
+        if (heads.includes(personId)) reports.push(ref(id, heads.filter((head) => head !== personId))!);
+      }
+      return reports;
     },
   };
 }
