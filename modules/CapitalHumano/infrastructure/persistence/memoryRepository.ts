@@ -9,6 +9,7 @@ import { COLLECTION, emptyState, type AnyEntity, type EntityKind, type VersionRo
  */
 export class MemoryOrganizationRepository implements OrganizationRepository {
   protected rows: VersionRow[];
+  private queue: Promise<void> = Promise.resolve();
 
   constructor(rows: VersionRow[] = []) {
     this.rows = [...rows];
@@ -36,7 +37,17 @@ export class MemoryOrganizationRepository implements OrganizationRepository {
     return { state, currentRowIds, dataAsOf: last?.recordedAt ?? null, lastActorId: last?.actorId ?? null, isTestData };
   }
 
-  async append(rows: VersionRow[]): Promise<void> {
+  /**
+   * One write at a time: the conflict check, the durable write and the update of memory run as
+   * a unit, so two writes that supersede the same version cannot both pass (R-10).
+   */
+  append(rows: VersionRow[]): Promise<void> {
+    const run = this.queue.then(() => this.appendNow(rows));
+    this.queue = run.catch(() => undefined);
+    return run;
+  }
+
+  private async appendNow(rows: VersionRow[]): Promise<void> {
     const known = new Set(this.rows.map((row) => row.idempotencyKey));
     const fresh = rows.filter((row) => !known.has(row.idempotencyKey));
     const current = (await this.load()).currentRowIds;

@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { DomainError } from '../../domain/errors';
 import { importPayloadSchema, planImport, type ImportItem, type ImportPlan } from '../../domain/importPlan';
-import type { Actor, Deps } from '../ports';
+import type { Acting, Deps } from '../ports';
 import { assertAdmin, contentHash, toVersionRows } from '../shared';
 import { parseImportFiles } from './parseFiles';
 
@@ -29,7 +29,8 @@ export interface ImportResult {
  * M2-18: `apply` confirms a preview. It needs the id of a preview that the same person ran on
  * these exact files, with the organization unchanged since. Only the seed applies directly.
  */
-export async function importOrganization(input: ImportOrganizationInput, actor: Actor, deps: Deps): Promise<ImportResult> {
+export async function importOrganization(input: Acting<ImportOrganizationInput>, deps: Deps): Promise<ImportResult> {
+  const { actor } = input;
   const { mode, files, previewId } = importOrganizationInput.parse(input);
   const parsed = importPayloadSchema.safeParse(parseImportFiles(files));
   if (!parsed.success) {

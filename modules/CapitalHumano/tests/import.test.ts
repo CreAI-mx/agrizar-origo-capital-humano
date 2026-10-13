@@ -20,12 +20,22 @@ describe('bulk load (GRZR-31 AC2)', () => {
     expect(rows[0]).toEqual({ codigo: 'CH-CAP', nombre: 'Capacitación, Desarrollo', tipo: 'area', area_superior: 'DIR-CH' });
   });
 
+  it('reports a rejected role or equipo on the row of the file it came from', async () => {
+    const deps = await seededDeps();
+    const admin = { personId: person((await deps.repo.load()).state, 'P-0001').id };
+    // P-0004 takes rows 1 to 3; the problems are on rows 2, 3 and 4.
+    const text = ['numero_empleado,nombre,rol,area,puesto,equipo', 'P-0004,Persona Prueba Cuatro,supervisor,HID-AGZ1,Supervisor de Cuadrilla,CUADRILLA-A', 'P-0004,Persona Prueba Cuatro,no-existe,HID-AGZ1,,', 'P-0004,Persona Prueba Cuatro,,HID-AGZ2,,SIN-EQUIPO', 'P-0005,Persona Prueba Cinco,capturista,NO-AREA,,'].join('\n');
+    const preview = await importOrganization({ mode: 'preview', files: [{ name: 'personas.csv', text }], actor: admin }, deps);
+    const errors = preview.items.filter((item) => item.action === 'error').map((item) => `${item.row}: ${item.message}`);
+    expect(errors).toEqual(['2: No existe el rol no-existe.', '3: No existe el equipo HID-AGZ2/SIN-EQUIPO.', '4: No existe el área NO-AREA.']);
+  });
+
   it('previews without writing: what is created, changed and rejected (M2-18)', async () => {
     const deps = await seededDeps();
     const before = await deps.repo.load();
     const admin = { personId: person(before.state, 'P-0001').id };
 
-    const preview = await importOrganization({ mode: 'preview', files }, admin, deps);
+    const preview = await importOrganization({ mode: 'preview', files, actor: admin }, deps);
     expect(preview.summary).toEqual({ create: 1, change: 1, unchanged: 0, error: 1 });
     expect(preview.items.find((i) => i.action === 'error')).toMatchObject({ sheet: 'areas', row: 3, key: 'CH-XXX' });
 
@@ -73,23 +83,23 @@ describe('bulk load (GRZR-31 AC2)', () => {
   it('lets anyone preview but only an administrator apply (M2-16)', async () => {
     const deps = await seededDeps();
     const supervisor = { personId: person((await deps.repo.load()).state, 'P-0004').id };
-    await expect(importOrganization({ mode: 'preview', files }, supervisor, deps)).resolves.toBeDefined();
-    await expect(importOrganization({ mode: 'apply', files }, supervisor, deps)).rejects.toBeInstanceOf(ForbiddenError);
+    await expect(importOrganization({ mode: 'preview', files, actor: supervisor }, deps)).resolves.toBeDefined();
+    await expect(importOrganization({ mode: 'apply', files, actor: supervisor }, deps)).rejects.toBeInstanceOf(ForbiddenError);
   });
 
   it('applies only a preview of the same files, by the same person, on an unchanged organization (M2-18)', async () => {
     const deps = await seededDeps();
     const { state } = await deps.repo.load();
     const admin = { personId: person(state, 'P-0001').id };
-    const apply = (previewId?: string, input = files, actor = admin) => importOrganization({ mode: 'apply', files: input, previewId }, actor, deps);
+    const apply = (previewId?: string, input = files, actor = admin) => importOrganization({ mode: 'apply', files: input, previewId, actor }, deps);
 
     await expect(apply()).rejects.toMatchObject({ code: 'PREVIEW_REQUIRED' });
-    const preview = await importOrganization({ mode: 'preview', files }, admin, deps);
+    const preview = await importOrganization({ mode: 'preview', files, actor: admin }, deps);
     await expect(apply(preview.importRunId, [{ name: 'areas.csv', text: `${AREAS_CSV}\r\nCH-NEW,Otra,area,DIR-CH` }])).rejects.toMatchObject({ code: 'PREVIEW_REQUIRED' });
-    const byOther = await importOrganization({ mode: 'preview', files }, { personId: person(state, 'P-0004').id }, deps);
+    const byOther = await importOrganization({ mode: 'preview', files, actor: { personId: person(state, 'P-0004').id } }, deps);
     await expect(apply(byOther.importRunId)).rejects.toMatchObject({ code: 'PREVIEW_REQUIRED' });
 
-    await saveEntities({ changes: [{ kind: 'orgUnit', data: { ...unit(state, 'OPS-LOG'), name: 'Logística y Embarques' } }] }, admin, deps);
+    await saveEntities({ changes: [{ kind: 'orgUnit', data: { ...unit(state, 'OPS-LOG'), name: 'Logística y Embarques' } }], actor: admin }, deps);
     await expect(apply(preview.importRunId)).rejects.toMatchObject({ code: 'PREVIEW_STALE' });
     expect((await deps.repo.load()).state.orgUnits.some((u) => u.code === 'CH-CAP')).toBe(false);
   });

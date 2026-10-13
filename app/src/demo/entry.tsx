@@ -14,7 +14,7 @@ import { MemoryOrganizationRepository } from '../../../modules/CapitalHumano/inf
 import seed from '../../../seed/organization.demo.json';
 
 const deps: Deps = { repo: new MemoryOrganizationRepository(), clock: () => new Date(), newId: () => crypto.randomUUID() };
-const ready = importOrganization({ mode: 'apply', files: [{ name: 'seed.json', text: JSON.stringify(seed) }] }, { personId: 'seed', system: true }, deps);
+const ready = importOrganization({ mode: 'apply', files: [{ name: 'seed.json', text: JSON.stringify(seed) }], actor: { personId: 'seed', system: true } }, deps);
 
 const json = (status: number, body: unknown) => new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json' } });
 
@@ -47,8 +47,8 @@ window.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
       return { personId };
     };
     if (!action) return json(200, await getOrganization(undefined, deps));
-    if (action === 'entities') return json(200, await saveEntities(body, actor(), deps));
-    if (action === 'imports') return json(200, await importOrganization(body, actor(), deps));
+    if (action === 'entities') return json(200, await saveEntities({ ...body, actor: actor() }, deps));
+    if (action === 'imports') return json(200, await importOrganization({ ...body, actor: actor() }, deps));
     if (action === 'people') {
       return json(200, id ? await getPersonProfile({ personId: decodeURIComponent(id) }, deps) : await listPeople(Object.fromEntries(target.searchParams), deps));
     }

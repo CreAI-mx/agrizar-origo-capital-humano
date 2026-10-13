@@ -8,8 +8,6 @@ import { MemoryOrganizationRepository } from './memoryRepository';
  * one process only (ADR-0001); a shared environment needs a real store behind the same port.
  */
 export class FileOrganizationRepository extends MemoryOrganizationRepository {
-  private queue: Promise<void> = Promise.resolve();
-
   private constructor(
     private readonly path: string,
     rows: VersionRow[],
@@ -25,13 +23,6 @@ export class FileOrganizationRepository extends MemoryOrganizationRepository {
       .filter((line) => line.trim())
       .map((line) => JSON.parse(line) as VersionRow);
     return new FileOrganizationRepository(path, rows);
-  }
-
-  override async append(rows: VersionRow[]): Promise<void> {
-    // One write at a time, so conflict checks always see the previous write.
-    const run = this.queue.then(() => super.append(rows));
-    this.queue = run.catch(() => undefined);
-    return run;
   }
 
   protected override async persist(rows: VersionRow[]): Promise<void> {

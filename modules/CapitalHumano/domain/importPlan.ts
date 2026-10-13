@@ -23,6 +23,8 @@ const optionalText = z
   .nullish()
   .transform((value) => value || null);
 
+const sourceRow = z.number().int().min(1).optional();
+
 export const importPayloadSchema = z.object({
   /** True when the file declares its content invented; CSV files cannot say so. */
   isTestData: z
@@ -47,11 +49,13 @@ export const importPayloadSchema = z.object({
   people: z
     .array(
       z.object({
+        /** Row of the source file, when it is not the position in this list (a CSV with several rows per person). */
+        row: sourceRow,
         displayName: text,
         account: optionalText,
         employeeNumber: optionalText,
-        assignments: z.array(z.object({ roleCode: text, orgUnitCode: text, jobTitle: optionalText })).default([]),
-        teams: z.array(z.object({ orgUnitCode: text, teamCode: text })).default([]),
+        assignments: z.array(z.object({ row: sourceRow, roleCode: text, orgUnitCode: text, jobTitle: optionalText })).default([]),
+        teams: z.array(z.object({ row: sourceRow, orgUnitCode: text, teamCode: text })).default([]),
       }),
     )
     .default([]),
@@ -198,7 +202,7 @@ export function planImport(current: OrganizationState, payload: ImportPayload, n
 
   const personIdByKey = new Map<string, string>();
   payload.people.forEach((row, index) => {
-    const line = index + 1;
+    const line = row.row ?? index + 1;
     const key = row.account ?? row.employeeNumber;
     if (!key) return reject('personas', line, row.displayName, 'Falta la cuenta o el número de empleado.');
     const existing = state.people.find(
@@ -219,13 +223,14 @@ export function planImport(current: OrganizationState, payload: ImportPayload, n
       const label = `${key} · ${item.roleCode} en ${item.orgUnitCode}`;
       const role = state.roles.find((r) => normalize(r.code) === normalize(item.roleCode));
       const unit = unitByCode(item.orgUnitCode);
-      if (!role) reject('personas', line, label, `No existe el rol ${item.roleCode}.`);
-      else if (!unit) reject('personas', line, label, `No existe el área ${item.orgUnitCode}.`);
+      const itemLine = item.row ?? line;
+      if (!role) reject('personas', itemLine, label, `No existe el rol ${item.roleCode}.`);
+      else if (!unit) reject('personas', itemLine, label, `No existe el área ${item.orgUnitCode}.`);
       else {
         const held = state.roleAssignments.find(
           (a) => a.status === 'active' && a.personId === person.id && a.roleId === role.id && a.orgUnitId === unit.id,
         );
-        upsert('personas', line, label, 'roleAssignment', held, {
+        upsert('personas', itemLine, label, 'roleAssignment', held, {
           personId: person.id,
           roleId: role.id,
           orgUnitId: unit.id,
@@ -238,10 +243,11 @@ export function planImport(current: OrganizationState, payload: ImportPayload, n
       const label = `${key} · equipo ${item.orgUnitCode}/${item.teamCode}`;
       const unit = unitByCode(item.orgUnitCode);
       const team = unit && state.teams.find((t) => t.orgUnitId === unit.id && normalize(t.code) === normalize(item.teamCode));
-      if (!team) reject('personas', line, label, `No existe el equipo ${item.orgUnitCode}/${item.teamCode}.`);
+      const itemLine = item.row ?? line;
+      if (!team) reject('personas', itemLine, label, `No existe el equipo ${item.orgUnitCode}/${item.teamCode}.`);
       else {
         const joined = state.teamMemberships.find((m) => m.status === 'active' && m.teamId === team.id && m.personId === person.id);
-        upsert('personas', line, label, 'teamMembership', joined, { teamId: team.id, personId: person.id, status: 'active' });
+        upsert('personas', itemLine, label, 'teamMembership', joined, { teamId: team.id, personId: person.id, status: 'active' });
       }
     }
   });

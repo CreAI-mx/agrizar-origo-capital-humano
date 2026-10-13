@@ -200,6 +200,11 @@
         }
       ],
       "properties": {
+        "row": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Row of the source file this person first appears on, when it is not their position in the list."
+        },
         "displayName": {
           "type": "string",
           "minLength": 1
@@ -235,6 +240,11 @@
             ],
             "additionalProperties": false,
             "properties": {
+              "row": {
+                "type": "integer",
+                "minimum": 1,
+                "description": "Row of the source file this came from, when it is not its position in the list. Set by the CSV reader, where one person can take several rows."
+              },
               "roleCode": {
                 "$ref": "#/$defs/code"
               },
@@ -264,6 +274,11 @@
             ],
             "additionalProperties": false,
             "properties": {
+              "row": {
+                "type": "integer",
+                "minimum": 1,
+                "description": "Row of the source file this came from, when it is not its position in the list. Set by the CSV reader, where one person can take several rows."
+              },
               "orgUnitCode": {
                 "$ref": "#/$defs/code"
               },

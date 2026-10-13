@@ -22,15 +22,15 @@ export function makeDeps(repo: OrganizationRepository = new MemoryOrganizationRe
 /** A store loaded with the invented organization of seed/organization.test.json. */
 export async function seededDeps(repo?: OrganizationRepository): Promise<Deps> {
   const deps = makeDeps(repo);
-  const result = await importOrganization({ mode: 'apply', files: [{ name: 'seed.json', text: SEED_TEXT }] }, SYSTEM, deps);
+  const result = await importOrganization({ mode: 'apply', files: [{ name: 'seed.json', text: SEED_TEXT }], actor: SYSTEM }, deps);
   if (result.summary.error) throw new Error(`Seed has errors: ${JSON.stringify(result.items.filter((i) => i.action === 'error'))}`);
   return deps;
 }
 
 /** A load as the Back Office does it: preview first, then confirm that preview (M2-18). */
 export async function load(files: { name: string; text: string }[], actor: Actor, deps: Deps) {
-  const preview = await importOrganization({ mode: 'preview', files }, actor, deps);
-  return importOrganization({ mode: 'apply', files, previewId: preview.importRunId }, actor, deps);
+  const preview = await importOrganization({ mode: 'preview', files, actor }, deps);
+  return importOrganization({ mode: 'apply', files, previewId: preview.importRunId, actor }, deps);
 }
 
 export const unit = (state: OrganizationState, code: string) => state.orgUnits.find((u) => u.code === code)!;

@@ -63,7 +63,7 @@ export function TeamsTab({ org, canEdit, onHistory, mode, scope }: TabProps) {
   const reactivate = (team: Team) => save.mutate({ changes: [{ kind: 'team', data: { ...team, status: 'active' } }], done: 'Equipo reactivado' });
 
   // Only the áreas that lead to an equipo are drawn; each equipo opens to show its integrantes.
-  const { items, closed } = useMemo(() => {
+  const { items, closed, shownUnits } = useMemo(() => {
     const units = org.orgUnits.filter((u) => u.status === 'active' && (!scope || scope.has(u.id)));
     const needed = new Set<string>();
     for (const team of allTeams) {
@@ -85,11 +85,13 @@ export function TeamsTab({ org, canEdit, onHistory, mode, scope }: TabProps) {
         cards.push({ id: `member:${member.id}`, parentId: team.id, eyebrow: member.personId === team.leadPersonId ? 'Líder' : 'Integrante', title: org.people.find((p) => p.id === member.personId)?.displayName ?? '', line1: title ?? null, tone: 'person', selectable: false });
       }
     }
-    return { items: cards, closed: [...new Set(allTeams.map((t) => t.orgUnitId)), ...allTeams.map((t) => t.id)] };
+    // The legend follows the cards: the áreas drawn, plus the área of every equipo drawn, which
+    // is not among them when an inactive equipo sits under an inactive área.
+    return { items: cards, shownUnits: [...new Set([...needed, ...allTeams.map((t) => t.orgUnitId)])], closed: [...new Set(allTeams.map((t) => t.orgUnitId)), ...allTeams.map((t) => t.id)] };
   }, [org, allTeams, scope]);
   const matchIds = query ? teams.map((t) => t.id) : undefined;
   const crops = useMemo(() => cropsOf(org.orgUnits), [org.orgUnits]);
-  const legend = useMemo(() => cropLegend(org.orgUnits, scope), [org.orgUnits, scope]);
+  const legend = useMemo(() => cropLegend(org.orgUnits, shownUnits), [org.orgUnits, shownUnits]);
   const selected = allTeams.find((t) => t.id === selectedId) ?? null;
 
   return (

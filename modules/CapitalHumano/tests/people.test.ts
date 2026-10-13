@@ -72,7 +72,7 @@ describe('people directory (M2-26)', () => {
   it('keeps inactive people out unless asked for', async () => {
     const seis = person(state, 'P-0006');
     const assignment = state.roleAssignments.find((a) => a.personId === seis.id)!;
-    await saveEntities({ changes: [{ kind: 'roleAssignment', data: { ...assignment, status: 'revoked' } }, { kind: 'person', data: { ...seis, status: 'inactive' } }] }, admin, deps);
+    await saveEntities({ changes: [{ kind: 'roleAssignment', data: { ...assignment, status: 'revoked' } }, { kind: 'person', data: { ...seis, status: 'inactive' } }], actor: admin }, deps);
 
     expect((await listPeople(undefined, deps)).total).toBe(6);
     expect((await listPeople({ includeInactive: 'true' }, deps)).total).toBe(7);
@@ -85,7 +85,7 @@ describe('people directory (M2-26)', () => {
   it('keeps a deactivated person in the área they were in', async () => {
     const seis = person(state, 'P-0006');
     const assignment = state.roleAssignments.find((a) => a.personId === seis.id)!;
-    await saveEntities({ changes: [{ kind: 'roleAssignment', data: { ...assignment, status: 'revoked' } }, { kind: 'person', data: { ...seis, status: 'inactive' } }] }, admin, deps);
+    await saveEntities({ changes: [{ kind: 'roleAssignment', data: { ...assignment, status: 'revoked' } }, { kind: 'person', data: { ...seis, status: 'inactive' } }], actor: admin }, deps);
 
     const operaciones = await listPeople({ orgUnitId: unit(state, 'DIR-OPS').id, tray: 'inactive' }, deps);
     expect(names(operaciones.items)).toEqual(['Seis']);
@@ -97,8 +97,7 @@ describe('people directory (M2-26)', () => {
     const tres = person(state, 'P-0003');
     const assignment = state.roleAssignments.find((a) => a.personId === tres.id)!;
     await saveEntities(
-      { changes: [{ kind: 'roleAssignment', data: { ...assignment, status: 'revoked' } }, { kind: 'roleAssignment', data: { personId: tres.id, roleId: assignment.roleId, orgUnitId: unit(state, 'CH-REC').id } }] },
-      admin,
+      { changes: [{ kind: 'roleAssignment', data: { ...assignment, status: 'revoked' } }, { kind: 'roleAssignment', data: { personId: tres.id, roleId: assignment.roleId, orgUnitId: unit(state, 'CH-REC').id } }], actor: admin },
       deps,
     );
     expect(names((await listPeople({ orgUnitId: unit(state, 'DIR-HID').id }, deps)).items)).toEqual(['Cinco', 'Cuatro', 'Dos']);
@@ -107,7 +106,7 @@ describe('people directory (M2-26)', () => {
 
   it('places someone with no role in the área of their equipo', async () => {
     const siete = person(state, 'P-0007');
-    await saveEntities({ changes: [{ kind: 'teamMembership', data: { teamId: state.teams.find((t) => t.code === 'CUADRILLA-A')!.id, personId: siete.id } }] }, admin, deps);
+    await saveEntities({ changes: [{ kind: 'teamMembership', data: { teamId: state.teams.find((t) => t.code === 'CUADRILLA-A')!.id, personId: siete.id } }], actor: admin }, deps);
     const row = (await listPeople({ orgUnitId: unit(state, 'DIR-HID').id, tray: 'noRole' }, deps)).items[0]!;
     expect(row.displayName).toBe('Persona Prueba Siete');
     expect(row.teams[0]).toMatchObject({ orgUnitName: 'Operación Hidroponía AGZ 1', orgUnitPath: ['Agrizar (datos de prueba)', 'Hidroponía', 'Operación Hidroponía AGZ 1'] });
@@ -136,11 +135,18 @@ describe('person profile and line of command (M2-27)', () => {
 
   it('puts a director under the director of the empresa', async () => {
     const siete = person(state, 'P-0007');
-    await saveEntities({ changes: [{ kind: 'roleAssignment', data: { personId: siete.id, roleId: role(state, 'director').id, orgUnitId: unit(state, 'AGZ').id, jobTitle: 'Director General' } }] }, admin, deps);
+    await saveEntities({ changes: [{ kind: 'roleAssignment', data: { personId: siete.id, roleId: role(state, 'director').id, orgUnitId: unit(state, 'AGZ').id, jobTitle: 'Director General' } }], actor: admin }, deps);
     // Same level of the ladder, but one área up: that is a boss, not a peer.
     expect((await profile('P-0002')).chain).toMatchObject([{ displayName: 'Persona Prueba Siete', title: 'Director General' }]);
     expect(names((await profile('P-0005')).chain)).toEqual(['Siete', 'Dos', 'Tres', 'Cuatro']);
     expect((await profile('P-0007')).chain).toEqual([]);
+  });
+
+  it('follows the área of the equipo for someone with no role and no equipo lead', async () => {
+    const cuadrilla = state.teams.find((t) => t.code === 'CUADRILLA-A')!;
+    await saveEntities({ changes: [{ kind: 'team', data: { ...cuadrilla, leadPersonId: null } }, { kind: 'teamMembership', data: { teamId: cuadrilla.id, personId: person(state, 'P-0007').id } }], actor: admin }, deps);
+    expect(names((await profile('P-0007')).chain)).toEqual(['Dos', 'Tres']);
+    expect(names((await profile('P-0003')).reports)).toEqual(['Cinco', 'Cuatro', 'Siete']);
   });
 
   it('gives no boss to someone under nobody of the ladder', async () => {
@@ -153,7 +159,7 @@ describe('person profile and line of command (M2-27)', () => {
   it('does not pick a boss between two people who share the top of an área', async () => {
     // Siete becomes a second Gerente of AGZ 1, stored after Tres.
     const siete = person(state, 'P-0007');
-    await saveEntities({ changes: [{ kind: 'roleAssignment', data: { personId: siete.id, roleId: role(state, 'gerente').id, orgUnitId: unit(state, 'HID-AGZ1').id } }] }, admin, deps);
+    await saveEntities({ changes: [{ kind: 'roleAssignment', data: { personId: siete.id, roleId: role(state, 'gerente').id, orgUnitId: unit(state, 'HID-AGZ1').id } }], actor: admin }, deps);
 
     const cuatro = await profile('P-0004');
     // The first by name stands in the chain, whatever the stored order, and the other is named.
@@ -168,6 +174,33 @@ describe('person profile and line of command (M2-27)', () => {
     expect((await profile('P-0003')).reports).toMatchObject([{ displayName: 'Persona Prueba Cuatro', sharedWith: ['Persona Prueba Siete'] }]);
   });
 
+  it('does not pick a boss between the leads of two equipos', async () => {
+    const [cinco, seis] = [person(state, 'P-0005'), person(state, 'P-0006')];
+    const embarques = state.teams.find((t) => t.code === 'EMBARQUES')!;
+    await saveEntities(
+      {
+        changes: [
+          { kind: 'teamMembership', data: { teamId: embarques.id, personId: cinco.id } },
+          { kind: 'teamMembership', data: { teamId: embarques.id, personId: seis.id } },
+          // Named to sort before "Cuadrilla A": the name of an equipo must not decide the boss.
+          { kind: 'team', data: { ...embarques, name: 'Aaa Embarques', leadPersonId: seis.id } },
+        ],
+        actor: admin,
+      },
+      deps,
+    );
+    const chain = (await profile('P-0005')).chain;
+    expect(chain.at(-1)).toMatchObject({ displayName: 'Persona Prueba Cuatro', sharedWith: ['Persona Prueba Seis'] });
+    expect((await profile('P-0006')).reports).toMatchObject([{ displayName: 'Persona Prueba Cinco', sharedWith: ['Persona Prueba Cuatro'] }]);
+    expect((await profile('P-0004')).reports).toMatchObject([{ displayName: 'Persona Prueba Cinco', sharedWith: ['Persona Prueba Seis'] }]);
+  });
+
+  it('reads what the person can see from the same state as the rest', async () => {
+    const cinco = await profile('P-0005');
+    expect(cinco.access).toMatchObject({ personId: cinco.person.id, isAdmin: false, orgUnitIds: [unit(state, 'HID-AGZ1').id] });
+    expect((await profile('P-0001')).access.isAdmin).toBe(true);
+  });
+
   it('stops when two people lead an equipo the other belongs to', async () => {
     const [cuatro, cinco] = [person(state, 'P-0004'), person(state, 'P-0005')];
     const embarques = state.teams.find((t) => t.code === 'EMBARQUES')!;
@@ -178,8 +211,8 @@ describe('person profile and line of command (M2-27)', () => {
           { kind: 'teamMembership', data: { teamId: embarques.id, personId: cinco.id } },
           { kind: 'team', data: { ...embarques, leadPersonId: cinco.id } },
         ],
+        actor: admin,
       },
-      admin,
       deps,
     );
     expect(names((await profile('P-0005')).chain)).toEqual(['Cuatro']);

@@ -23,8 +23,7 @@ async function main(): Promise<void> {
       const text = await readFile(path, 'utf8').catch(() => null);
       if (text === null) continue;
       const result = await importOrganization(
-        { mode: 'apply', files: [{ name: 'seed.json', text }] },
-        { personId: 'seed', system: true },
+        { mode: 'apply', files: [{ name: 'seed.json', text }], actor: { personId: 'seed', system: true } },
         deps,
       );
       console.log(`Seeded from ${path}:`, result.summary);

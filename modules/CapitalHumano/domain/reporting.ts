@@ -3,7 +3,8 @@ import { levelRank } from './peopleDirectory';
 
 // Line of command (spec M2-27). Nobody captures "reports to" per person, so it is read from the
 // organization itself.
-// ASSUMPTION: a person answers to the lead of their equipo; otherwise to whoever holds the
+// ASSUMPTION: a person answers to the lead of their equipo (of any of them, when they are in
+// several); otherwise to whoever holds the
 // highest ladder role on their área, as long as it is above their own, or on the nearest área
 // above, where it may also be the same level. Capital Humano has not confirmed this reading (spec Q-6).
 
@@ -15,9 +16,9 @@ export interface PersonRef {
   /** Área of their main role, or of their first equipo when they hold no role; null with neither. */
   orgUnitId: string | null;
   /**
-   * Not empty means the organization does not settle this link. In a chain: the other people
-   * who hold the same top role on the área this person stands as head of. In a list of
-   * reports: the other heads this person may answer to instead.
+   * Not empty means the organization does not settle this link: the names of the others who may
+   * be the boss instead. They are the people who hold the same top role on the same área, or
+   * the leads of the other equipos the person below belongs to.
    */
   sharedWith: string[];
 }
@@ -34,7 +35,7 @@ export interface Reporting {
 
 interface Link {
   personId: string;
-  /** Other heads of the same área at the same level, when the boss was found as an área head. */
+  /** Others the person may answer to instead: co-heads of the same área, or leads of their other equipos. */
   peers: string[];
 }
 
@@ -57,7 +58,11 @@ export function buildReporting(state: OrganizationState): Reporting {
     const candidate = { orgUnitId: a.orgUnitId, unitName: units.get(a.orgUnitId)?.name ?? '', id: a.id, rank, title: a.jobTitle ?? role?.name ?? null };
     const current = main.get(a.personId);
     if (!current || rank - current.rank < 0 || (rank === current.rank && (candidate.unitName.localeCompare(current.unitName, 'es') || candidate.id.localeCompare(current.id)) < 0)) main.set(a.personId, candidate);
-    if (role?.level) ladder.set(a.orgUnitId, [...(ladder.get(a.orgUnitId) ?? []), { personId: a.personId, rank }]);
+    if (role?.level) {
+      const holders = ladder.get(a.orgUnitId);
+      if (holders) holders.push({ personId: a.personId, rank });
+      else ladder.set(a.orgUnitId, [{ personId: a.personId, rank }]);
+    }
   }
   // Head of each área: the top of its ladder. Several people at that level share it; the first
   // by name stands for them and the rest are kept, so the screen can say it is not settled.
@@ -68,9 +73,9 @@ export function buildReporting(state: OrganizationState): Reporting {
     head.set(orgUnitId, { personId: first!, rank: top, peers: rest });
   }
 
-  // Lead of the first equipo, by name and then id, that each person belongs to.
+  // Leads of the equipos each person belongs to. Someone in several equipos can have several.
   const teams = new Map(state.teams.filter((t) => t.status === 'active').map((t) => [t.id, t]));
-  const leadOf = new Map<string, { personId: string; team: string; teamId: string }>();
+  const leadsOf = new Map<string, Set<string>>();
   // Área of each person's first equipo, for people who hold no role.
   const teamUnit = new Map<string, { orgUnitId: string; team: string; teamId: string }>();
   for (const m of state.teamMemberships) {
@@ -80,24 +85,28 @@ export function buildReporting(state: OrganizationState): Reporting {
     if (!first || (team.name.localeCompare(first.team, 'es') || team.id.localeCompare(first.teamId)) < 0) teamUnit.set(m.personId, { orgUnitId: team.orgUnitId, team: team.name, teamId: team.id });
     const lead = team.leadPersonId;
     if (!lead || lead === m.personId || !people.has(lead)) continue;
-    const current = leadOf.get(m.personId);
-    if (!current || (team.name.localeCompare(current.team, 'es') || team.id.localeCompare(current.teamId)) < 0) leadOf.set(m.personId, { personId: lead, team: team.name, teamId: team.id });
+    leadsOf.set(m.personId, (leadsOf.get(m.personId) ?? new Set<string>()).add(lead));
   }
 
   const linkOf = (personId: string): Link | null => {
     if (!people.has(personId)) return null;
-    const lead = leadOf.get(personId);
-    if (lead) return { personId: lead.personId, peers: [] };
-    const own = main.get(personId);
+    // With several leads the first by name stands and the rest are kept: which equipo is named
+    // first, or how it is called, must not decide who the boss is.
+    const [lead, ...otherLeads] = [...(leadsOf.get(personId) ?? [])].sort(byName);
+    if (lead) return { personId: lead, peers: otherLeads };
+    // Someone with no role stands in the área of their equipo, below every level of the ladder.
+    const equipo = teamUnit.get(personId);
+    const own = main.get(personId) ?? (equipo && { orgUnitId: equipo.orgUnitId, rank: levelRank(null) });
+    if (!own) return null;
     // The set stops a loop in bad data; a tree of any depth is walked to its top.
     const seen = new Set<string>();
-    for (let unit = units.get(own?.orgUnitId ?? ''); unit && !seen.has(unit.id); unit = unit.parentId ? units.get(unit.parentId) : undefined) {
+    for (let unit = units.get(own.orgUnitId); unit && !seen.has(unit.id); unit = unit.parentId ? units.get(unit.parentId) : undefined) {
       seen.add(unit.id);
       const leading = head.get(unit.id);
       // On their own área a boss is above them: someone at their level, co-heads included, is
       // a peer. Further up the tree the head may hold the same level, as a Director General
       // does over a director.
-      const above = unit.id === own!.orgUnitId ? leading && leading.rank < own!.rank : leading && leading.rank <= own!.rank;
+      const above = unit.id === own.orgUnitId ? leading && leading.rank < own.rank : leading && leading.rank <= own.rank;
       if (leading && above && leading.personId !== personId) return { personId: leading.personId, peers: leading.peers.filter((peer) => peer !== personId) };
     }
     return null;

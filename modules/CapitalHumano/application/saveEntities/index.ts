@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { COLLECTION, entitySchemas, type AnyEntity, type EntityKind } from '../../domain/models';
 import { applyChange, checkTeamLeads } from '../../domain/rules';
-import type { Actor, Deps } from '../ports';
+import type { Acting, Deps } from '../ports';
 import { assertAdmin, toVersionRows } from '../shared';
 
 export const saveEntitiesInput = z.object({
@@ -21,11 +21,8 @@ export type SaveEntitiesInput = z.infer<typeof saveEntitiesInput>;
  * Creates or replaces records as one unit: all of them are saved or none (spec M2-11 to M2-14).
  * Renaming, moving and deactivating are all "save the record with the new values".
  */
-export async function saveEntities(
-  input: SaveEntitiesInput,
-  actor: Actor,
-  deps: Deps,
-): Promise<{ entities: AnyEntity[]; dataAsOf: string | null }> {
+export async function saveEntities(input: Acting<SaveEntitiesInput>, deps: Deps): Promise<{ entities: AnyEntity[]; dataAsOf: string | null }> {
+  const { actor } = input;
   const { changes } = saveEntitiesInput.parse(input);
   const { state: current, currentRowIds, dataAsOf } = await deps.repo.load();
   assertAdmin(current, actor);

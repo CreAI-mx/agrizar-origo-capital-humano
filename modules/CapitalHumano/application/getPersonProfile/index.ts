@@ -1,6 +1,7 @@
 import { DomainError } from '../../domain/errors';
 import { personRows, type PersonRow } from '../../domain/peopleDirectory';
 import { buildReporting, type PersonRef } from '../../domain/reporting';
+import { resolveAccessContext, type AccessContext } from '../../domain/rules';
 import type { Deps } from '../ports';
 
 export interface PersonProfile {
@@ -9,6 +10,8 @@ export interface PersonProfile {
   chain: PersonRef[];
   /** People who answer to this person. */
   reports: PersonRef[];
+  /** What their roles let them see (spec M2-09), read from the same state as the rest. */
+  access: AccessContext;
   dataAsOf: string | null;
 }
 
@@ -18,5 +21,5 @@ export async function getPersonProfile(input: { personId: string }, deps: Deps):
   const person = personRows(state).find((row) => row.id === input.personId);
   if (!person) throw new DomainError('PERSON_NOT_FOUND', 'No encontramos a esa persona.');
   const reporting = buildReporting(state);
-  return { person, chain: reporting.chainOf(person.id), reports: reporting.reportsOf(person.id), dataAsOf };
+  return { person, chain: reporting.chainOf(person.id), reports: reporting.reportsOf(person.id), access: resolveAccessContext(state, person.id), dataAsOf };
 }

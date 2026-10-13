@@ -73,14 +73,17 @@ export function parseImportFiles(files: ImportFile[]): unknown {
     } else if (name.includes('equipo')) {
       payload.teams = rows.map((r) => ({ orgUnitCode: r.area, code: r.codigo, name: r.nombre, leadKey: r.lider }));
     } else if (name.includes('persona')) {
-      const people = new Map<string, { displayName: string; account: string | null; employeeNumber: string | null; assignments: unknown[]; teams: unknown[] }>();
-      for (const r of rows) {
+      // One person can take several rows, one per role or equipo. Each piece keeps the row it
+      // came from, so the preview reports a problem on the row that has it (spec M2-18).
+      const people = new Map<string, { row: number; displayName: string; account: string | null; employeeNumber: string | null; assignments: unknown[]; teams: unknown[] }>();
+      rows.forEach((r, index) => {
+        const row = index + 1;
         const key = r.cuenta || r.numero_empleado || r.nombre || '';
-        const person = people.get(key) ?? { displayName: r.nombre ?? '', account: r.cuenta || null, employeeNumber: r.numero_empleado || null, assignments: [], teams: [] };
-        if (r.rol && r.area) person.assignments.push({ roleCode: r.rol, orgUnitCode: r.area, jobTitle: r.puesto });
-        if (r.equipo && r.area) person.teams.push({ orgUnitCode: r.area, teamCode: r.equipo });
+        const person = people.get(key) ?? { row, displayName: r.nombre ?? '', account: r.cuenta || null, employeeNumber: r.numero_empleado || null, assignments: [], teams: [] };
+        if (r.rol && r.area) person.assignments.push({ row, roleCode: r.rol, orgUnitCode: r.area, jobTitle: r.puesto });
+        if (r.equipo && r.area) person.teams.push({ row, orgUnitCode: r.area, teamCode: r.equipo });
         people.set(key, person);
-      }
+      });
       payload.people = [...people.values()];
     } else {
       throw new DomainError('BAD_FILE', `No reconozco el archivo ${file.name}. Usa áreas, roles, equipos o personas en el nombre, o un .json.`);

@@ -118,6 +118,9 @@ describe('GRZR-31 demo script (AC3)', () => {
     const change = [{ kind: 'role', data: { code: 'nuevo', name: 'Nuevo' } }];
     expect((await save(change, supervisorId)).statusCode).toBe(403);
     expect((await app.inject({ method: 'POST', url: '/api/organization/entities', payload: { changes: change } })).statusCode).toBe(403);
+    // The actor comes from the session, never from the body: naming an administrator there changes nothing.
+    const spoofed = { changes: change, actor: { personId: adminId, system: true } };
+    expect((await post('/api/organization/entities', spoofed, supervisorId)).statusCode).toBe(403);
     expect((await save([{ kind: 'role', data: { code: 'mal código', name: '' } }])).statusCode).toBe(400);
   });
 });
