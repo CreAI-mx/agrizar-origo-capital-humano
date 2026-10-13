@@ -1,7 +1,7 @@
 import type { OrgUnit, OrganizationView } from '@origo/capital-humano';
 import { ROLE_LEVELS } from '@origo/capital-humano';
 import type { ChartItem } from './components/TreeChart';
-import { cropsOf } from './crops';
+import { cropsOf, sealsOf } from './crops';
 import { KIND_LABEL, count, sortUnits } from './lib';
 
 /** How loud an área's card is: the empresa and the direcciones stand out. */
@@ -18,6 +18,7 @@ export function areaItems(org: OrganizationView, units: OrgUnit[]): ChartItem[] 
     return into;
   };
   const crops = cropsOf(org.orgUnits);
+  const seals = sealsOf(org.orgUnits);
   const rank = (roleId: string) => {
     const level = org.roles.find((r) => r.id === roleId)?.level;
     return level ? ROLE_LEVELS.indexOf(level) : ROLE_LEVELS.length;
@@ -37,6 +38,7 @@ export function areaItems(org: OrganizationView, units: OrgUnit[]): ChartItem[] 
       badgeTitle: `${count(people, 'persona', 'personas')} en esta área y las que tiene debajo`,
       tone: UNIT_TONE[unit.kind],
       crop: crops.get(unit.id) ?? null,
+      seal: seals.get(unit.id) ?? null,
       inactive: unit.status === 'inactive',
     };
   });

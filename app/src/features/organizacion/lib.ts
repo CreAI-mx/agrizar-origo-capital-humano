@@ -38,12 +38,17 @@ export function scopeOf(units: OrgUnit[], orgUnitId: string): Set<string> {
   return found;
 }
 
-/** People who belong to the filtered áreas: by a role given there or by an equipo of theirs. */
+/**
+ * People who belong to the filtered áreas: by a role given there or by an equipo of theirs.
+ * An active person belongs where they are now; an inactive one, who has no role or equipo
+ * left, where they were.
+ */
 export function peopleInScope(org: OrganizationView, scope: ReadonlySet<string>): Set<string> {
-  const teams = new Set(org.teams.filter((t) => scope.has(t.orgUnitId)).map((t) => t.id));
+  const inactive = new Set(org.people.filter((p) => p.status !== 'active').map((p) => p.id));
+  const teams = new Map(org.teams.filter((t) => scope.has(t.orgUnitId)).map((t) => [t.id, t]));
   return new Set([
-    ...org.roleAssignments.filter((a) => scope.has(a.orgUnitId)).map((a) => a.personId),
-    ...org.teamMemberships.filter((m) => teams.has(m.teamId)).map((m) => m.personId),
+    ...org.roleAssignments.filter((a) => scope.has(a.orgUnitId) && (a.status === 'active' || inactive.has(a.personId))).map((a) => a.personId),
+    ...org.teamMemberships.filter((m) => teams.has(m.teamId) && ((m.status === 'active' && teams.get(m.teamId)!.status === 'active') || inactive.has(m.personId))).map((m) => m.personId),
   ]);
 }
 
@@ -73,9 +78,10 @@ export function unitTree(units: OrgUnit[], title: (unit: OrgUnit) => ReactNode =
 /** "Agrizar › Capital Humano › Reclutamiento" */
 export function unitPath(units: OrgUnit[], id: string | null): string {
   const names: string[] = [];
-  for (let unit = units.find((u) => u.id === id); unit; unit = units.find((u) => u.id === unit!.parentId)) {
+  const seen = new Set<string>();
+  for (let unit = units.find((u) => u.id === id); unit && !seen.has(unit.id); unit = units.find((u) => u.id === unit!.parentId)) {
+    seen.add(unit.id);
     names.unshift(unit.name);
-    if (names.length > 12) break;
   }
   return names.join(' › ');
 }

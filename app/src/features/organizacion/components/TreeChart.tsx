@@ -18,8 +18,10 @@ export interface ChartItem {
   /** Short accent label, e.g. the role a person holds on this área. */
   tag?: string | null;
   tone?: 'root' | 'strong' | 'normal' | 'group' | 'team' | 'person';
-  /** Crop of the branch the card belongs to (ADR-0002): a seal on 'strong' cards, a tint on the rest. */
+  /** Crop of the branch the card belongs to (ADR-0002): tints the card. */
   crop?: Crop | null;
+  /** Seal drawn on the card: the empresa's sprout or the crop of a branch. Other cards have none. */
+  seal?: Crop | 'brote' | null;
   lit?: boolean;
   dim?: boolean;
   inactive?: boolean;
@@ -48,13 +50,12 @@ type CardNode = Node<CardData, 'card'>;
 
 function ItemCard({ data, selected }: NodeProps<CardNode>) {
   const { item } = data;
-  const seal = item.tone === 'root' ? 'brote' : item.tone === 'strong' ? item.crop : null;
   const classes = ['org-node', `tone-${item.tone ?? 'normal'}`, item.crop && 'has-crop', selected && 'is-selected', (data.dim || item.dim) && 'is-dim', item.lit && 'is-lit', item.inactive && 'is-inactive', item.selectable === false && 'is-static'];
   return (
     <div className={classes.filter(Boolean).join(' ')} data-crop={item.crop ?? undefined}>
       <Handle type="target" position={Position.Top} id="top" />
       <Handle type="target" position={Position.Left} id="side" />
-      {seal && <CropSeal crop={seal} size={item.tone === 'root' ? 52 : 44} />}
+      {item.seal && <CropSeal crop={item.seal} size={item.seal === 'brote' ? 52 : 44} />}
       <div className="org-body">
         <div className="org-top">
           <span className="org-kind">{item.eyebrow}</span>

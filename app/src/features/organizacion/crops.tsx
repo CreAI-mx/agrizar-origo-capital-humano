@@ -23,6 +23,24 @@ const branches = (units: OrgUnit[]) => {
   return sortUnits(units.filter((u) => u.parentId !== null && roots.has(u.parentId)));
 };
 
+/** The branch each área hangs from; the empresa and anything detached from it have none. */
+function branchOf(units: OrgUnit[]): Map<string, string> {
+  const byId = new Map(units.map((u) => [u.id, u]));
+  const heads = new Set(branches(units).map((u) => u.id));
+  const found = new Map<string, string>();
+  for (const unit of units) {
+    // The set stops a loop in bad data; a tree of any depth is walked to its branch.
+    const seen = new Set<string>();
+    let current: OrgUnit | undefined = unit;
+    while (current && !heads.has(current.id) && !seen.has(current.id)) {
+      seen.add(current.id);
+      current = current.parentId ? byId.get(current.parentId) : undefined;
+    }
+    if (current && heads.has(current.id)) found.set(unit.id, current.id);
+  }
+  return found;
+}
+
 /**
  * Crop of every área: each branch under the empresa takes the next crop, and everything under
  * it inherits it. The empresa has none. Pass every área, active or not and whatever the filter,
@@ -30,16 +48,17 @@ const branches = (units: OrgUnit[]) => {
  * ASSUMPTION: which branch gets which crop carries no meaning; it only tells branches apart.
  */
 export function cropsOf(units: OrgUnit[]): Map<string, Crop> {
-  const byId = new Map(units.map((u) => [u.id, u]));
   const ofBranch = new Map(branches(units).map((unit, index) => [unit.id, CROPS[index % CROPS.length]!]));
-  const crops = new Map<string, Crop>();
-  for (const unit of units) {
-    let current: OrgUnit | undefined = unit;
-    for (let depth = 0; current && depth < 32 && !ofBranch.has(current.id); depth += 1) current = current.parentId ? byId.get(current.parentId) : undefined;
-    const crop = current && ofBranch.get(current.id);
-    if (crop) crops.set(unit.id, crop);
-  }
-  return crops;
+  return new Map([...branchOf(units)].map(([unitId, branchId]) => [unitId, ofBranch.get(branchId)!]));
+}
+
+/** Which áreas wear a seal: the empresa a sprout, each branch under it its crop. */
+export function sealsOf(units: OrgUnit[]): Map<string, Crop | 'brote'> {
+  const crops = cropsOf(units);
+  const seals = new Map<string, Crop | 'brote'>();
+  for (const unit of units) if (unit.parentId === null) seals.set(unit.id, 'brote');
+  for (const unit of branches(units)) seals.set(unit.id, crops.get(unit.id)!);
+  return seals;
 }
 
 export interface CropLegendEntry {
@@ -48,11 +67,13 @@ export interface CropLegendEntry {
   label: string;
 }
 
-/** Which crop stands for which branch, for the active branches on screen. */
+/** Which crop stands for which branch, for the branches that have something on screen. */
 export function cropLegend(units: OrgUnit[], scope: ReadonlySet<string> | null): CropLegendEntry[] {
   const crops = cropsOf(units);
+  // A filter on an área inside a branch still shows that branch: its cards carry the crop.
+  const shown = scope && new Set([...branchOf(units)].filter(([unitId]) => scope.has(unitId)).map(([, branchId]) => branchId));
   return branches(units)
-    .filter((unit) => unit.status === 'active' && (!scope || scope.has(unit.id)))
+    .filter((unit) => unit.status === 'active' && (!shown || shown.has(unit.id)))
     .map((unit) => ({ id: unit.id, crop: crops.get(unit.id)!, label: unit.name }));
 }
 

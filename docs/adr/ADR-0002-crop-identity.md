@@ -65,9 +65,11 @@ solid seal on the dirección and as a tint on everything below it.**
    the API read model and the load format are unchanged.
 4. **Cards.**
    - Empresa: a filled pill in the accent color (lima in dark, brand green in
-     light) with the sprout seal.
-   - Dirección: a solid seal in the crop color with the glyph, a border in the
-     crop color, and the "Dirección" label in the crop color.
+     light) with the sprout seal. The root card of the Roles diagram is the
+     same pill without the sprout: the sprout belongs to the empresa only.
+   - Dirección, or whatever área hangs directly from the empresa: a solid seal
+     in the crop color with the glyph, a border in the crop color, and the
+     "Dirección" label in the crop color.
    - Área, subárea and equipo: background tinted 10% with the crop color, border
      and people count in the crop color.
    - People, roles and group cards stay neutral. Connectors stay neutral.

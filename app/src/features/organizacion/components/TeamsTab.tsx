@@ -4,7 +4,7 @@ import { useMemo, useState } from 'react';
 import type { Change } from '../api';
 import { useSave } from '../hooks';
 import { UNIT_TONE } from '../chartItems';
-import { CropDot, cropLegend, cropsOf } from '../crops';
+import { CropDot, cropLegend, cropsOf, sealsOf } from '../crops';
 import { KIND_LABEL, count, normalize, sortUnits, unitPath, unitTree } from '../lib';
 import { READ_ONLY_HINT, type TabProps } from '../types';
 import { TreeChart, type ChartItem } from './TreeChart';
@@ -73,8 +73,9 @@ export function TeamsTab({ org, canEdit, onHistory, mode, scope }: TabProps) {
       allTeams.filter((t) => t.orgUnitId === id).length + units.filter((u) => u.parentId === id).reduce((sum, child) => sum + teamsUnder(child.id), 0);
     const cards: ChartItem[] = [];
     const crops = cropsOf(org.orgUnits);
+    const seals = sealsOf(org.orgUnits);
     for (const unit of sortUnits(units.filter((u) => needed.has(u.id)))) {
-      cards.push({ id: unit.id, parentId: unit.parentId, eyebrow: KIND_LABEL[unit.kind], title: unit.name, line1: count(teamsUnder(unit.id), 'equipo', 'equipos'), line2: allTeams.some((t) => t.orgUnitId === unit.id) ? 'Abre el área para ver sus equipos' : null, tone: UNIT_TONE[unit.kind], crop: crops.get(unit.id) ?? null, selectable: false });
+      cards.push({ id: unit.id, parentId: unit.parentId, eyebrow: KIND_LABEL[unit.kind], title: unit.name, line1: count(teamsUnder(unit.id), 'equipo', 'equipos'), line2: allTeams.some((t) => t.orgUnitId === unit.id) ? 'Abre el área para ver sus equipos' : null, tone: UNIT_TONE[unit.kind], crop: crops.get(unit.id) ?? null, seal: seals.get(unit.id) ?? null, selectable: false });
     }
     for (const team of [...allTeams].sort((a, b) => a.name.localeCompare(b.name, 'es'))) {
       const members = org.teamMemberships.filter((m) => m.teamId === team.id && m.status === 'active');

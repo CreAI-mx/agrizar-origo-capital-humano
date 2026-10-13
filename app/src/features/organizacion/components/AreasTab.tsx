@@ -54,7 +54,8 @@ export function AreasTab({ org, canEdit, onHistory, mode, scope, onScope }: TabP
   const isTop = (u: OrgUnit) => !units.some((p) => p.id === u.parentId);
   const topLevels = units.filter((u) => isTop(u) || units.some((p) => p.id === u.parentId && isTop(p))).map((u) => u.id);
   const expandedKeys = query ? visible.map((u) => u.id) : (expanded ?? topLevels);
-  const selected = org.orgUnits.find((u) => u.id === selectedId) ?? null;
+  // An área left outside the filter closes its detail; an inactive one keeps it, to reactivate it.
+  const selected = org.orgUnits.find((u) => u.id === selectedId && (!scope || scope.has(u.id))) ?? null;
 
   const open = (value: Draft) => {
     setDraft(value);

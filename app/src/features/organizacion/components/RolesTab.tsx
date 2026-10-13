@@ -20,7 +20,8 @@ export function RolesTab({ org, canEdit, onHistory, mode, scope }: TabProps) {
   const save = useSave();
   // With an área filter, a role counts only the people who hold it there.
   const held = org.roleAssignments.filter((a) => a.status === 'active' && (!scope || scope.has(a.orgUnitId)));
-  const holders = (roleId: string) => held.filter((a) => a.roleId === roleId).length;
+  // The same person can hold a role on several áreas: they count once.
+  const holders = (roleId: string) => new Set(held.filter((a) => a.roleId === roleId).map((a) => a.personId)).size;
 
   const open = (value: Draft) => {
     setDraft(value);
