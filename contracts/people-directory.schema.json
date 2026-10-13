@@ -71,7 +71,7 @@
         "displayName": { "type": "string" },
         "title": { "type": ["string", "null"], "description": "Job title of their main role, or the role's name." },
         "orgUnitId": { "type": ["string", "null"], "description": "Área of their main role, or of their first equipo when they hold no role." },
-        "sharedWith": { "type": "array", "items": { "type": "string" }, "description": "Not empty means the organization does not settle this link. In `chain`: the other people who hold the same top role on the área this person stands as head of. In `reports`: the other heads this person may answer to instead." }
+        "sharedWith": { "type": "array", "items": { "type": "string" }, "description": "Not empty means the organization does not settle this link: the names of the others who may be the boss instead, either people who hold the same top role on the same área or leads of the other equipos the person below belongs to." }
       }
     },
     "peoplePage": {
@@ -101,12 +101,40 @@
     },
     "personProfile": {
       "type": "object",
-      "required": ["person", "chain", "reports", "dataAsOf"],
+      "required": ["person", "chain", "reports", "access", "dataAsOf"],
       "additionalProperties": false,
       "properties": {
         "person": { "$ref": "#/$defs/personRow" },
         "chain": { "type": "array", "items": { "$ref": "#/$defs/personRef" }, "description": "Line of command, from the top down to the person's boss. Inferred, not captured." },
         "reports": { "type": "array", "items": { "$ref": "#/$defs/personRef" }, "description": "People who answer to this person." },
+        "access": {
+          "type": "object",
+          "description": "What the person's roles let them see (spec M2-09), from the same snapshot as the rest of the profile.",
+          "required": ["personId", "isAdmin", "roles", "orgUnitIds", "teamIds"],
+          "additionalProperties": false,
+          "properties": {
+            "personId": { "type": "string" },
+            "isAdmin": { "type": "boolean" },
+            "roles": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": ["roleId", "code", "name", "orgUnitId", "orgUnitName", "jobTitle"],
+                "additionalProperties": false,
+                "properties": {
+                  "roleId": { "type": "string" },
+                  "code": { "type": "string" },
+                  "name": { "type": "string" },
+                  "orgUnitId": { "type": "string" },
+                  "orgUnitName": { "type": "string" },
+                  "jobTitle": { "type": ["string", "null"] }
+                }
+              }
+            },
+            "orgUnitIds": { "type": "array", "items": { "type": "string" }, "description": "Áreas the roles cover: each assigned área plus those under it." },
+            "teamIds": { "type": "array", "items": { "type": "string" } }
+          }
+        },
         "dataAsOf": { "$ref": "#/$defs/dataAsOf" }
       }
     }

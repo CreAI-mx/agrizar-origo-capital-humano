@@ -39,7 +39,7 @@ export function AreasTab({ org, canEdit, onHistory, mode, scope, onScope, focusA
   }, [units, query]);
 
   const crops = useMemo(() => cropsOf(org.orgUnits), [org.orgUnits]);
-  const legend = useMemo(() => cropLegend(org.orgUnits, scope), [org.orgUnits, scope]);
+  const legend = useMemo(() => cropLegend(org.orgUnits, units.map((u) => u.id)), [org.orgUnits, units]);
   const treeData = unitTree(visible, (unit) => (
     <span className={unit.status === 'inactive' ? 'muted' : undefined}>
       <CropDot crop={crops.get(unit.id)} />

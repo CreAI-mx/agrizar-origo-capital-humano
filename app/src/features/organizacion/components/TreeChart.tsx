@@ -217,9 +217,11 @@ function Chart({ items, mode, selectedId, onSelect, matchIds, frameIds, initiall
             <summary className="eyebrow">Un cultivo por dirección</summary>
             <ul>
               {legend.map((entry) => (
-                <li key={entry.id} title={CROP_NAME[entry.crop]}>
+                <li key={entry.id}>
                   <CropSeal crop={entry.crop} size={18} />
-                  {entry.label}
+                  <span>
+                    {entry.label} <span className="muted">· {CROP_NAME[entry.crop]}</span>
+                  </span>
                 </li>
               ))}
             </ul>

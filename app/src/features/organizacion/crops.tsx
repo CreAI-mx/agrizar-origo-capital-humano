@@ -67,13 +67,18 @@ export interface CropLegendEntry {
   label: string;
 }
 
-/** Which crop stands for which branch, for the branches that have something on screen. */
-export function cropLegend(units: OrgUnit[], scope: ReadonlySet<string> | null): CropLegendEntry[] {
+/**
+ * Which crop stands for which branch, for the branches with a card on screen. `shownIds` are the
+ * áreas the diagram draws, so the legend lists a branch exactly when one of its cards is there:
+ * an área inside it is enough, an inactive branch counts when it is drawn, and a branch with
+ * nothing drawn is left out.
+ */
+export function cropLegend(units: OrgUnit[], shownIds: Iterable<string>): CropLegendEntry[] {
   const crops = cropsOf(units);
-  // A filter on an área inside a branch still shows that branch: its cards carry the crop.
-  const shown = scope && new Set([...branchOf(units)].filter(([unitId]) => scope.has(unitId)).map(([, branchId]) => branchId));
+  const branch = branchOf(units);
+  const shown = new Set([...shownIds].map((id) => branch.get(id)));
   return branches(units)
-    .filter((unit) => unit.status === 'active' && (!shown || shown.has(unit.id)))
+    .filter((unit) => shown.has(unit.id))
     .map((unit) => ({ id: unit.id, crop: crops.get(unit.id)!, label: unit.name }));
 }
 

@@ -3,7 +3,7 @@ import { ROLE_LEVELS } from '@origo/capital-humano';
 import { Alert, Button, Drawer, Popconfirm, Space, Spin, Tag, Tooltip } from 'antd';
 import { useMemo } from 'react';
 import { CropDot, cropsOf } from '../crops';
-import { useAccess, usePerson, useSameSnapshot } from '../hooks';
+import { usePerson, useSameSnapshot } from '../hooks';
 import { count, formatDateTime } from '../lib';
 import { READ_ONLY_HINT } from '../types';
 import { PersonAvatar } from './PersonAvatar';
@@ -40,7 +40,6 @@ interface Props {
 /** Spec M2-27: one person with their line of command, roles, equipos and what they can see. */
 export function PersonDrawer({ personId, org, canEdit, busy, onClose, onOpen, onEdit, onDeactivate, onReactivate, onHistory, onShowArea }: Props) {
   const profile = usePerson(personId);
-  const access = useAccess(personId ?? undefined);
   const crops = useMemo(() => cropsOf(org.orgUnits), [org.orgUnits]);
   const data = profile.data?.person.id === personId ? profile.data : undefined;
   useSameSnapshot(org.dataAsOf, data?.dataAsOf, 'person');
@@ -59,8 +58,8 @@ export function PersonDrawer({ personId, org, canEdit, busy, onClose, onOpen, on
       </span>
     </button>
   );
-  const inChain = (ref: PersonRef) => link(ref, (others) => `Comparte ese nivel con ${others}: la organización no dice a quién de ellos reporta.`);
-  const asReport = (ref: PersonRef) => link(ref, (others) => `O a ${others}: comparten el nivel más alto del área.`);
+  const inChain = (ref: PersonRef) => link(ref, (others) => `O ${others}: la organización no define a quién de ellos reporta.`);
+  const asReport = (ref: PersonRef) => link(ref, (others) => `También puede reportar a ${others}: la organización no lo define.`);
 
   return (
     <Drawer open={personId !== null} onClose={onClose} title="Ficha de persona" width="min(580px, 100vw)" destroyOnHidden>
@@ -190,16 +189,12 @@ export function PersonDrawer({ personId, org, canEdit, busy, onClose, onOpen, on
 
           <section className="ficha-section">
             <span className="eyebrow">Qué puede ver</span>
-            {access.isError ? (
-              <p className="muted">No se pudo consultar qué puede ver. Cierra la ficha y vuelve a abrirla.</p>
-            ) : !access.data ? (
-              <Spin size="small" />
-            ) : access.data.orgUnitIds.length ? (
+            {data.access.orgUnitIds.length ? (
               <>
                 <p>
-                  <strong>{count(access.data.orgUnitIds.length, 'área', 'áreas')}</strong>, por {access.data.roles.length === 1 ? 'su rol' : 'sus roles'} en {[...new Set(access.data.roles.map((r) => r.orgUnitName))].join(', ')}.
+                  <strong>{count(data.access.orgUnitIds.length, 'área', 'áreas')}</strong>, por {data.access.roles.length === 1 ? 'su rol' : 'sus roles'} en {[...new Set(data.access.roles.map((r) => r.orgUnitName))].join(', ')}.
                 </p>
-                <p className="muted">{access.data.isAdmin ? 'Es Administrador de Origo: puede cambiar la organización.' : 'No es Administrador de Origo: solo consulta.'}</p>
+                <p className="muted">{data.access.isAdmin ? 'Es Administrador de Origo: puede cambiar la organización.' : 'No es Administrador de Origo: solo consulta.'}</p>
               </>
             ) : (
               <p className="muted">Ninguna área: no tiene un rol activo.</p>

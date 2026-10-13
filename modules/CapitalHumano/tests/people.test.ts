@@ -168,6 +168,33 @@ describe('person profile and line of command (M2-27)', () => {
     expect((await profile('P-0003')).reports).toMatchObject([{ displayName: 'Persona Prueba Cuatro', sharedWith: ['Persona Prueba Siete'] }]);
   });
 
+  it('does not pick a boss between the leads of two equipos', async () => {
+    const [cinco, seis] = [person(state, 'P-0005'), person(state, 'P-0006')];
+    const embarques = state.teams.find((t) => t.code === 'EMBARQUES')!;
+    await saveEntities(
+      {
+        changes: [
+          { kind: 'teamMembership', data: { teamId: embarques.id, personId: cinco.id } },
+          { kind: 'teamMembership', data: { teamId: embarques.id, personId: seis.id } },
+          // Named to sort before "Cuadrilla A": the name of an equipo must not decide the boss.
+          { kind: 'team', data: { ...embarques, name: 'Aaa Embarques', leadPersonId: seis.id } },
+        ],
+      },
+      admin,
+      deps,
+    );
+    const chain = (await profile('P-0005')).chain;
+    expect(chain.at(-1)).toMatchObject({ displayName: 'Persona Prueba Cuatro', sharedWith: ['Persona Prueba Seis'] });
+    expect((await profile('P-0006')).reports).toMatchObject([{ displayName: 'Persona Prueba Cinco', sharedWith: ['Persona Prueba Cuatro'] }]);
+    expect((await profile('P-0004')).reports).toMatchObject([{ displayName: 'Persona Prueba Cinco', sharedWith: ['Persona Prueba Seis'] }]);
+  });
+
+  it('reads what the person can see from the same state as the rest', async () => {
+    const cinco = await profile('P-0005');
+    expect(cinco.access).toMatchObject({ personId: cinco.person.id, isAdmin: false, orgUnitIds: [unit(state, 'HID-AGZ1').id] });
+    expect((await profile('P-0001')).access.isAdmin).toBe(true);
+  });
+
   it('stops when two people lead an equipo the other belongs to', async () => {
     const [cuatro, cinco] = [person(state, 'P-0004'), person(state, 'P-0005')];
     const embarques = state.teams.find((t) => t.code === 'EMBARQUES')!;

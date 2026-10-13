@@ -16,7 +16,7 @@ export function ViewAsTab({ org, mode }: TabProps) {
   const access = useAccess(personId);
   const units = useMemo(() => org.orgUnits.filter((u) => u.status === 'active'), [org.orgUnits]);
   const context = personId ? access.data : undefined;
-  const legend = useMemo(() => cropLegend(org.orgUnits, null), [org.orgUnits]);
+  const legend = useMemo(() => cropLegend(org.orgUnits, units.map((u) => u.id)), [org.orgUnits, units]);
 
   const items = useMemo(() => {
     const base = areaItems(org, units);
