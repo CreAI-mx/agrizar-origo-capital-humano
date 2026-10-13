@@ -24,6 +24,13 @@ export interface Deps {
   newId: () => string;
 }
 
+/**
+ * Input of a use case that changes something: what was asked, plus who is acting. The adapter
+ * sets `actor` from the session it trusts, after the request body, so a body can never name
+ * its own actor. Keeps every use case `(input, deps) => Promise<output>` (ADR-0001).
+ */
+export type Acting<T> = T & { actor: Actor };
+
 /** Who is acting. `system` is used only by the local seed, which has no user yet. */
 export interface Actor {
   personId: string;

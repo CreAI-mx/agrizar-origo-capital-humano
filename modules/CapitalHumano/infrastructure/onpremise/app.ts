@@ -24,6 +24,9 @@ export function buildApp(deps: Deps): FastifyInstance {
     return { personId };
   };
 
+  // The actor is written after the body: a request cannot name who it acts as.
+  const acting = (request: FastifyRequest) => ({ ...(request.body as object), actor: actorOf(request) });
+
   app.setErrorHandler((error, _request, reply) => {
     if (error instanceof DomainError) {
       return reply.status(422).send({ code: error.code, message: error.message, details: error.details });
@@ -39,8 +42,8 @@ export function buildApp(deps: Deps): FastifyInstance {
   });
 
   app.get('/api/organization', () => getOrganization(undefined, deps));
-  app.post('/api/organization/entities', (request) => saveEntities(request.body as never, actorOf(request), deps));
-  app.post('/api/organization/imports', (request) => importOrganization(request.body as never, actorOf(request), deps));
+  app.post('/api/organization/entities', (request) => saveEntities(acting(request) as never, deps));
+  app.post('/api/organization/imports', (request) => importOrganization(acting(request) as never, deps));
   app.get<{ Params: { personId: string } }>('/api/organization/access/:personId', (request) =>
     resolveAccessContext({ personId: request.params.personId }, deps),
   );

@@ -58,7 +58,11 @@ export function buildReporting(state: OrganizationState): Reporting {
     const candidate = { orgUnitId: a.orgUnitId, unitName: units.get(a.orgUnitId)?.name ?? '', id: a.id, rank, title: a.jobTitle ?? role?.name ?? null };
     const current = main.get(a.personId);
     if (!current || rank - current.rank < 0 || (rank === current.rank && (candidate.unitName.localeCompare(current.unitName, 'es') || candidate.id.localeCompare(current.id)) < 0)) main.set(a.personId, candidate);
-    if (role?.level) ladder.set(a.orgUnitId, [...(ladder.get(a.orgUnitId) ?? []), { personId: a.personId, rank }]);
+    if (role?.level) {
+      const holders = ladder.get(a.orgUnitId);
+      if (holders) holders.push({ personId: a.personId, rank });
+      else ladder.set(a.orgUnitId, [{ personId: a.personId, rank }]);
+    }
   }
   // Head of each área: the top of its ladder. Several people at that level share it; the first
   // by name stands for them and the rest are kept, so the screen can say it is not settled.
@@ -90,16 +94,19 @@ export function buildReporting(state: OrganizationState): Reporting {
     // first, or how it is called, must not decide who the boss is.
     const [lead, ...otherLeads] = [...(leadsOf.get(personId) ?? [])].sort(byName);
     if (lead) return { personId: lead, peers: otherLeads };
-    const own = main.get(personId);
+    // Someone with no role stands in the área of their equipo, below every level of the ladder.
+    const equipo = teamUnit.get(personId);
+    const own = main.get(personId) ?? (equipo && { orgUnitId: equipo.orgUnitId, rank: levelRank(null) });
+    if (!own) return null;
     // The set stops a loop in bad data; a tree of any depth is walked to its top.
     const seen = new Set<string>();
-    for (let unit = units.get(own?.orgUnitId ?? ''); unit && !seen.has(unit.id); unit = unit.parentId ? units.get(unit.parentId) : undefined) {
+    for (let unit = units.get(own.orgUnitId); unit && !seen.has(unit.id); unit = unit.parentId ? units.get(unit.parentId) : undefined) {
       seen.add(unit.id);
       const leading = head.get(unit.id);
       // On their own área a boss is above them: someone at their level, co-heads included, is
       // a peer. Further up the tree the head may hold the same level, as a Director General
       // does over a director.
-      const above = unit.id === own!.orgUnitId ? leading && leading.rank < own!.rank : leading && leading.rank <= own!.rank;
+      const above = unit.id === own.orgUnitId ? leading && leading.rank < own.rank : leading && leading.rank <= own.rank;
       if (leading && above && leading.personId !== personId) return { personId: leading.personId, peers: leading.peers.filter((peer) => peer !== personId) };
     }
     return null;

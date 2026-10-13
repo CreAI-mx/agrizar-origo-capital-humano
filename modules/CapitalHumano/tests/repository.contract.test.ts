@@ -35,6 +35,15 @@ const stores: [string, () => Promise<{ repo: OrganizationRepository; reopen?: ()
 ];
 
 describe.each(stores)('OrganizationRepository contract: %s', (_name, open) => {
+  it('lets only one of two simultaneous writes over the same version through', async () => {
+    const { repo } = await open();
+    await repo.append([row('r1', 'Supervisor', null)]);
+    const results = await Promise.allSettled([repo.append([row('r2', 'Supervisor A', 'r1')]), repo.append([row('r3', 'Supervisor B', 'r1')])]);
+    expect(results.map((r) => r.status)).toEqual(['fulfilled', 'rejected']);
+    expect((results[1] as PromiseRejectedResult).reason).toBeInstanceOf(ConflictError);
+    expect((await repo.history('role-1')).map((r) => r.rowId)).toEqual(['r1', 'r2']);
+  });
+
   it('starts empty', async () => {
     const { repo } = await open();
     expect((await repo.load()).dataAsOf).toBeNull();

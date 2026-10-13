@@ -2,10 +2,7 @@ import { ADMIN_ROLE_CODE } from '@origo/capital-humano';
 import { App as AntApp, ConfigProvider, Layout, Result, Segmented, Select, Spin, Tag } from 'antd';
 import esES from 'antd/locale/es_ES';
 import { useEffect, useState } from 'react';
-import { OrganizationPage } from './features/organizacion';
-import { setCurrentUser } from './features/organizacion/api';
-import { useAccess, useOrganization } from './features/organizacion/hooks';
-import { formatDateTime } from './features/organizacion/lib';
+import { OrganizationPage, formatDateTime, setCurrentUser, useAccess, useOrganization } from './features/organizacion';
 import { agrizarDark, agrizarLight } from './theme';
 
 type Mode = 'dark' | 'light';
