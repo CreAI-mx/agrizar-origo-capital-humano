@@ -181,7 +181,9 @@ export function PersonDrawer({ personId, org, canEdit, busy, onClose, onOpen, on
 
           <section className="ficha-section">
             <span className="eyebrow">Qué puede ver</span>
-            {!access.data ? (
+            {access.isError ? (
+              <p className="muted">No se pudo consultar qué puede ver. Cierra la ficha y vuelve a abrirla.</p>
+            ) : !access.data ? (
               <Spin size="small" />
             ) : access.data.orgUnitIds.length ? (
               <>

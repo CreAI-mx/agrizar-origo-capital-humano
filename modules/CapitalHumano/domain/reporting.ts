@@ -62,11 +62,12 @@ export function buildReporting(state: OrganizationState): Reporting {
     if (!people.has(personId)) return null;
     const lead = leadOf.get(personId);
     if (lead) return lead.personId;
-    let unit = units.get(main.get(personId)?.orgUnitId ?? '');
-    for (let depth = 0; unit && depth < 32; depth += 1) {
+    // The set stops a loop in bad data; a tree of any depth is walked to its top.
+    const seen = new Set<string>();
+    for (let unit = units.get(main.get(personId)?.orgUnitId ?? ''); unit && !seen.has(unit.id); unit = unit.parentId ? units.get(unit.parentId) : undefined) {
+      seen.add(unit.id);
       const leading = head.get(unit.id);
       if (leading && leading.personId !== personId) return leading.personId;
-      unit = unit.parentId ? units.get(unit.parentId) : undefined;
     }
     return null;
   };

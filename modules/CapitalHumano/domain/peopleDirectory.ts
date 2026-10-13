@@ -86,7 +86,12 @@ export function personRows(state: OrganizationState): PersonRow[] {
   const units = new Map(state.orgUnits.map((u) => [u.id, u]));
   const path = (orgUnitId: string): string[] => {
     const names: string[] = [];
-    for (let unit = units.get(orgUnitId), depth = 0; unit && depth < 32; unit = unit.parentId ? units.get(unit.parentId) : undefined, depth += 1) names.unshift(unit.name);
+    // The set stops a loop in bad data; a tree of any depth gives its whole path.
+    const seen = new Set<string>();
+    for (let unit = units.get(orgUnitId); unit && !seen.has(unit.id); unit = unit.parentId ? units.get(unit.parentId) : undefined) {
+      seen.add(unit.id);
+      names.unshift(unit.name);
+    }
     return names;
   };
 
@@ -145,13 +150,34 @@ function unitScope(state: OrganizationState, orgUnitId: string): Set<string> {
   return found;
 }
 
+/** Áreas each person once had a role in or an equipo of, through relationships that ended. */
+function formerUnits(state: OrganizationState): Map<string, Set<string>> {
+  const former = new Map<string, Set<string>>();
+  const add = (personId: string, orgUnitId: string) => former.set(personId, (former.get(personId) ?? new Set<string>()).add(orgUnitId));
+  for (const a of state.roleAssignments) if (a.status !== 'active') add(a.personId, a.orgUnitId);
+  const teams = new Map(state.teams.map((t) => [t.id, t]));
+  for (const m of state.teamMemberships) {
+    const team = teams.get(m.teamId);
+    if (team && (m.status !== 'active' || team.status !== 'active')) add(m.personId, team.orgUnitId);
+  }
+  return former;
+}
+
 /** One page of the directory, plus the size of each tray. */
 export function queryPeople(state: OrganizationState, input: PeopleQueryInput = {}): PeoplePage {
   const query = peopleQuerySchema.parse(input);
   let rows = personRows(state);
   if (query.orgUnitId) {
     const scope = unitScope(state, query.orgUnitId);
-    rows = rows.filter((row) => row.assignments.some((a) => scope.has(a.orgUnitId)) || row.teams.some((t) => scope.has(t.orgUnitId)));
+    const former = formerUnits(state);
+    // An active person belongs where they are now. An inactive one has no role or equipo left,
+    // so they belong where they were: otherwise the inactive tray of an área would stay empty.
+    rows = rows.filter(
+      (row) =>
+        row.assignments.some((a) => scope.has(a.orgUnitId)) ||
+        row.teams.some((t) => scope.has(t.orgUnitId)) ||
+        (row.status === 'inactive' && [...(former.get(row.id) ?? [])].some((id) => scope.has(id))),
+    );
   }
 
   const counts: PeoplePage['counts'] = { active: 0, noTeam: 0, noAccount: 0, noRole: 0, inactive: 0 };

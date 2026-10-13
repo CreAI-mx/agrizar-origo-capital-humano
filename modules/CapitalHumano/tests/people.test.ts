@@ -82,6 +82,29 @@ describe('people directory (M2-26)', () => {
     expect(tray.counts).toMatchObject({ active: 6, inactive: 1, noTeam: 4 });
   });
 
+  it('keeps a deactivated person in the área they were in', async () => {
+    const seis = person(state, 'P-0006');
+    const assignment = state.roleAssignments.find((a) => a.personId === seis.id)!;
+    await saveEntities({ changes: [{ kind: 'roleAssignment', data: { ...assignment, status: 'revoked' } }, { kind: 'person', data: { ...seis, status: 'inactive' } }] }, admin, deps);
+
+    const operaciones = await listPeople({ orgUnitId: unit(state, 'DIR-OPS').id, tray: 'inactive' }, deps);
+    expect(names(operaciones.items)).toEqual(['Seis']);
+    expect(operaciones.counts).toMatchObject({ active: 0, inactive: 1 });
+    expect((await listPeople({ orgUnitId: unit(state, 'DIR-HID').id, tray: 'inactive' }, deps)).total).toBe(0);
+  });
+
+  it('counts an active person only where they are now', async () => {
+    const tres = person(state, 'P-0003');
+    const assignment = state.roleAssignments.find((a) => a.personId === tres.id)!;
+    await saveEntities(
+      { changes: [{ kind: 'roleAssignment', data: { ...assignment, status: 'revoked' } }, { kind: 'roleAssignment', data: { personId: tres.id, roleId: assignment.roleId, orgUnitId: unit(state, 'CH-REC').id } }] },
+      admin,
+      deps,
+    );
+    expect(names((await listPeople({ orgUnitId: unit(state, 'DIR-HID').id }, deps)).items)).toEqual(['Cinco', 'Cuatro', 'Dos']);
+    expect(names((await listPeople({ orgUnitId: unit(state, 'DIR-CH').id }, deps)).items)).toEqual(['Tres']);
+  });
+
   it('refuses a page size it will not serve', async () => {
     await expect(listPeople({ pageSize: 500 }, deps)).rejects.toBeInstanceOf(ZodError);
   });
