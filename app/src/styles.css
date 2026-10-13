@@ -483,22 +483,24 @@ body {
   background: var(--crop);
   border-radius: 50%;
 }
-/* Direcciones wear the seal; what hangs from them is tinted with the same crop. */
+/* The head of a branch wears the seal, whatever its kind; what hangs from it is tinted with the same crop. */
 .org-node.has-crop:not(.is-selected, .is-lit) {
   border-color: color-mix(in srgb, var(--crop) 45%, transparent);
 }
 .org-node.has-crop:not(.is-static, .is-selected, .is-lit):hover {
   border-color: var(--crop);
 }
-.org-node.has-crop.tone-strong .org-kind {
+.org-node.has-crop.has-seal .org-kind {
   color: var(--crop);
 }
-.org-node.has-crop.tone-normal,
-.org-node.has-crop.tone-team {
+.org-node.has-crop:not(.has-seal).tone-strong,
+.org-node.has-crop:not(.has-seal).tone-normal,
+.org-node.has-crop:not(.has-seal).tone-team {
   background: color-mix(in srgb, var(--crop) 10%, var(--glass-solido));
 }
-.org-node.has-crop.tone-normal .org-people,
-.org-node.has-crop.tone-team .org-people {
+.org-node.has-crop:not(.has-seal).tone-strong .org-people,
+.org-node.has-crop:not(.has-seal).tone-normal .org-people,
+.org-node.has-crop:not(.has-seal).tone-team .org-people {
   color: var(--crop);
   background: transparent;
   border-color: color-mix(in srgb, var(--crop) 45%, transparent);

@@ -50,7 +50,7 @@ type CardNode = Node<CardData, 'card'>;
 
 function ItemCard({ data, selected }: NodeProps<CardNode>) {
   const { item } = data;
-  const classes = ['org-node', `tone-${item.tone ?? 'normal'}`, item.crop && 'has-crop', selected && 'is-selected', (data.dim || item.dim) && 'is-dim', item.lit && 'is-lit', item.inactive && 'is-inactive', item.selectable === false && 'is-static'];
+  const classes = ['org-node', `tone-${item.tone ?? 'normal'}`, item.crop && 'has-crop', item.seal && 'has-seal', selected && 'is-selected', (data.dim || item.dim) && 'is-dim', item.lit && 'is-lit', item.inactive && 'is-inactive', item.selectable === false && 'is-static'];
   return (
     <div className={classes.filter(Boolean).join(' ')} data-crop={item.crop ?? undefined}>
       <Handle type="target" position={Position.Top} id="top" />
