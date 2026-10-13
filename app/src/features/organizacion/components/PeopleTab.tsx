@@ -3,8 +3,8 @@ import { Alert, Button, Form, Input, Modal, Select, Space, Switch, Table, Tag, T
 import { useEffect, useMemo, useState } from 'react';
 import type { Change } from '../api';
 import { CropDot, cropsOf } from '../crops';
-import { usePeople, useSave } from '../hooks';
-import { unitTree } from '../lib';
+import { usePeople, useSameSnapshot, useSave } from '../hooks';
+import { formatDateTime, unitTree } from '../lib';
 import { READ_ONLY_HINT, type TabProps } from '../types';
 import { PersonAvatar } from './PersonAvatar';
 import { ALERT_LABEL, PersonDrawer, areaPath, levelLabel, titleOf } from './PersonDrawer';
@@ -68,6 +68,7 @@ export function PeopleTab({ org, canEdit, onHistory, scope, scopeId, onShowArea 
 
   const people = usePeople({ search: term, tray, roleId, teamId, orgUnitId: scopeId, includeInactive: showInactive, page, pageSize });
   const counts = people.data?.counts;
+  useSameSnapshot(org.dataAsOf, people.isPlaceholderData ? undefined : people.data?.dataAsOf, 'people');
   const crops = useMemo(() => cropsOf(org.orgUnits), [org.orgUnits]);
   const unitOptions = useMemo(() => unitTree(org.orgUnits.filter((u) => u.status === 'active')), [org.orgUnits]);
   const roleOptions = useMemo(() => org.roles.filter((r) => r.status === 'active').map((r) => ({ value: r.id, label: r.name })), [org.roles]);
@@ -149,6 +150,7 @@ export function PeopleTab({ org, canEdit, onHistory, scope, scopeId, onShowArea 
         </Tooltip>
       </div>
       {people.isError && <Alert type="error" showIcon style={{ marginBottom: 12 }} message="No se pudo cargar el directorio" description={people.error instanceof Error ? people.error.message : undefined} />}
+      {people.data?.dataAsOf && <p className="fresh directory-fresh">Dato de: {formatDateTime(people.data.dataAsOf)}</p>}
       <Table<PersonRow>
         size="small"
         rowKey="id"
@@ -192,15 +194,18 @@ export function PeopleTab({ org, canEdit, onHistory, scope, scopeId, onShowArea 
           },
           {
             title: 'Área',
-            render: (_, p) =>
-              p.assignments[0] ? (
+            render: (_, p) => {
+              // Someone with no role still belongs to the área of their equipo.
+              const place = p.assignments[0] ?? p.teams[0];
+              return place ? (
                 <>
-                  <CropDot crop={crops.get(p.assignments[0].orgUnitId)} />
-                  {areaPath(p.assignments[0].orgUnitPath)}
+                  <CropDot crop={crops.get(place.orgUnitId)} />
+                  {areaPath(place.orgUnitPath)}
                 </>
               ) : (
                 <span className="muted">—</span>
-              ),
+              );
+            },
           },
           { title: 'Nivel', render: (_, p) => (p.assignments[0] ? p.assignments[0].level ? <Tag>{levelLabel(p.assignments[0])}</Tag> : <span className="muted">Sin nivel</span> : <span className="muted">—</span>) },
           {

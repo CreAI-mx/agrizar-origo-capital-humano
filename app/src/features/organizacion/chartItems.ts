@@ -18,13 +18,16 @@ export function areaItems(org: OrganizationView, units: OrgUnit[]): ChartItem[] 
     return into;
   };
   const crops = cropsOf(org.orgUnits);
+  const names = new Map(org.people.map((p) => [p.id, p.displayName]));
+  const personName = (id: string) => names.get(id) ?? '';
   const seals = sealsOf(org.orgUnits);
   const rank = (roleId: string) => {
     const level = org.roles.find((r) => r.id === roleId)?.level;
     return level ? ROLE_LEVELS.indexOf(level) : ROLE_LEVELS.length;
   };
   return sortUnits(units).map((unit) => {
-    const head = assignments.filter((a) => a.orgUnitId === unit.id).sort((a, b) => rank(a.roleId) - rank(b.roleId))[0];
+    // Ties go by name, like the line of command (domain/reporting.ts), not by stored order.
+    const head = assignments.filter((a) => a.orgUnitId === unit.id).sort((a, b) => rank(a.roleId) - rank(b.roleId) || personName(a.personId).localeCompare(personName(b.personId), 'es'))[0];
     const people = peopleUnder(unit.id).size;
     const teams = org.teams.filter((t) => t.orgUnitId === unit.id && t.status === 'active').length;
     return {

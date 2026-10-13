@@ -41,13 +41,15 @@
           "type": "array",
           "items": {
             "type": "object",
-            "required": ["id", "membershipId", "name", "orgUnitId", "isLead", "members"],
+            "required": ["id", "membershipId", "name", "orgUnitId", "orgUnitName", "orgUnitPath", "isLead", "members"],
             "additionalProperties": false,
             "properties": {
               "id": { "type": "string" },
               "membershipId": { "type": "string", "description": "The person's membership in this equipo." },
               "name": { "type": "string" },
               "orgUnitId": { "type": "string" },
+              "orgUnitName": { "type": "string" },
+              "orgUnitPath": { "type": "array", "items": { "type": "string" }, "description": "Names from the empresa down to the equipo's área." },
               "isLead": { "type": "boolean" },
               "members": { "type": "integer", "minimum": 1 }
             }
@@ -62,13 +64,14 @@
     },
     "personRef": {
       "type": "object",
-      "required": ["id", "displayName", "title", "orgUnitId"],
+      "required": ["id", "displayName", "title", "orgUnitId", "sharedWith"],
       "additionalProperties": false,
       "properties": {
         "id": { "type": "string" },
         "displayName": { "type": "string" },
         "title": { "type": ["string", "null"], "description": "Job title of their main role, or the role's name." },
-        "orgUnitId": { "type": ["string", "null"], "description": "Área of their main role." }
+        "orgUnitId": { "type": ["string", "null"], "description": "Área of their main role." },
+        "sharedWith": { "type": "array", "items": { "type": "string" }, "description": "Names of the people who hold the same top role on the área this person heads in the chain. Not empty means the organization does not say which of them is the boss." }
       }
     },
     "peoplePage": {

@@ -3,8 +3,8 @@ import { ROLE_LEVELS } from '@origo/capital-humano';
 import { Alert, Button, Drawer, Popconfirm, Space, Spin, Tag, Tooltip } from 'antd';
 import { useMemo } from 'react';
 import { CropDot, cropsOf } from '../crops';
-import { useAccess, usePerson } from '../hooks';
-import { count } from '../lib';
+import { useAccess, usePerson, useSameSnapshot } from '../hooks';
+import { count, formatDateTime } from '../lib';
 import { READ_ONLY_HINT } from '../types';
 import { PersonAvatar } from './PersonAvatar';
 
@@ -43,6 +43,7 @@ export function PersonDrawer({ personId, org, canEdit, busy, onClose, onOpen, on
   const access = useAccess(personId ?? undefined);
   const crops = useMemo(() => cropsOf(org.orgUnits), [org.orgUnits]);
   const data = profile.data?.person.id === personId ? profile.data : undefined;
+  useSameSnapshot(org.dataAsOf, data?.dataAsOf, 'person');
   const person = data?.person;
   const main = person?.assignments[0];
 
@@ -51,6 +52,7 @@ export function PersonDrawer({ personId, org, canEdit, busy, onClose, onOpen, on
       <PersonAvatar name={ref.displayName} crop={ref.orgUnitId ? crops.get(ref.orgUnitId) : undefined} size={28} />
       <span>
         {ref.displayName} {ref.title && <span className="muted">· {ref.title}</span>}
+        {ref.sharedWith.length > 0 && <span className="chain-shared">Comparte ese nivel con {ref.sharedWith.join(', ')}: la organización no dice a quién de ellos reporta.</span>}
       </span>
     </button>
   );
@@ -170,7 +172,9 @@ export function PersonDrawer({ personId, org, canEdit, busy, onClose, onOpen, on
                 {person.teams.map((team) => (
                   <li key={team.id}>
                     <strong>{team.name}</strong> {team.isLead && <Tag color="processing">Líder</Tag>}
-                    <div className="muted">{count(team.members, 'integrante', 'integrantes')}</div>
+                    <div className="muted">
+                      {count(team.members, 'integrante', 'integrantes')} · {team.orgUnitName}
+                    </div>
                   </li>
                 ))}
               </ul>
@@ -196,6 +200,7 @@ export function PersonDrawer({ personId, org, canEdit, busy, onClose, onOpen, on
               <p className="muted">Ninguna área: no tiene un rol activo.</p>
             )}
           </section>
+          {data.dataAsOf && <p className="fresh">Dato de: {formatDateTime(data.dataAsOf)}</p>}
         </div>
       )}
     </Drawer>

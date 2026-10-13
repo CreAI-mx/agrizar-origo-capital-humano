@@ -58,7 +58,7 @@ export interface PersonRow {
     orgUnitPath: string[];
     jobTitle: string | null;
   }[];
-  teams: { id: string; membershipId: string; name: string; orgUnitId: string; isLead: boolean; members: number }[];
+  teams: { id: string; membershipId: string; name: string; orgUnitId: string; orgUnitName: string; orgUnitPath: string[]; isLead: boolean; members: number }[];
   alerts: PeopleAlert[];
 }
 
@@ -118,12 +118,13 @@ export function personRows(state: OrganizationState): PersonRow[] {
   const teams = new Map<string, PersonRow['teams']>();
   for (const m of memberships) {
     const team = activeTeams.get(m.teamId)!;
-    push(teams, m.personId, { id: team.id, membershipId: m.id, name: team.name, orgUnitId: team.orgUnitId, isLead: team.leadPersonId === m.personId, members: members.get(team.id) ?? 0 });
+    push(teams, m.personId, { id: team.id, membershipId: m.id, name: team.name, orgUnitId: team.orgUnitId, orgUnitName: units.get(team.orgUnitId)?.name ?? '', orgUnitPath: path(team.orgUnitId), isLead: team.leadPersonId === m.personId, members: members.get(team.id) ?? 0 });
   }
 
   return state.people.map((person) => {
-    const own = [...(assignments.get(person.id) ?? [])].sort((a, b) => levelRank(a.level) - levelRank(b.level));
-    const inTeams = [...(teams.get(person.id) ?? [])].sort((a, b) => a.name.localeCompare(b.name, 'es'));
+    // Ties never fall to the order rows were stored in: the first one is the person's main role and equipo.
+    const own = [...(assignments.get(person.id) ?? [])].sort((a, b) => levelRank(a.level) - levelRank(b.level) || a.orgUnitName.localeCompare(b.orgUnitName, 'es') || a.id.localeCompare(b.id));
+    const inTeams = [...(teams.get(person.id) ?? [])].sort((a, b) => a.name.localeCompare(b.name, 'es') || a.id.localeCompare(b.id));
     const alerts: PeopleAlert[] = [];
     if (person.status === 'active') {
       if (!inTeams.length) alerts.push('noTeam');

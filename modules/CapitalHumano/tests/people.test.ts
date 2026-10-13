@@ -105,6 +105,14 @@ describe('people directory (M2-26)', () => {
     expect(names((await listPeople({ orgUnitId: unit(state, 'DIR-CH').id }, deps)).items)).toEqual(['Tres']);
   });
 
+  it('places someone with no role in the área of their equipo', async () => {
+    const siete = person(state, 'P-0007');
+    await saveEntities({ changes: [{ kind: 'teamMembership', data: { teamId: state.teams.find((t) => t.code === 'CUADRILLA-A')!.id, personId: siete.id } }] }, admin, deps);
+    const row = (await listPeople({ orgUnitId: unit(state, 'DIR-HID').id, tray: 'noRole' }, deps)).items[0]!;
+    expect(row.displayName).toBe('Persona Prueba Siete');
+    expect(row.teams[0]).toMatchObject({ orgUnitName: 'Operación Hidroponía AGZ 1', orgUnitPath: ['Agrizar (datos de prueba)', 'Hidroponía', 'Operación Hidroponía AGZ 1'] });
+  });
+
   it('refuses a page size it will not serve', async () => {
     await expect(listPeople({ pageSize: 500 }, deps)).rejects.toBeInstanceOf(ZodError);
   });
@@ -131,6 +139,21 @@ describe('person profile and line of command (M2-27)', () => {
     expect((await profile('P-0006')).chain).toEqual([]);
     expect((await profile('P-0007')).chain).toEqual([]);
     expect((await profile('P-0002')).chain).toEqual([]);
+  });
+
+  it('does not pick a boss between two people who share the top of an área', async () => {
+    // Siete becomes a second Gerente of AGZ 1, stored after Tres.
+    const siete = person(state, 'P-0007');
+    await saveEntities({ changes: [{ kind: 'roleAssignment', data: { personId: siete.id, roleId: role(state, 'gerente').id, orgUnitId: unit(state, 'HID-AGZ1').id } }] }, admin, deps);
+
+    const cuatro = await profile('P-0004');
+    // The first by name stands in the chain, whatever the stored order, and the other is named.
+    expect(names(cuatro.chain)).toEqual(['Dos', 'Siete']);
+    expect(cuatro.chain[1]!.sharedWith).toEqual(['Persona Prueba Tres']);
+    // Neither of the two answers to the other: both answer to the director above.
+    expect(names((await profile('P-0003')).chain)).toEqual(['Dos']);
+    expect(names((await profile('P-0007')).chain)).toEqual(['Dos']);
+    expect(names((await profile('P-0002')).reports)).toEqual(['Siete', 'Tres']);
   });
 
   it('stops when two people lead an equipo the other belongs to', async () => {

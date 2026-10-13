@@ -718,3 +718,12 @@ button.chain-row:focus-visible {
   gap: 2px;
   padding: 6px 0 0 16px;
 }
+.chain-shared {
+  display: block;
+  font-size: 0.76rem;
+  color: var(--alerta);
+}
+.directory-fresh {
+  margin: 0 0 8px;
+  text-align: right;
+}
