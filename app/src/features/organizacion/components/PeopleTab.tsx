@@ -33,11 +33,11 @@ const TRAYS: { key: PeopleTray; label: string; hint: string }[] = [
 const PAGE_SIZES = [25, 50, 100];
 
 /** Spec M2-26: the directory asks the API for one page at a time, already searched and filtered. */
-export function PeopleTab({ org, canEdit, onHistory, scope, scopeId, onShowArea }: TabProps) {
+export function PeopleTab({ org, canEdit, onHistory, scope, scopeId, onShowArea, focusRoleId }: TabProps) {
   const [search, setSearch] = useState('');
   const [term, setTerm] = useState('');
   const [tray, setTray] = useState<PeopleTray | null>(null);
-  const [roleId, setRoleId] = useState<string | null>(null);
+  const [roleId, setRoleId] = useState<string | null>(focusRoleId);
   const [teamId, setTeamId] = useState<string | null>(null);
   const [showInactive, setShowInactive] = useState(false);
   const [page, setPage] = useState(1);

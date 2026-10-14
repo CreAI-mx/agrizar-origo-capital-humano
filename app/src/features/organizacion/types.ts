@@ -16,6 +16,10 @@ export interface TabProps {
   onShowArea: (orgUnitId: string) => void;
   /** The área the Áreas diagram should open on, when another screen asked for it. */
   focusAreaId: string | null;
+  /** Opens Personas on the people who hold a role in an área. */
+  onShowPeople: (roleId: string, orgUnitId: string) => void;
+  /** The role Personas should open filtered by, when another screen asked for it. */
+  focusRoleId: string | null;
 }
 
 export const READ_ONLY_HINT = 'Solo un Administrador de Origo puede cambiar la organización';

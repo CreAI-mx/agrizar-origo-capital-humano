@@ -29,7 +29,14 @@ export function OrganizationPage({ org, canEdit, mode }: { org: OrganizationView
     setFocusAreaId(orgUnitId);
     setTab('areas');
   };
-  const props: TabProps = { org, canEdit, mode, scope, scopeId: scopeUnit?.id ?? null, onScope: setScopeId, onShowArea: showArea, focusAreaId, onHistory: (entityId, title) => setHistory({ entityId, title }) };
+  const [focusRoleId, setFocusRoleId] = useState<string | null>(null);
+  // From a cell of the roles matrix to the people in it.
+  const showPeople = (roleId: string, orgUnitId: string) => {
+    setScopeId(orgUnitId);
+    setFocusRoleId(roleId);
+    setTab('personas');
+  };
+  const props: TabProps = { org, canEdit, mode, scope, scopeId: scopeUnit?.id ?? null, onScope: setScopeId, onShowArea: showArea, focusAreaId, onShowPeople: showPeople, focusRoleId, onHistory: (entityId, title) => setHistory({ entityId, title }) };
 
   const active = <T extends { status: string }>(items: T[]) => items.filter((item) => item.status === 'active');
   const counts = {
@@ -65,6 +72,7 @@ export function OrganizationPage({ org, canEdit, mode }: { org: OrganizationView
         onChange={(key) => {
           setTab(key);
           setFocusAreaId(null);
+          setFocusRoleId(null);
         }}
         items={[
           { key: 'areas', label: `Áreas (${counts.areas})`, children: <AreasTab {...props} /> },
