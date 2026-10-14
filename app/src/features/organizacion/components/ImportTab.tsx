@@ -127,7 +127,7 @@ function impactOf(units: OrgUnit[], items: ImportItem[]): Impact[] {
     } else if (item.entity === 'team') row.teams[slot] += 1;
     else if (item.entity === 'role') row.roles[slot] += 1;
     else if (item.entity === 'person') row.records[slot] += 1;
-    else if (item.personKey) row.people[slot].add(item.personKey);
+    else if (item.personId) row.people[slot].add(item.personId);
     tally.set(code, row);
   }
   const part = ([created, changed]: [number, number], one: string, many: string, verb: [string, string]) => [

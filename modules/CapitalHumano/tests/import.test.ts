@@ -32,7 +32,8 @@ describe('bulk load (GRZR-31 AC2)', () => {
 
   it('says where each row lands and why a rejected one was (M2-28)', async () => {
     const deps = await seededDeps();
-    const admin = { personId: person((await deps.repo.load()).state, 'P-0001').id };
+    const state = (await deps.repo.load()).state;
+    const admin = { personId: person(state, 'P-0001').id };
     const areas = ['codigo,nombre,tipo,area_superior', 'HID-PROP,Propagación,area,DIR-HID', 'X-1,Sin padre,area,NADA'].join('\n');
     const personas = ['numero_empleado,nombre,rol,area,puesto,equipo', 'P-0004,Persona Prueba Cuatro,supervisor,HID-PROP,,', 'P-0005,Persona Prueba Cinco,no-existe,HID-AGZ1,,'].join('\n');
     const { items } = await importOrganization({ mode: 'preview', files: [{ name: 'areas.csv', text: areas }, { name: 'personas.csv', text: personas }], actor: admin }, deps);
@@ -41,9 +42,20 @@ describe('bulk load (GRZR-31 AC2)', () => {
     // A new área names its parent, so the screen can place it in a branch before it exists.
     expect(find('HID-PROP')).toMatchObject({ entity: 'orgUnit', action: 'create', orgUnitCode: 'HID-PROP', parentCode: 'DIR-HID', cause: null });
     expect(find('X-1')).toMatchObject({ entity: 'orgUnit', action: 'error', cause: 'parentMissing' });
-    expect(find('P-0004')).toMatchObject({ entity: 'person', orgUnitCode: null, personKey: null });
-    expect(find('P-0004 · supervisor en HID-PROP')).toMatchObject({ entity: 'roleAssignment', action: 'create', orgUnitCode: 'HID-PROP', personKey: 'P-0004' });
-    expect(find('P-0005 · no-existe en HID-AGZ1')).toMatchObject({ entity: 'roleAssignment', action: 'error', cause: 'roleMissing', personKey: 'P-0005' });
+    expect(find('P-0004')).toMatchObject({ entity: 'person', orgUnitCode: null, personId: null });
+    expect(find('P-0004 · supervisor en HID-PROP')).toMatchObject({ entity: 'roleAssignment', action: 'create', orgUnitCode: 'HID-PROP', personId: person(state, 'P-0004').id });
+    expect(find('P-0005 · no-existe en HID-AGZ1')).toMatchObject({ entity: 'roleAssignment', action: 'error', cause: 'roleMissing', personId: person(state, 'P-0005').id });
+  });
+
+  it('names one person once, whichever identifiers their rows use (M2-28)', async () => {
+    const deps = await seededDeps();
+    const state = (await deps.repo.load()).state;
+    const admin = person(state, 'P-0001');
+    const personas = ['cuenta,numero_empleado,nombre,rol,area,puesto,equipo', 'admin.demo@origo.test,P-0001,Administrador Demo,supervisor,HID-AGZ1,,', ',P-0001,Administrador Demo,supervisor,HID-AGZ2,,'].join('\n');
+    const { items } = await importOrganization({ mode: 'preview', files: [{ name: 'personas.csv', text: personas }], actor: { personId: admin.id } }, deps);
+    const given = items.filter((item) => item.entity === 'roleAssignment');
+    expect(given.map((item) => item.action)).toEqual(['create', 'create']);
+    expect(new Set(given.map((item) => item.personId))).toEqual(new Set([admin.id]));
   });
 
   it('previews without writing: what is created, changed and rejected (M2-18)', async () => {
