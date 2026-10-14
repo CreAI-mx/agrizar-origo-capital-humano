@@ -81,6 +81,12 @@ interface Impact {
   keys: string[];
 }
 
+/** People whose roles or equipos only change, leaving out those already counted with a new one. */
+const peopleChanged = ([added, changed]: [Set<string>, Set<string>]) => {
+  const only = [...changed].filter((key) => !added.has(key)).length;
+  return only ? [`${count(only, 'persona', 'personas')} con rol o equipo que cambia`] : [];
+};
+
 /** What a load changes in each branch of the organization, from the rows that would be saved. */
 function impactOf(units: OrgUnit[], items: ImportItem[]): Impact[] {
   const byCode = new Map(units.map((u) => [normalize(u.code), u]));
@@ -108,12 +114,12 @@ function impactOf(units: OrgUnit[], items: ImportItem[]): Impact[] {
     return null;
   };
 
-  const tally = new Map<string, { unit: OrgUnit | null; code: string; areas: [number, number]; teams: [number, number]; roles: [number, number]; records: [number, number]; people: Set<string>; keys: string[] }>();
+  const tally = new Map<string, { unit: OrgUnit | null; code: string; areas: [number, number]; teams: [number, number]; roles: [number, number]; records: [number, number]; people: [Set<string>, Set<string>]; keys: string[] }>();
   for (const item of items) {
     if (item.action !== 'create' && item.action !== 'change') continue;
     const code = branchOfCode(item.orgUnitCode) ?? '';
     const unit = byCode.get(code) ?? null;
-    const row = tally.get(code) ?? { unit, code, areas: [0, 0], teams: [0, 0], roles: [0, 0], records: [0, 0], people: new Set<string>(), keys: [] };
+    const row = tally.get(code) ?? { unit, code, areas: [0, 0], teams: [0, 0], roles: [0, 0], records: [0, 0], people: [new Set<string>(), new Set<string>()], keys: [] };
     const slot = item.action === 'create' ? 0 : 1;
     if (item.entity === 'orgUnit') {
       row.areas[slot] += 1;
@@ -121,7 +127,7 @@ function impactOf(units: OrgUnit[], items: ImportItem[]): Impact[] {
     } else if (item.entity === 'team') row.teams[slot] += 1;
     else if (item.entity === 'role') row.roles[slot] += 1;
     else if (item.entity === 'person') row.records[slot] += 1;
-    else if (item.personKey) row.people.add(item.personKey);
+    else if (item.personKey) row.people[slot].add(item.personKey);
     tally.set(code, row);
   }
   const part = ([created, changed]: [number, number], one: string, many: string, verb: [string, string]) => [
@@ -140,7 +146,9 @@ function impactOf(units: OrgUnit[], items: ImportItem[]): Impact[] {
         ...part(teams, 'equipo', 'equipos', ['cambia', 'cambian']),
         ...part(roles, 'rol', 'roles', ['cambia', 'cambian']),
         ...part(records, 'persona', 'personas', ['cambia de datos', 'cambian de datos']),
-        ...(people.size ? [`${count(people.size, 'persona', 'personas')} con rol o equipo nuevo`] : []),
+        // A role or equipo that only changes (a new puesto, say) is not a new one.
+        ...(people[0].size ? [`${count(people[0].size, 'persona', 'personas')} con rol o equipo nuevo`] : []),
+        ...peopleChanged(people),
       ],
       keys,
     }))
@@ -211,7 +219,13 @@ export function ImportTab({ org, canEdit, onShowArea }: TabProps) {
   const impact = useMemo(() => (result ? impactOf(org.orgUnits, result.items) : []), [org.orgUnits, result]);
   const errors = useMemo(() => {
     const groups = new Map<ImportCause, ImportItem[]>();
-    for (const item of result?.items ?? []) if (item.action === 'error') groups.set(item.cause ?? 'rule', [...(groups.get(item.cause ?? 'rule') ?? []), item]);
+    for (const item of result?.items ?? []) {
+      if (item.action !== 'error') continue;
+      const cause = item.cause ?? 'rule';
+      const group = groups.get(cause);
+      if (group) group.push(item);
+      else groups.set(cause, [item]);
+    }
     return [...groups].sort((a, b) => b[1].length - a[1].length);
   }, [result]);
   const rows = useMemo(() => (result?.items ?? []).filter((item) => !only || item.action === only).sort((a, b) => Number(b.action === 'error') - Number(a.action === 'error')), [result, only]);
