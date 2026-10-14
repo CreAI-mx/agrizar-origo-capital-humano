@@ -89,6 +89,18 @@ solid seal on the dirección and as a tint on everything below it.**
 | Zarzamora | `#A283EA` | `#55409A` |
 | Arándano | `#6C9BF2` | `#2C55A6` |
 
+## Extension, 2026-10-13: the load told as a crop cycle
+
+The bulk load (spec M2-28) uses the same glyph family for its three steps:
+a seed for choosing the files (Siembra), a sprout for the review (Brote) and a
+fruit for the applied load (Cosecha). Their colors follow the state of the step
+(current, done, to come), never a crop, so they do not compete with the branch
+identity above. In the review, each dirección a load touches appears with its
+crop seal and tint.
+
+The four files (áreas, roles, equipos, personas) deliberately carry no crop:
+a crop means "this branch", and reusing it for a kind of file would blur that.
+
 ## Consequences
 
 **Gained**

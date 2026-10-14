@@ -35,7 +35,7 @@ Window: built in DEV during S2–S3 (12 to 23 Oct 2026). Validation with users
 | Jira acceptance criterion | Met by |
 |---|---|
 | AC1 · Áreas, roles y equipos reales (S2) | M2-01 to M2-08, M2-20 |
-| AC2 · Carga y mantenimiento en Back Office (S2–S3) | M2-10 to M2-19, M2-24 to M2-27 |
+| AC2 · Carga y mantenimiento en Back Office (S2–S3) | M2-10 to M2-19, M2-24 to M2-28 |
 | AC3 · Demo interna en DEV con datos de prueba, de punta a punta, lista para STAGE en S4 | M2-20 to M2-23, §1.5 demo script |
 | DoD · Tests automatizados que cubren los ACs | §1.6 |
 
@@ -103,6 +103,7 @@ Demo readiness (AC3)
 | M2-25 | Crop identity: each branch under the empresa carries one of the six crops Agrizar grows, as a solid seal on the dirección and a tint on its áreas, subáreas and equipos, in the diagrams, the lists and the área filter, with a legend. Presentation only; the crop is derived, not stored. Source: story owner decision, 13 Oct 2026 (`docs/adr/ADR-0002-crop-identity.md`) |
 | M2-26 | People directory that scales: the Personas screen asks the API for one page at a time, already searched and filtered there by name, job title, account, employee number, role, equipo and área. Four trays count what needs attention within the chosen área and filter on click: people with no equipo, no account, no role, and inactive people. The API serves pages of 1 to 100 people; the screen offers 25, 50 and 100. An active person belongs to the áreas of their current roles and equipos; an inactive one, who has none left, to the áreas they were in. Source: story owner request for something maintainable with thousands of people, 13 Oct 2026 |
 | M2-27 | Person profile: opening a person shows their roles with the área path, their equipos, what their roles let them see (M2-09) and their line of command, with links to each person in it and to their área in the diagram. `ASSUMPTION:` the line of command is inferred, not captured: a person answers to the lead of their equipo (when they are in several equipos with different leads, the first lead by name stands and the others are named as unsettled), otherwise to whoever holds the highest ladder role on their área, as long as it is above their own, or on the nearest área above, where it may also be the same level (a Director General over a director). When several people share that top role, the first by name stands in the chain and the screen names the others and says the organization does not settle it; the people under them show as reports of each one, naming the others. Someone with no role stands in the área of their equipo, below every ladder level. The screen says the whole chain is inferred (Q-6) |
+| M2-28 | Guided load: three steps (choose the files, review, applied). One slot per file in the order the load needs them (áreas, roles, equipos, personas), each showing the file, its rows and a template to download; a file dropped on a slot belongs to it whatever its name. The review shows the totals, what changes in each dirección with its crop seal, and the rejected rows grouped by cause with how to fix each, which can be downloaded; the full list of rows stays one click away. Each previewed row says what it creates or changes, the área it lands in and, when rejected, why. Source: story owner decision on the design proposals K1 and K2, 13 Oct 2026 |
 
 ### 1.4 Out of scope for GRZR-31
 

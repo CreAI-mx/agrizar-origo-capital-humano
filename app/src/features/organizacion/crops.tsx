@@ -24,7 +24,7 @@ const branches = (units: OrgUnit[]) => {
 };
 
 /** The branch each área hangs from; the empresa and anything detached from it have none. */
-function branchOf(units: OrgUnit[]): Map<string, string> {
+export function branchOf(units: OrgUnit[]): Map<string, string> {
   const byId = new Map(units.map((u) => [u.id, u]));
   const heads = new Set(branches(units).map((u) => u.id));
   const found = new Map<string, string>();
@@ -82,7 +82,16 @@ export function cropLegend(units: OrgUnit[], shownIds: Iterable<string>): CropLe
     .map((unit) => ({ id: unit.id, crop: crops.get(unit.id)!, label: unit.name }));
 }
 
-const GLYPH: Record<Crop | 'brote', ReactNode> = {
+/** Steps of a load, told as the life of a crop: what is sown, what sprouts, what is harvested. */
+export type Stage = 'semilla' | 'brote' | 'fruto';
+
+const GLYPH: Record<Crop | 'brote' | 'semilla', ReactNode> = {
+  semilla: (
+    <>
+      <path d="M12 4c4 3 6 6.5 6 10a6 6 0 0 1-12 0c0-3.5 2-7 6-10z" />
+      <path d="M12 10v8" />
+    </>
+  ),
   pimiento: (
     <>
       <path d="M12 7c-1.2-1.3-3.6-1.5-5 .1C5.4 8.9 5.6 12 6.3 14.8c.6 2.4 1.6 4.7 3.4 4.7 1 0 1.5-.6 2.3-.6s1.3.6 2.3.6c1.8 0 2.8-2.3 3.4-4.7.7-2.8.9-5.9-.7-7.7-1.4-1.6-3.8-1.4-5-.1z" />
@@ -143,6 +152,15 @@ export function CropSeal({ crop, size = 44 }: { crop: Crop | 'brote'; size?: num
   return (
     <svg className="crop-seal" data-crop={crop} width={size} height={size} viewBox="-7 -7 38 38" aria-hidden="true">
       {GLYPH[crop]}
+    </svg>
+  );
+}
+
+/** A step of a load as a seal. Its colors follow the state of the step, not a crop. */
+export function StageSeal({ stage, size = 40 }: { stage: Stage; size?: number }) {
+  return (
+    <svg className="stage-seal" width={size} height={size} viewBox="-7 -7 38 38" aria-hidden="true">
+      {GLYPH[stage === 'fruto' ? 'tomate' : stage]}
     </svg>
   );
 }

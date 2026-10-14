@@ -64,12 +64,29 @@ export type ImportPayload = z.infer<typeof importPayloadSchema>;
 
 export type ImportSheet = 'areas' | 'roles' | 'equipos' | 'personas';
 export type ImportAction = 'create' | 'change' | 'unchanged' | 'error';
-export interface ImportItem {
+/** Why a row was rejected, so the preview can group rejections and say how to fix each kind. */
+export const IMPORT_CAUSES = ['duplicate', 'parentMissing', 'parentFailed', 'areaMissing', 'roleMissing', 'teamMissing', 'identifierMissing', 'leadMissing', 'leadNotMember', 'rule'] as const;
+export type ImportCause = (typeof IMPORT_CAUSES)[number];
+
+/** Where a row lands in the organization (spec M2-28). */
+interface Landing {
+  /** Código of the área the row belongs to; null for a role and for a person's own record. */
+  orgUnitCode: string | null;
+  /** For an área: the código of its área superior in the file. */
+  parentCode: string | null;
+  /** For a role or an equipo given to a person: who, by account or employee number. */
+  personKey: string | null;
+}
+export interface ImportItem extends Landing {
   sheet: ImportSheet;
   row: number;
   key: string;
   action: ImportAction;
   message?: string;
+  /** What the row creates or changes. */
+  entity: EntityKind;
+  /** Set on a rejected row; 'rule' when a rule of the organization refused it. */
+  cause: ImportCause | null;
 }
 export interface PlannedChange {
   kind: EntityKind;
@@ -89,6 +106,8 @@ export function planImport(current: OrganizationState, payload: ImportPayload, n
   const changes: PlannedChange[] = [];
   const items: ImportItem[] = [];
 
+  const landing = (at: Partial<Landing>): Landing => ({ orgUnitCode: at.orgUnitCode ?? null, parentCode: at.parentCode ?? null, personKey: at.personKey ?? null });
+
   /** Creates or replaces one record, or reports why the row cannot be loaded. */
   function upsert<K extends EntityKind>(
     sheet: ImportSheet,
@@ -97,16 +116,18 @@ export function planImport(current: OrganizationState, payload: ImportPayload, n
     kind: K,
     existing: EntityByKind[K] | undefined,
     fields: Record<string, unknown>,
+    at: Partial<Landing> = {},
   ): EntityByKind[K] | undefined {
+    const where = { entity: kind, ...landing(at) };
     try {
       const entity = entitySchemas[kind].parse({ ...(existing ?? { id: newId() }), ...fields }) as EntityByKind[K];
       if (existing && same(existing, entity)) {
-        items.push({ sheet, row, key, action: 'unchanged' });
+        items.push({ sheet, row, key, action: 'unchanged', ...where, cause: null });
         return existing;
       }
       state = applyChange(state, kind, entity);
       changes.push({ kind, entity, sourceRef: `${sheet}:${row}` });
-      items.push({ sheet, row, key, action: existing ? 'change' : 'create' });
+      items.push({ sheet, row, key, action: existing ? 'change' : 'create', ...where, cause: null });
       return entity;
     } catch (error) {
       const message =
@@ -115,17 +136,17 @@ export function planImport(current: OrganizationState, payload: ImportPayload, n
           : error instanceof z.ZodError
             ? error.issues.map((issue) => issue.message).join('; ')
             : String(error);
-      items.push({ sheet, row, key, action: 'error', message });
+      items.push({ sheet, row, key, action: 'error', message, ...where, cause: 'rule' });
       return undefined;
     }
   }
-  const reject = (sheet: ImportSheet, row: number, key: string, message: string) =>
-    items.push({ sheet, row, key, action: 'error', message });
+  const reject = (sheet: ImportSheet, row: number, key: string, message: string, cause: ImportCause, entity: EntityKind, at: Partial<Landing> = {}) =>
+    items.push({ sheet, row, key, action: 'error', message, entity, ...landing(at), cause });
   const unitByCode = (code: string) => state.orgUnits.find((u) => normalize(u.code) === normalize(code));
 
   const seenRoles = new Set<string>();
   payload.roles.forEach((row, index) => {
-    if (seenRoles.has(normalize(row.code))) return reject('roles', index + 1, row.code, `El código ${row.code} está repetido en el archivo.`);
+    if (seenRoles.has(normalize(row.code))) return reject('roles', index + 1, row.code, `El código ${row.code} está repetido en el archivo.`, 'duplicate', 'role');
     seenRoles.add(normalize(row.code));
     const existing = state.roles.find((r) => normalize(r.code) === normalize(row.code));
     upsert('roles', index + 1, row.code, 'role', existing, {
@@ -145,7 +166,7 @@ export function planImport(current: OrganizationState, payload: ImportPayload, n
   pending = pending.filter(({ row, line }) => {
     const code = normalize(row.code);
     if (seenCodes.has(code)) {
-      reject('areas', line, row.code, `El código ${row.code} está repetido en el archivo.`);
+      reject('areas', line, row.code, `El código ${row.code} está repetido en el archivo.`, 'duplicate', 'orgUnit', { orgUnitCode: row.code, parentCode: row.parentCode ?? null });
       return false;
     }
     seenCodes.add(code);
@@ -164,7 +185,7 @@ export function planImport(current: OrganizationState, payload: ImportPayload, n
       }
       progressed = true;
       if (row.parentCode && !parent) {
-        reject('areas', line, row.code, `No existe el área superior ${row.parentCode}.`);
+        reject('areas', line, row.code, `No existe el área superior ${row.parentCode}.`, 'parentMissing', 'orgUnit', { orgUnitCode: row.code, parentCode: row.parentCode ?? null });
         continue;
       }
       upsert('areas', line, row.code, 'orgUnit', unitByCode(row.code), {
@@ -173,22 +194,22 @@ export function planImport(current: OrganizationState, payload: ImportPayload, n
         kind: row.kind,
         parentId: parent?.id ?? null,
         status: 'active',
-      });
+      }, { orgUnitCode: row.code, parentCode: row.parentCode ?? null });
     }
     if (!progressed) {
-      for (const { row, line } of waiting) reject('areas', line, row.code, `Su área superior ${row.parentCode} no se pudo cargar.`);
+      for (const { row, line } of waiting) reject('areas', line, row.code, `Su área superior ${row.parentCode} no se pudo cargar.`, 'parentFailed', 'orgUnit', { orgUnitCode: row.code, parentCode: row.parentCode ?? null });
     }
     pending = waiting;
   }
 
   const seenTeams = new Set<string>();
-  const teamRows: { team: Team; line: number; key: string; leadKey: string | null }[] = [];
+  const teamRows: { team: Team; line: number; key: string; leadKey: string | null; orgUnitCode: string }[] = [];
   payload.teams.forEach((row, index) => {
     const unit = unitByCode(row.orgUnitCode);
     const key = `${row.orgUnitCode}/${row.code}`;
-    if (!unit) return reject('equipos', index + 1, key, `No existe el área ${row.orgUnitCode}.`);
+    if (!unit) return reject('equipos', index + 1, key, `No existe el área ${row.orgUnitCode}.`, 'areaMissing', 'team', { orgUnitCode: row.orgUnitCode });
     const rowKey = `${unit.id}/${normalize(row.code)}`;
-    if (seenTeams.has(rowKey)) return reject('equipos', index + 1, key, `El equipo ${key} está repetido en el archivo.`);
+    if (seenTeams.has(rowKey)) return reject('equipos', index + 1, key, `El equipo ${key} está repetido en el archivo.`, 'duplicate', 'team', { orgUnitCode: row.orgUnitCode });
     seenTeams.add(rowKey);
     const existing = state.teams.find((t) => t.orgUnitId === unit.id && normalize(t.code) === normalize(row.code));
     const team = upsert('equipos', index + 1, key, 'team', existing, {
@@ -196,15 +217,15 @@ export function planImport(current: OrganizationState, payload: ImportPayload, n
       code: row.code,
       name: row.name,
       status: 'active',
-    });
-    if (team) teamRows.push({ team, line: index + 1, key, leadKey: row.leadKey });
+    }, { orgUnitCode: row.orgUnitCode });
+    if (team) teamRows.push({ team, line: index + 1, key, leadKey: row.leadKey, orgUnitCode: row.orgUnitCode });
   });
 
   const personIdByKey = new Map<string, string>();
   payload.people.forEach((row, index) => {
     const line = row.row ?? index + 1;
     const key = row.account ?? row.employeeNumber;
-    if (!key) return reject('personas', line, row.displayName, 'Falta la cuenta o el número de empleado.');
+    if (!key) return reject('personas', line, row.displayName, 'Falta la cuenta o el número de empleado.', 'identifierMissing', 'person');
     const existing = state.people.find(
       (p) =>
         (row.account && p.account && normalize(p.account) === normalize(row.account)) ||
@@ -224,8 +245,8 @@ export function planImport(current: OrganizationState, payload: ImportPayload, n
       const role = state.roles.find((r) => normalize(r.code) === normalize(item.roleCode));
       const unit = unitByCode(item.orgUnitCode);
       const itemLine = item.row ?? line;
-      if (!role) reject('personas', itemLine, label, `No existe el rol ${item.roleCode}.`);
-      else if (!unit) reject('personas', itemLine, label, `No existe el área ${item.orgUnitCode}.`);
+      if (!role) reject('personas', itemLine, label, `No existe el rol ${item.roleCode}.`, 'roleMissing', 'roleAssignment', { orgUnitCode: item.orgUnitCode, personKey: key });
+      else if (!unit) reject('personas', itemLine, label, `No existe el área ${item.orgUnitCode}.`, 'areaMissing', 'roleAssignment', { orgUnitCode: item.orgUnitCode, personKey: key });
       else {
         const held = state.roleAssignments.find(
           (a) => a.status === 'active' && a.personId === person.id && a.roleId === role.id && a.orgUnitId === unit.id,
@@ -236,7 +257,7 @@ export function planImport(current: OrganizationState, payload: ImportPayload, n
           orgUnitId: unit.id,
           jobTitle: item.jobTitle,
           status: 'active',
-        });
+        }, { orgUnitCode: item.orgUnitCode, personKey: key });
       }
     }
     for (const item of row.teams) {
@@ -244,30 +265,30 @@ export function planImport(current: OrganizationState, payload: ImportPayload, n
       const unit = unitByCode(item.orgUnitCode);
       const team = unit && state.teams.find((t) => t.orgUnitId === unit.id && normalize(t.code) === normalize(item.teamCode));
       const itemLine = item.row ?? line;
-      if (!team) reject('personas', itemLine, label, `No existe el equipo ${item.orgUnitCode}/${item.teamCode}.`);
+      if (!team) reject('personas', itemLine, label, `No existe el equipo ${item.orgUnitCode}/${item.teamCode}.`, 'teamMissing', 'teamMembership', { orgUnitCode: item.orgUnitCode, personKey: key });
       else {
         const joined = state.teamMemberships.find((m) => m.status === 'active' && m.teamId === team.id && m.personId === person.id);
-        upsert('personas', itemLine, label, 'teamMembership', joined, { teamId: team.id, personId: person.id, status: 'active' });
+        upsert('personas', itemLine, label, 'teamMembership', joined, { teamId: team.id, personId: person.id, status: 'active' }, { orgUnitCode: item.orgUnitCode, personKey: key });
       }
     }
   });
 
   // Leads are set last: a lead has to be a member, and members are loaded with the people.
   // A lead that cannot be set is reported and the equipo keeps the lead it had (R-08).
-  for (const { team, line, key, leadKey } of teamRows) {
+  for (const { team, line, key, leadKey, orgUnitCode } of teamRows) {
     if (!leadKey) continue;
     const leadPersonId =
       personIdByKey.get(normalize(leadKey)) ??
       state.people.find((p) => (p.account && normalize(p.account) === normalize(leadKey)) || p.employeeNumber === leadKey)?.id;
     const current = state.teams.find((t) => t.id === team.id)!;
     if (!leadPersonId) {
-      reject('equipos', line, key, `No existe la persona líder ${leadKey}.`);
+      reject('equipos', line, key, `No existe la persona líder ${leadKey}.`, 'leadMissing', 'team', { orgUnitCode });
       continue;
     }
     if (current.leadPersonId === leadPersonId) continue;
     const isMember = state.teamMemberships.some((m) => m.status === 'active' && m.teamId === team.id && m.personId === leadPersonId);
     if (!isMember) {
-      reject('equipos', line, key, `La persona líder ${leadKey} no es integrante del equipo.`);
+      reject('equipos', line, key, `La persona líder ${leadKey} no es integrante del equipo.`, 'leadNotMember', 'team', { orgUnitCode });
       continue;
     }
     const pendingChange = changes.find((c) => c.kind === 'team' && c.entity.id === team.id);
@@ -281,7 +302,7 @@ export function planImport(current: OrganizationState, payload: ImportPayload, n
         if (item) item.action = 'change';
       }
     } catch (error) {
-      reject('equipos', line, key, error instanceof Error ? error.message : String(error));
+      reject('equipos', line, key, error instanceof Error ? error.message : String(error), 'rule', 'team', { orgUnitCode });
     }
   }
 
