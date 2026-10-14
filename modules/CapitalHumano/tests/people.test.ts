@@ -62,6 +62,20 @@ describe('people directory (M2-26)', () => {
     expect(page.counts).toEqual({ active: 4, noTeam: 2, noAccount: 4, noRole: 0, inactive: 0 });
   });
 
+  it('with an área, the role filter asks for the role given there, as the roles matrix counts it (M2-29)', async () => {
+    // Cinco is in an equipo of Hidroponía but supervises in Operaciones.
+    const supervisor = role(state, 'supervisor').id;
+    await saveEntities({ changes: [{ kind: 'roleAssignment', data: { personId: person(state, 'P-0005').id, roleId: supervisor, orgUnitId: unit(state, 'OPS-LOG').id } }], actor: admin }, deps);
+    expect(names((await listPeople({ roleId: supervisor, orgUnitId: unit(state, 'DIR-HID').id }, deps)).items)).toEqual(['Cuatro']);
+    expect(names((await listPeople({ roleId: supervisor, orgUnitId: unit(state, 'DIR-OPS').id }, deps)).items)).toEqual(['Cinco']);
+
+    // The empresa column counts the role given on the empresa itself, not under it.
+    const director = role(state, 'director').id;
+    await saveEntities({ changes: [{ kind: 'roleAssignment', data: { personId: person(state, 'P-0007').id, roleId: director, orgUnitId: unit(state, 'AGZ').id } }], actor: admin }, deps);
+    expect(names((await listPeople({ roleId: director, orgUnitId: unit(state, 'AGZ').id }, deps)).items)).toEqual(['Dos', 'Siete']);
+    expect(names((await listPeople({ roleId: director, orgUnitId: unit(state, 'AGZ').id, roleHere: 'true' }, deps)).items)).toEqual(['Siete']);
+  });
+
   it('describes each person: roles with their path, equipos, what is missing', async () => {
     const cuatro = (await listPeople({ search: 'cuatro' }, deps)).items[0]!;
     expect(cuatro.assignments[0]).toMatchObject({ roleName: 'Supervisor', level: 'supervisor', jobTitle: 'Supervisor de Cuadrilla', orgUnitPath: ['Agrizar (datos de prueba)', 'Hidroponía', 'Operación Hidroponía AGZ 1'] });

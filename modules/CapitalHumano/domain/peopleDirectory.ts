@@ -29,7 +29,10 @@ export const peopleQuerySchema = z.object({
     .enum(PEOPLE_TRAYS)
     .nullish()
     .transform((value) => value ?? null),
+  /** A role; with an área, the role has to be given there or under it. */
   roleId: optionalId,
+  /** With a role and an área: only the role given on that área itself, not under it. */
+  roleHere: flag,
   /** An área: people with a role there or under it, or in an equipo there or under it. */
   orgUnitId: optionalId,
   teamId: optionalId,
@@ -168,8 +171,8 @@ function formerUnits(state: OrganizationState): Map<string, Set<string>> {
 export function queryPeople(state: OrganizationState, input: PeopleQueryInput = {}): PeoplePage {
   const query = peopleQuerySchema.parse(input);
   let rows = personRows(state);
-  if (query.orgUnitId) {
-    const scope = unitScope(state, query.orgUnitId);
+  const scope = query.orgUnitId ? unitScope(state, query.orgUnitId) : null;
+  if (query.orgUnitId && scope) {
     const former = formerUnits(state);
     // An active person belongs where they are now. An inactive one has no role or equipo left,
     // so they belong where they were: otherwise the inactive tray of an área would stay empty.
@@ -192,7 +195,11 @@ export function queryPeople(state: OrganizationState, input: PeopleQueryInput = 
   if (tray === 'inactive') rows = rows.filter((row) => row.status === 'inactive');
   else if (tray) rows = rows.filter((row) => row.alerts.includes(tray));
   else if (!query.includeInactive) rows = rows.filter((row) => row.status === 'active');
-  if (query.roleId) rows = rows.filter((row) => row.assignments.some((a) => a.roleId === query.roleId));
+  if (query.roleId) {
+    // The same assignment carries the role and the área, as the roles matrix counts them (spec M2-29).
+    const where = (orgUnitId: string) => !scope || (query.roleHere ? orgUnitId === query.orgUnitId : scope.has(orgUnitId));
+    rows = rows.filter((row) => row.assignments.some((a) => a.roleId === query.roleId && where(a.orgUnitId)));
+  }
   if (query.teamId) rows = rows.filter((row) => row.teams.some((t) => t.id === query.teamId));
   const words = normalize(query.search).split(/\s+/).filter(Boolean);
   if (words.length) {

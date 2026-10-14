@@ -21,7 +21,7 @@ const heat = (people: number, most: number): CSSProperties => ({ ['--heat' as st
 
 /** Spec M2-29: who holds each role in each dirección, with the gaps in plain sight. */
 export function RoleMatrix({ org, held, scope, selectedId, onRole, onCell }: Props) {
-  const { columns, rows, hasRoot, most, cell } = useMemo(() => {
+  const { root, columns, rows, hasRoot, most, cell } = useMemo(() => {
     const branches = branchOf(org.orgUnits);
     const shown = scope && new Set([...scope].map((id) => branches.get(id)));
     const columns = sortUnits(org.orgUnits.filter((u) => u.status === 'active' && branches.get(u.id) === u.id && (!shown || shown.has(u.id))));
@@ -36,6 +36,7 @@ export function RoleMatrix({ org, held, scope, selectedId, onRole, onCell }: Pro
     const ladder = active.filter((r) => r.level).sort((a, b) => ROLE_LEVELS.indexOf(a.level!) - ROLE_LEVELS.indexOf(b.level!) || a.name.localeCompare(b.name, 'es'));
     const others = active.filter((r) => !r.level).sort((a, b) => Number(b.isSystem) - Number(a.isSystem) || a.name.localeCompare(b.name, 'es'));
     return {
+      root: org.orgUnits.find((u) => u.status === 'active' && u.parentId === null) ?? null,
       columns,
       rows: [ladder, others],
       hasRoot: [...people.keys()].some((key) => key.endsWith('|')),
@@ -104,7 +105,17 @@ export function RoleMatrix({ org, held, scope, selectedId, onRole, onCell }: Pro
                           </td>
                         );
                       })}
-                      {hasRoot && <td>{cell(role.id, '') ? <span className="matrix-cell is-root" style={heat(cell(role.id, ''), most)}>{cell(role.id, '')}</span> : <span className="matrix-none">·</span>}</td>}
+                      {hasRoot && (
+                        <td>
+                          {cell(role.id, '') && root ? (
+                            <button type="button" className="matrix-cell is-root" style={heat(cell(role.id, ''), most)} onClick={() => onCell(role.id, root.id)} aria-label={`${count(cell(role.id, ''), 'persona', 'personas')} con el rol ${role.name} en ${root.name}: ver quiénes`}>
+                              {cell(role.id, '')}
+                            </button>
+                          ) : (
+                            <span className="matrix-none">·</span>
+                          )}
+                        </td>
+                      )}
                       <td className="matrix-total">{total(role.id)}</td>
                     </tr>
                   ))}

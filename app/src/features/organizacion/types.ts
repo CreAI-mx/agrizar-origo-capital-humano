@@ -20,6 +20,8 @@ export interface TabProps {
   onShowPeople: (roleId: string, orgUnitId: string) => void;
   /** The role Personas should open filtered by, when another screen asked for it. */
   focusRoleId: string | null;
+  /** That role counts only where it is given on the área itself (the empresa column), not under it. */
+  focusRoleHere: boolean;
 }
 
 export const READ_ONLY_HINT = 'Solo un Administrador de Origo puede cambiar la organización';

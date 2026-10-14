@@ -3,7 +3,7 @@ import { parseCsv } from '@origo/capital-humano';
 import { Alert, App, Button, Table, Tag, Tooltip } from 'antd';
 import { useMemo, useRef, useState } from 'react';
 import type { ImportFile } from '../api';
-import { CropSeal, StageSeal, branchOf, cropsOf, type Crop, type Stage } from '../crops';
+import { CropSeal, StageSeal, cropsOf, type Crop, type Stage } from '../crops';
 import { useImport } from '../hooks';
 import { count, normalize } from '../lib';
 import { READ_ONLY_HINT, type TabProps } from '../types';
@@ -63,9 +63,17 @@ const download = (name: string, text: string) => {
   link.click();
   URL.revokeObjectURL(link.href);
 };
-const csvCell = (value: string | number) => `"${String(value).replace(/"/g, '""')}"`;
+// Codes and names come from the uploaded files: a leading = + - @ or control character is kept as text,
+// so a spreadsheet opening the errors does not run it as a formula.
+const csvCell = (value: string | number) => {
+  const text = String(value);
+  return `"${(/^[=+\-@\t\r]/.test(text) ? `'${text}` : text).replace(/"/g, '""')}"`;
+};
 
 interface Impact {
+  /** Code of the branch, '' for what lands on the empresa. */
+  key: string;
+  /** The branch in the organization; '' when the file creates it. */
   id: string;
   name: string;
   crop: Crop | null;
@@ -77,25 +85,35 @@ interface Impact {
 function impactOf(units: OrgUnit[], items: ImportItem[]): Impact[] {
   const byCode = new Map(units.map((u) => [normalize(u.code), u]));
   const byId = new Map(units.map((u) => [u.id, u]));
-  const branches = branchOf(units);
   const crops = cropsOf(units);
-  // An área the file creates is not in the organization yet: its branch is its parent's.
-  const parentInFile = new Map(items.filter((i) => i.entity === 'orgUnit' && i.orgUnitCode && i.parentCode).map((i) => [normalize(i.orgUnitCode!), normalize(i.parentCode!)]));
-  const branchOfCode = (code: string | null): OrgUnit | null => {
+  // The tree as it would be after the load: an área row that would be saved sets where it hangs,
+  // whether the área is new or moves; every other área stays where it is.
+  const saved = items.filter((i) => i.entity === 'orgUnit' && i.orgUnitCode && i.action !== 'error');
+  const parentInFile = new Map(saved.map((i) => [normalize(i.orgUnitCode!), i.parentCode ? normalize(i.parentCode) : null]));
+  const spelled = new Map(saved.map((i) => [normalize(i.orgUnitCode!), i.orgUnitCode!]));
+  const parentOf = (code: string): string | null => {
+    if (parentInFile.has(code)) return parentInFile.get(code)!;
+    const parent = byId.get(byCode.get(code)?.parentId ?? '');
+    return parent ? normalize(parent.code) : null;
+  };
+  // A branch hangs directly from the empresa, which hangs from nothing (as in `branchOf`).
+  const branchOfCode = (code: string | null): string | null => {
     const seen = new Set<string>();
-    for (let current = code ? normalize(code) : undefined; current && !seen.has(current); current = parentInFile.get(current)) {
+    let below: string | null = null;
+    for (let current = code ? normalize(code) : null; current && !seen.has(current); current = parentOf(current)) {
       seen.add(current);
-      const unit = byCode.get(current);
-      if (unit) return byId.get(branches.get(unit.id) ?? '') ?? null;
+      if (parentOf(current) === null) return below;
+      below = current;
     }
     return null;
   };
 
-  const tally = new Map<string, { unit: OrgUnit | null; areas: [number, number]; teams: [number, number]; roles: [number, number]; records: [number, number]; people: Set<string>; keys: string[] }>();
+  const tally = new Map<string, { unit: OrgUnit | null; code: string; areas: [number, number]; teams: [number, number]; roles: [number, number]; records: [number, number]; people: Set<string>; keys: string[] }>();
   for (const item of items) {
     if (item.action !== 'create' && item.action !== 'change') continue;
-    const unit = branchOfCode(item.orgUnitCode);
-    const row = tally.get(unit?.id ?? '') ?? { unit, areas: [0, 0], teams: [0, 0], roles: [0, 0], records: [0, 0], people: new Set<string>(), keys: [] };
+    const code = branchOfCode(item.orgUnitCode) ?? '';
+    const unit = byCode.get(code) ?? null;
+    const row = tally.get(code) ?? { unit, code, areas: [0, 0], teams: [0, 0], roles: [0, 0], records: [0, 0], people: new Set<string>(), keys: [] };
     const slot = item.action === 'create' ? 0 : 1;
     if (item.entity === 'orgUnit') {
       row.areas[slot] += 1;
@@ -104,16 +122,18 @@ function impactOf(units: OrgUnit[], items: ImportItem[]): Impact[] {
     else if (item.entity === 'role') row.roles[slot] += 1;
     else if (item.entity === 'person') row.records[slot] += 1;
     else if (item.personKey) row.people.add(item.personKey);
-    tally.set(unit?.id ?? '', row);
+    tally.set(code, row);
   }
   const part = ([created, changed]: [number, number], one: string, many: string, verb: [string, string]) => [
     ...(created ? [`+${count(created, one, many)}`] : []),
     ...(changed ? [`${count(changed, one, many)} ${changed === 1 ? verb[0] : verb[1]}`] : []),
   ];
   return [...tally.values()]
-    .map(({ unit, areas, teams, roles, records, people, keys }) => ({
+    .map(({ unit, code, areas, teams, roles, records, people, keys }) => ({
+      key: code,
       id: unit?.id ?? '',
-      name: unit?.name ?? 'Toda la organización',
+      // A dirección the file creates has no crop yet: it gets one once it is in the organization.
+      name: unit?.name ?? (code ? `Nueva dirección ${spelled.get(code) ?? code}` : 'Toda la organización'),
       crop: unit ? (crops.get(unit.id) ?? null) : null,
       lines: [
         ...part(areas, 'área', 'áreas', ['cambia', 'cambian']),
@@ -124,7 +144,7 @@ function impactOf(units: OrgUnit[], items: ImportItem[]): Impact[] {
       ],
       keys,
     }))
-    .sort((a, b) => Number(!a.id) - Number(!b.id) || a.name.localeCompare(b.name, 'es'));
+    .sort((a, b) => Number(!a.key) - Number(!b.key) || Number(!a.id) - Number(!b.id) || a.name.localeCompare(b.name, 'es'));
 }
 
 /** Spec M2-17 to M2-19 and M2-28: choose the files, see what they would change, confirm. */
@@ -324,7 +344,7 @@ export function ImportTab({ org, canEdit, onShowArea }: TabProps) {
               <span className="eyebrow">Impacto por dirección</span>
               {impact.length ? (
                 impact.map((branch) => (
-                  <div key={branch.id || 'all'} className="load-impact" data-crop={branch.crop ?? undefined}>
+                  <div key={branch.key || 'all'} className="load-impact" data-crop={branch.crop ?? undefined}>
                     <CropSeal crop={branch.crop ?? 'brote'} size={44} />
                     <div>
                       <strong>{branch.name}</strong>

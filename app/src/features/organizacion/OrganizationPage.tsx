@@ -8,7 +8,7 @@ import { PeopleTab } from './components/PeopleTab';
 import { RolesTab } from './components/RolesTab';
 import { TeamsTab } from './components/TeamsTab';
 import { ViewAsTab } from './components/ViewAsTab';
-import { CropSeal, cropsOf } from './crops';
+import { CropSeal, branchOf, cropsOf } from './crops';
 import { peopleInScope, scopeOf, unitPath, unitTree } from './lib';
 import type { TabProps } from './types';
 
@@ -30,13 +30,17 @@ export function OrganizationPage({ org, canEdit, mode }: { org: OrganizationView
     setTab('areas');
   };
   const [focusRoleId, setFocusRoleId] = useState<string | null>(null);
-  // From a cell of the roles matrix to the people in it.
+  const [focusRoleHere, setFocusRoleHere] = useState(false);
+  // From a cell of the roles matrix to the people in it. A narrower área filter inside that
+  // dirección stays, since the matrix counted only what is inside it.
   const showPeople = (roleId: string, orgUnitId: string) => {
-    setScopeId(orgUnitId);
+    const unit = org.orgUnits.find((u) => u.id === orgUnitId);
+    if (!scopeUnit || branchOf(org.orgUnits).get(scopeUnit.id) !== orgUnitId) setScopeId(orgUnitId);
     setFocusRoleId(roleId);
+    setFocusRoleHere(unit?.parentId === null);
     setTab('personas');
   };
-  const props: TabProps = { org, canEdit, mode, scope, scopeId: scopeUnit?.id ?? null, onScope: setScopeId, onShowArea: showArea, focusAreaId, onShowPeople: showPeople, focusRoleId, onHistory: (entityId, title) => setHistory({ entityId, title }) };
+  const props: TabProps = { org, canEdit, mode, scope, scopeId: scopeUnit?.id ?? null, onScope: setScopeId, onShowArea: showArea, focusAreaId, onShowPeople: showPeople, focusRoleId, focusRoleHere, onHistory: (entityId, title) => setHistory({ entityId, title }) };
 
   const active = <T extends { status: string }>(items: T[]) => items.filter((item) => item.status === 'active');
   const counts = {
@@ -67,13 +71,15 @@ export function OrganizationPage({ org, canEdit, mode }: { org: OrganizationView
         {scopeUnit && <span className="muted">{unitPath(org.orgUnits, scopeUnit.id)} · incluye lo que tiene debajo</span>}
       </div>
       <Tabs
-        destroyOnHidden
         activeKey={tab}
         onChange={(key) => {
           setTab(key);
           setFocusAreaId(null);
           setFocusRoleId(null);
+          setFocusRoleHere(false);
         }}
+        // Each tab is rebuilt when it opens, so it shows the organization as it is now. Carga is kept:
+        // a load under review survives a look at the chart and can still be confirmed (spec M2-28).
         items={[
           { key: 'areas', label: `Áreas (${counts.areas})`, children: <AreasTab {...props} /> },
           { key: 'roles', label: `Roles (${counts.roles})`, children: <RolesTab {...props} /> },
@@ -81,7 +87,7 @@ export function OrganizationPage({ org, canEdit, mode }: { org: OrganizationView
           { key: 'personas', label: `Personas (${counts.people})`, children: <PeopleTab {...props} /> },
           { key: 'carga', label: 'Carga', children: <ImportTab {...props} /> },
           { key: 'ver-como', label: 'Ver como', children: <ViewAsTab {...props} /> },
-        ]}
+        ].map((item) => ({ ...item, destroyOnHidden: item.key !== 'carga' }))}
       />
       <HistoryDrawer org={org} target={history} onClose={() => setHistory(null)} />
     </>

@@ -11,7 +11,7 @@ organización), epic GRZR-17 · Client: Agrizar · Program: Origo (creai Solutio
 
 | Deliverable | State |
 |---|---|
-| MD-2 organization tree: API, rules, bulk load, Back Office | Built; runs locally; 81 automated tests |
+| MD-2 organization tree: API, rules, bulk load, Back Office | Built; runs locally; 82 automated tests |
 | Centro de mando (dashboard hub) | Specified, not built |
 | Organigrama as a people chart | Specified, not built |
 
