@@ -28,8 +28,10 @@ async function request<T>(path: string, body?: unknown): Promise<T> {
   } catch {
     throw new ApiError('No hay conexión con el servidor local. Revisa que la API esté encendida.');
   }
-  const payload = await response.json().catch(() => ({}));
-  if (!response.ok) throw new ApiError(payload.message ?? 'Algo falló. Inténtalo de nuevo.', payload.details ?? [], response.status);
+  const payload = await response.json().catch(() => null);
+  if (!response.ok) throw new ApiError(payload?.message ?? 'Algo falló. Inténtalo de nuevo.', payload?.details ?? [], response.status);
+  // An answer that is not JSON did not come from the API: the dev server answered with its own page.
+  if (payload === null) throw new ApiError('La API local no respondió. Reinicia «npm run dev» y vuelve a cargar la página.', [], response.status);
   return payload as T;
 }
 

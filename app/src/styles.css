@@ -727,3 +727,346 @@ button.chain-row:focus-visible {
   margin: 0 0 8px;
   text-align: right;
 }
+
+/* ── Guided load (spec M2-28) ───────────────────────────────────────────────────────── */
+.load {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.load h3 {
+  margin: 0;
+  font: 500 1.35rem/1.2 var(--f-display);
+}
+.load p {
+  margin: 0;
+}
+/* The three steps, told as the life of a crop (ADR-0002). */
+.load-steps {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.load-steps li {
+  display: flex;
+  flex: 1 1 220px;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 18px 8px 8px;
+  color: var(--txt-2);
+  background: var(--glass);
+  border: 1px solid var(--linea-alta);
+  border-radius: var(--r-pill);
+}
+.load-steps li > span {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.78rem;
+}
+.load-steps strong {
+  font-size: 0.9rem;
+}
+.load-steps .is-current {
+  color: var(--txt-invertido);
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.load-steps .is-done {
+  color: var(--txt);
+  border-color: var(--accent-borde);
+}
+.stage-seal {
+  flex: none;
+  fill: none;
+  stroke: var(--txt-2);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  background: var(--glass-2-solido);
+  border-radius: 50%;
+}
+.is-current > .stage-seal {
+  stroke: var(--accent);
+  background: var(--txt-invertido);
+}
+.is-done > .stage-seal {
+  stroke: var(--txt-invertido);
+  background: var(--accent);
+}
+.load-slots {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr));
+  gap: 16px;
+}
+.load-slot {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 196px;
+  padding: 16px 18px;
+  background: var(--glass);
+  border: 1px dashed var(--guia);
+  border-radius: var(--r);
+  transition: border-color var(--d1) var(--ease), background var(--d1) var(--ease);
+}
+.load-slot.is-ready {
+  background: var(--accent-suave);
+  border: 1px solid var(--accent-borde);
+}
+.load-slot.is-over {
+  background: var(--accent-suave);
+  border-color: var(--accent);
+}
+.load-slot-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.load-slot .org-kind {
+  color: var(--txt-2);
+}
+.load-columns {
+  font-size: 0.76rem;
+  color: var(--txt-2);
+}
+.load-slot-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: auto;
+}
+.load-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 16px;
+}
+.load-footer p {
+  flex: 1 1 320px;
+}
+.load-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px 24px;
+}
+.load-tile.is-create .tray-count {
+  color: var(--bueno);
+}
+.load-tile.is-change .tray-count {
+  color: var(--serie-2);
+}
+.load-tile.is-unchanged .tray-count {
+  color: var(--txt-2);
+}
+.load-tile.is-error .tray-count {
+  color: var(--malo);
+}
+.load .trays {
+  margin-bottom: 0;
+}
+.load-bar {
+  display: flex;
+  gap: 3px;
+  height: 10px;
+}
+.load-bar span {
+  flex: 0 0 auto;
+  flex-basis: 0;
+  min-width: 6px;
+  border-radius: 5px;
+}
+.load-bar .is-create {
+  background: var(--bueno);
+}
+.load-bar .is-change {
+  background: var(--serie-2);
+}
+.load-bar .is-unchanged {
+  background: var(--txt-3);
+}
+.load-bar .is-error {
+  background: var(--malo);
+}
+.load-panels {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(420px, 100%), 1fr));
+  gap: 16px;
+  align-items: start;
+}
+.load-impact {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 14px;
+  background: var(--glass);
+  border: 1px solid var(--linea-alta);
+  border-radius: var(--r-sm);
+}
+.load-impact[data-crop] {
+  background: color-mix(in srgb, var(--crop) 10%, var(--glass-solido));
+  border-color: color-mix(in srgb, var(--crop) 35%, transparent);
+}
+.load-impact > div {
+  display: flex;
+  flex: 1 1 220px;
+  flex-direction: column;
+  min-width: 0;
+}
+.load-impact strong {
+  font: 500 1.05rem/1.25 var(--f-display);
+}
+.load-impact[data-crop] .load-impact-lines {
+  color: var(--crop);
+}
+.load-errors-title {
+  color: var(--malo);
+}
+.load-cause {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px 14px;
+  background: var(--malo-suave);
+  border: 1px solid var(--malo);
+  border-radius: var(--r-sm);
+}
+.load-cause-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+.load-fix {
+  font-size: 0.8rem;
+}
+.load-download {
+  align-self: flex-start;
+}
+
+/* ── Roles by dirección (spec M2-29) ────────────────────────────────────────────────── */
+.matrix-layout {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 16px;
+}
+.matrix {
+  display: flex;
+  flex: 999 1 640px;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+.matrix p {
+  margin: 0;
+}
+.matrix-detail {
+  flex: 1 1 320px;
+  max-width: 420px;
+}
+.matrix-scroll {
+  overflow-x: auto;
+  padding: 12px 16px 16px;
+  background: var(--glass);
+  border: 1px solid var(--linea);
+  border-radius: var(--r);
+}
+.role-matrix {
+  width: 100%;
+  min-width: 760px;
+  border-spacing: 6px;
+  font-family: var(--f-num);
+}
+.role-matrix th,
+.role-matrix td {
+  padding: 0;
+  vertical-align: middle;
+}
+.role-matrix thead th {
+  padding-bottom: 6px;
+  font: 0.76rem var(--f-ui);
+  vertical-align: bottom;
+}
+.role-matrix thead th > span {
+  display: block;
+  margin-top: 4px;
+}
+.role-matrix thead th:first-child,
+.role-matrix th[scope='row'] {
+  text-align: left;
+}
+.role-matrix tbody + tbody tr:first-child > * {
+  padding-top: 12px;
+  border-top: 1px solid var(--linea-alta);
+}
+.role-matrix td {
+  min-width: 64px;
+  text-align: center;
+}
+.matrix-role {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  width: 100%;
+  min-height: 36px;
+  padding: 4px 8px;
+  font: 0.9rem var(--f-ui);
+  text-align: left;
+  white-space: nowrap;
+  color: inherit;
+  cursor: pointer;
+  background: none;
+  border: 1px solid transparent;
+  border-radius: var(--r-xs);
+}
+.matrix-role:hover,
+.matrix-role:focus-visible,
+.is-selected .matrix-role {
+  background: var(--accent-suave);
+  border-color: var(--accent-borde);
+  outline: none;
+}
+.matrix-cell,
+.matrix-gap,
+.matrix-none {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 36px;
+  padding: 0;
+  font: inherit;
+  line-height: 34px;
+  color: var(--txt);
+  border: 1px solid transparent;
+  border-radius: var(--r-xs);
+}
+.matrix-cell {
+  background: color-mix(in srgb, var(--crop, var(--accent)) var(--heat, 20%), transparent);
+}
+button.matrix-cell {
+  cursor: pointer;
+}
+button.matrix-cell:hover,
+button.matrix-cell:focus-visible {
+  border-color: var(--crop, var(--accent));
+  outline: none;
+}
+.matrix-gap {
+  color: var(--txt-2);
+  border: 1px dashed var(--guia);
+}
+.matrix-none {
+  color: var(--txt-3);
+}
+.matrix-total {
+  font-weight: 600;
+}

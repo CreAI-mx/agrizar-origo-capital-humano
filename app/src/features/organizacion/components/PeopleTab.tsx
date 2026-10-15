@@ -33,11 +33,15 @@ const TRAYS: { key: PeopleTray; label: string; hint: string }[] = [
 const PAGE_SIZES = [25, 50, 100];
 
 /** Spec M2-26: the directory asks the API for one page at a time, already searched and filtered. */
-export function PeopleTab({ org, canEdit, onHistory, scope, scopeId, onShowArea }: TabProps) {
+export function PeopleTab({ org, canEdit, onHistory, scope, scopeId, onShowArea, focusRoleId, focusRoleHere }: TabProps) {
   const [search, setSearch] = useState('');
   const [term, setTerm] = useState('');
   const [tray, setTray] = useState<PeopleTray | null>(null);
-  const [roleId, setRoleId] = useState<string | null>(null);
+  const [roleId, setRoleId] = useState<string | null>(focusRoleId);
+  // From the empresa column of the roles matrix: the role given on the empresa itself. It lasts
+  // while that role and that área stay chosen.
+  const [here, setHere] = useState(focusRoleHere && focusRoleId ? { roleId: focusRoleId, orgUnitId: scopeId } : null);
+  const roleHere = Boolean(here && here.roleId === roleId && here.orgUnitId === scopeId);
   const [teamId, setTeamId] = useState<string | null>(null);
   const [showInactive, setShowInactive] = useState(false);
   const [page, setPage] = useState(1);
@@ -66,7 +70,7 @@ export function PeopleTab({ org, canEdit, onHistory, scope, scopeId, onShowArea 
     setPage(1);
   };
 
-  const people = usePeople({ search: term, tray, roleId, teamId, orgUnitId: scopeId, includeInactive: showInactive, page, pageSize });
+  const people = usePeople({ search: term, tray, roleId, roleHere, teamId, orgUnitId: scopeId, includeInactive: showInactive, page, pageSize });
   const counts = people.data?.counts;
   useSameSnapshot(org.dataAsOf, people.isPlaceholderData ? undefined : people.data?.dataAsOf, 'people');
   const crops = useMemo(() => cropsOf(org.orgUnits), [org.orgUnits]);
@@ -138,6 +142,11 @@ export function PeopleTab({ org, canEdit, onHistory, scope, scopeId, onShowArea 
       <div className="toolbar">
         <Input.Search className="grow" allowClear placeholder="Buscar por nombre, puesto, cuenta o número de empleado" value={search} onChange={(e) => setSearch(e.target.value)} />
         <Select className="filter" allowClear showSearch optionFilterProp="label" placeholder="Rol" aria-label="Filtrar por rol" value={roleId} onChange={(value) => filter(setRoleId)(value ?? null)} options={roleOptions} />
+        {roleHere && (
+          <Tag closable onClose={() => filter(setHere)(null)}>
+            Solo en {org.orgUnits.find((u) => u.id === scopeId)?.name}, no debajo
+          </Tag>
+        )}
         <Select className="filter" allowClear showSearch optionFilterProp="label" placeholder="Equipo" aria-label="Filtrar por equipo" value={teamId} onChange={(value) => filter(setTeamId)(value ?? null)} options={teamOptions} />
         <Space>
           <Switch size="small" checked={showInactive || tray === 'inactive'} disabled={tray === 'inactive'} onChange={filter(setShowInactive)} id="show-inactive-people" />

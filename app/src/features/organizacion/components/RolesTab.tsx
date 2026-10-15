@@ -5,15 +5,16 @@ import { useMemo, useState } from 'react';
 import { useSave } from '../hooks';
 import { count } from '../lib';
 import { READ_ONLY_HINT, type TabProps } from '../types';
+import { RoleMatrix } from './RoleMatrix';
 import { TreeChart, type ChartItem } from './TreeChart';
 
 type Draft = Partial<Role>;
 const levelLabel = (level: string) => level.charAt(0).toUpperCase() + level.slice(1).replace('ider', 'íder');
 
-type View = 'diagram' | 'list';
+type View = 'matrix' | 'diagram' | 'list';
 
-export function RolesTab({ org, canEdit, onHistory, mode, scope }: TabProps) {
-  const [view, setView] = useState<View>('diagram');
+export function RolesTab({ org, canEdit, onHistory, mode, scope, onShowPeople }: TabProps) {
+  const [view, setView] = useState<View>('matrix');
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [draft, setDraft] = useState<Draft | null>(null);
   const [form] = Form.useForm<Draft>();
@@ -66,22 +67,10 @@ export function RolesTab({ org, canEdit, onHistory, mode, scope }: TabProps) {
         .sort((a, b) => b.people - a.people)
     : [];
 
-  return (
-    <>
-      <div className="toolbar">
-        <Segmented<View> value={view} onChange={setView} options={[{ value: 'diagram', label: 'Diagrama' }, { value: 'list', label: 'Lista' }]} />
-        <span className="grow" />
-        <Tooltip title={canEdit ? undefined : READ_ONLY_HINT}>
-          <Button type="primary" disabled={!canEdit} onClick={() => open({})}>
-            Nuevo rol
-          </Button>
-        </Tooltip>
-      </div>
-      {view === 'diagram' && (
-        <div className="chart-stage">
-          <TreeChart items={items} mode={mode} selectedId={selectedId} onSelect={setSelectedId} emptyText="Aún no hay roles" />
-          {selected && (
-            <Card size="small" className="chart-detail" title={selected.name} extra={<Button type="text" size="small" aria-label="Cerrar detalle" onClick={() => setSelectedId(null)}>✕</Button>}>
+  // The same detail serves the diagram, where it floats over the chart, and the matrix, beside it.
+  const detail = (className: string) =>
+    selected && (
+            <Card size="small" className={className} title={selected.name} extra={<Button type="text" size="small" aria-label="Cerrar detalle" onClick={() => setSelectedId(null)}>✕</Button>}>
               <Space direction="vertical" size="middle" style={{ width: '100%' }}>
                 <Descriptions size="small" column={1} bordered>
                   <Descriptions.Item label="Código">{selected.code}</Descriptions.Item>
@@ -124,7 +113,29 @@ export function RolesTab({ org, canEdit, onHistory, mode, scope }: TabProps) {
                 />
               </Space>
             </Card>
-          )}
+    );
+
+  return (
+    <>
+      <div className="toolbar">
+        <Segmented<View> value={view} onChange={setView} options={[{ value: 'matrix', label: 'Matriz' }, { value: 'diagram', label: 'Diagrama' }, { value: 'list', label: 'Lista' }]} />
+        <span className="grow" />
+        <Tooltip title={canEdit ? undefined : READ_ONLY_HINT}>
+          <Button type="primary" disabled={!canEdit} onClick={() => open({})}>
+            Nuevo rol
+          </Button>
+        </Tooltip>
+      </div>
+      {view === 'matrix' && (
+        <div className="matrix-layout">
+          <RoleMatrix org={org} held={held} scope={scope} selectedId={selectedId} onRole={(id) => setSelectedId(id === selectedId ? null : id)} onCell={onShowPeople} />
+          {detail('matrix-detail')}
+        </div>
+      )}
+      {view === 'diagram' && (
+        <div className="chart-stage">
+          <TreeChart items={items} mode={mode} selectedId={selectedId} onSelect={setSelectedId} emptyText="Aún no hay roles" />
+          {detail('chart-detail')}
         </div>
       )}
       {view === 'list' && (
